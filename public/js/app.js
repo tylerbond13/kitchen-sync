@@ -89,7 +89,10 @@
   function sendHello() {
     if (!socket.connected) return;
     socket.emit('hello', profile, (res) => {
-      if (res && res.ok) renderProfileStats(res.player);
+      if (res && res.ok) {
+        savePlayerBackup(res.player);
+        renderProfileStats(res.player);
+      }
     });
   }
 
@@ -134,8 +137,29 @@
     b.onclick = () => show(b.dataset.back);
   });
 
+  // device backups: every phone carries the crew's progress + own stats, so a
+  // fresh server (free hosting restarts) can be restored by any member.
+  function readBackup(key) {
+    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+  }
+  function saveCrewBackup(crew) {
+    if (crew && crew.code) {
+      try { localStorage.setItem(`ks-crew-${crew.code}`, JSON.stringify(crew)); } catch {}
+    }
+  }
+  function savePlayerBackup(player) {
+    if (player && player.stats) {
+      try { localStorage.setItem('ks-player-backup', JSON.stringify(player)); } catch {}
+    }
+  }
+
   function joinCrew(code, silent = false) {
-    socket.emit('join', { code, profile }, (res) => {
+    socket.emit('join', {
+      code,
+      profile,
+      crewBackup: readBackup(`ks-crew-${(code || '').toUpperCase().trim()}`),
+      playerBackup: readBackup('ks-player-backup'),
+    }, (res) => {
       if (res.error) {
         if (!silent) toast(res.error);
         if (silent) { myCode = null; sessionStorage.removeItem('ks-code'); }
@@ -143,6 +167,8 @@
       }
       myCode = res.code;
       sessionStorage.setItem('ks-code', myCode);
+      saveCrewBackup(res.crew);
+      savePlayerBackup(res.player);
       renderLobby(res.lobby);
       if (res.game) {
         // a round is already running — jump in
@@ -356,6 +382,7 @@
 
   // ---------- results ----------
   socket.on('game_over', (results) => {
+    saveCrewBackup(results.crew);
     clearInterval(hintTimer);
     if (renderer) { renderer.destroy(); renderer = null; }
     ticketEls.clear();

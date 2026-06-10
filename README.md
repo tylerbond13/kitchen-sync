@@ -77,12 +77,14 @@ test/       Engine unit tests + 2-client end-to-end test
 
 Any Node host with WebSocket support works. The app listens on `$PORT` and stores data in `$DATA_DIR` (default `./data`).
 
-**Render** (free tier works):
-1. Push this repo to GitHub → New Web Service → connect repo.
-2. Build: `npm install` · Start: `npm start`.
-3. Add a persistent disk mounted at `/data` and set env var `DATA_DIR=/data` so crew progress survives deploys.
+**Render** (free tier works — a `render.yaml` blueprint is included):
+1. Push this repo to GitHub → Render → New → Blueprint → connect the repo. Or create a Web Service by hand: build `npm install`, start `npm start`.
+2. That's it. The free tier's disk is ephemeral, but progress still survives restarts: **every phone carries a backup** of its crew's campaign and its player stats, and any member's device restores the server's memory on join.
+3. (Optional, paid) For server-side durability instead, add a persistent disk and set `DATA_DIR` to its mount path.
 
-**Railway / Fly.io**: same idea — `npm start`, attach a volume, point `DATA_DIR` at it.
+Note: free Render services sleep after ~15 idle minutes; the first person to open the link waits ~30–60 s while the kitchen wakes up.
+
+**Railway / Fly.io**: same idea — `npm start`; attach a volume and point `DATA_DIR` at it for server-side persistence.
 
 > Vercel/Netlify serverless won't work — the game needs a long-lived WebSocket server.
 

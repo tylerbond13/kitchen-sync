@@ -114,6 +114,62 @@ function upsertPlayer(profile) {
   return existing;
 }
 
+// ---- device-backup restore/merge ------------------------------------------
+// Clients cache their crew + profile records in localStorage and send them on
+// join. If the server lost its data (ephemeral disk on free hosting), any
+// member's phone can restore it. Merges always keep the best values.
+
+const int = (v, max = Number.MAX_SAFE_INTEGER) =>
+  Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
+
+function restoreCrew(backup) {
+  if (!backup || typeof backup !== 'object') return null;
+  const code = String(backup.code || '').toUpperCase().trim();
+  if (!/^[A-Z]{4}$/.test(code) || crews.data[code]) return null;
+  crews.data[code] = {
+    code,
+    createdAt: int(backup.createdAt) || Date.now(),
+    hostId: String(backup.hostId || '').slice(0, 64),
+    members: {},
+    progress: {},
+  };
+  mergeCrew(crews.data[code], backup);
+  return crews.data[code];
+}
+
+function mergeCrew(crew, backup) {
+  if (!backup || typeof backup !== 'object') return;
+  for (const [levelId, p] of Object.entries(backup.progress || {})) {
+    if (typeof levelId !== 'string' || levelId.length > 32 || !p) continue;
+    const cur = crew.progress[levelId] || { stars: 0, bestScore: 0, plays: 0 };
+    crew.progress[levelId] = {
+      stars: Math.max(cur.stars, int(p.stars, 3)),
+      bestScore: Math.max(cur.bestScore, int(p.bestScore, 1e6)),
+      plays: Math.max(cur.plays, int(p.plays, 1e6)),
+    };
+  }
+  for (const [id, m] of Object.entries(backup.members || {})) {
+    if (!crew.members[id] && m && typeof m === 'object') {
+      crew.members[id] = {
+        name: String(m.name || 'Chef').slice(0, 16),
+        avatar: String(m.avatar || '🧑‍🍳').slice(0, 8),
+        joinedAt: int(m.joinedAt) || Date.now(),
+      };
+    }
+  }
+  crews.save();
+}
+
+function mergePlayerStats(id, backup) {
+  const p = players.data[id];
+  const stats = backup && backup.stats;
+  if (!p || !stats || typeof stats !== 'object') return;
+  for (const key of ['levelsPlayed', 'mealsDelivered', 'starsEarned']) {
+    p.stats[key] = Math.max(p.stats[key] || 0, int(stats[key], 1e6));
+  }
+  players.save();
+}
+
 function recordPlayerResult(id, { delivered, stars }) {
   const p = players.data[id];
   if (!p) return;
@@ -131,4 +187,5 @@ function flushAll() {
 module.exports = {
   createCrew, getCrew, touchCrewMember, recordLevelResult,
   getPlayer, upsertPlayer, recordPlayerResult, flushAll,
+  restoreCrew, mergeCrew, mergePlayerStats,
 };

@@ -128,6 +128,25 @@ test('two players: create, join, play a round, progress persists', async () => {
   assert.ok(j3.ok);
   assert.equal(j3.lobby.levels.find((l) => l.id === 'salad-days').stars, 3);
 
+  // join ack carries device backups
+  assert.equal(j3.crew.code, code);
+  assert.equal(j3.crew.progress['salad-days'].stars, 3);
+  assert.equal(j3.player.stats.levelsPlayed, 1);
+
+  // server data loss: a device backup restores a crew the server never saw
+  const jRestore = await emitAck(sib2, 'join', {
+    code: 'JJJJ',
+    profile: pSib,
+    crewBackup: {
+      code: 'JJJJ', hostId: 'u-sib',
+      members: { 'u-sib': { name: 'Megan', avatar: '🦊' } },
+      progress: { 'salad-days': { stars: 2, bestScore: 500, plays: 4 } },
+    },
+  });
+  assert.ok(jRestore.ok, 'backup restores lost crew');
+  assert.equal(jRestore.lobby.levels.find((l) => l.id === 'salad-days').stars, 2);
+  assert.ok(jRestore.lobby.levels.find((l) => l.id === 'burger-bay').unlocked);
+
   tyler.disconnect();
   sib2.disconnect();
   await new Promise((res) => io.close(res));

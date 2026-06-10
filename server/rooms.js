@@ -102,7 +102,7 @@ function finishGame(io, room) {
     store.recordPlayerResult(p.id, { delivered: p.delivered, stars: results.stars });
   }
   room.game = null;
-  roomBroadcast(io, room, 'game_over', results);
+  roomBroadcast(io, room, 'game_over', { ...results, crew: room.crew });
   roomBroadcast(io, room, 'lobby', lobbyState(room));
 }
 
@@ -125,11 +125,16 @@ function attach(io) {
       ack({ ok: true, code: crew.code });
     });
 
-    socket.on('join', ({ code, profile }, ack) => {
+    socket.on('join', ({ code, profile, crewBackup, playerBackup }, ack) => {
       if (typeof ack !== 'function') return;
       if (!profile || !profile.id) return ack({ error: 'No profile' });
-      const crew = store.getCrew(code);
+      let crew = store.getCrew(code);
+      if (!crew && crewBackup) {
+        // server lost its data (ephemeral disk) — restore from this phone's backup
+        crew = store.restoreCrew(crewBackup);
+      }
       if (!crew) return ack({ error: 'No kitchen with that code. Check the letters?' });
+      if (crewBackup && crewBackup.code === crew.code) store.mergeCrew(crew, crewBackup);
 
       const room = ensureRoom(crew);
       const connectedCount = [...room.players.values()].filter((p) => p.connected).length;
@@ -138,6 +143,7 @@ function attach(io) {
       }
 
       store.upsertPlayer(profile);
+      if (playerBackup) store.mergePlayerStats(profile.id, playerBackup);
       store.touchCrewMember(crew, { id: profile.id, name: profile.name, avatar: profile.avatar });
 
       // replace any stale socket for this player
@@ -158,6 +164,8 @@ function attach(io) {
         ok: true,
         code: room.code,
         lobby: lobbyState(room),
+        crew,                                  // device backup of campaign progress
+        player: store.getPlayer(profile.id),   // device backup of lifetime stats
         // mid-game rejoin support
         game: room.game ? room.game.staticState() : null,
       });
