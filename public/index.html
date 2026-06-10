@@ -36,6 +36,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+/* author display rules (e.g. .pause-overlay { display:grid }) override the
+   browser's built-in [hidden] rule — restore hidden's authority globally */
+[hidden] { display: none !important; }
+
 html, body {
   height: 100%;
   overscroll-behavior: none;
