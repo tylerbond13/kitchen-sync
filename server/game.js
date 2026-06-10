@@ -5,6 +5,8 @@ const { ING, DISHES, RECIPES, COOK_COMBOS, CHOPPABLE } = require('./levels');
 
 const SPEED = 3.4;        // tiles per second
 const CHOP_TIME = 2.2;    // seconds of standing at a board
+const WASH_TIME = 2.5;    // seconds of standing at the sink, per plate
+const DIRTY_RETURN_DELAY = 7; // seconds after serving until the dirty plate hits the sink
 const EXPIRE_PENALTY = 20;
 
 const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T' };
@@ -65,6 +67,12 @@ class Game {
       : { every: 1, ttl: 1, stars: 1 };
     this.starGoals = level.stars.map((s) => Math.max(50, Math.round((s * this.pace.stars) / 10) * 10));
 
+    // plates are finite when the level has a sink: served plates come back
+    // dirty and must be washed to rejoin the stack
+    const hasSink = Object.values(this.stations).some((s) => s.type === 'sink');
+    this.plateSupply = hasSink && level.plates ? level.plates : null; // null = infinite
+    this.pendingDirty = []; // seconds until each served plate lands in the sink
+
     this.timeLeft = level.duration;
     this.score = 0;
     this.combo = 0;
@@ -99,6 +107,8 @@ class Game {
           this.stations[key] = { type: 'serve' };
         } else if (c === TILE.TRASH) {
           this.stations[key] = { type: 'trash' };
+        } else if (c === 'K') {
+          this.stations[key] = { type: 'sink', dirty: 0, progress: 0 };
         } else if (/[1-9]/.test(c)) {
           this.stations[key] = { type: 'crate', ing: this.level.crates[c] };
         }
@@ -256,14 +266,26 @@ class Game {
         break;
       }
       case 'plates': {
+        if (this.plateSupply !== null && this.plateSupply <= 0) {
+          this.emit('reject', at); // stack is empty — wash some dishes!
+          break;
+        }
         if (!p.carry) {
           p.carry = { kind: 'plate', contents: [] };
+          if (this.plateSupply !== null) this.plateSupply--;
           this.emit('pickup', at);
         } else if (p.carry.kind !== 'plate') {
           // ingredient-first: grab a plate under what you're holding
           const plate = { kind: 'plate', contents: [] };
-          if (this.addToPlate(plate, p.carry, at)) p.carry = plate;
+          if (this.addToPlate(plate, p.carry, at)) {
+            p.carry = plate;
+            if (this.plateSupply !== null) this.plateSupply--;
+          }
         }
+        break;
+      }
+      case 'sink': {
+        this.emit(s.dirty > 0 ? 'go' : 'reject', at); // washing happens by standing here
         break;
       }
       case 'serve': {
@@ -366,7 +388,9 @@ class Game {
     this.score += recipe.points + tip + comboBonus;
     this.deliveredCount++;
     p.delivered++;
-    p.carry = null; // plate goes back to the stack
+    p.carry = null;
+    // the plate comes back dirty at the sink in a few seconds
+    if (this.plateSupply !== null) this.pendingDirty.push(DIRTY_RETURN_DELAY);
     this.emit('serve', { ...at, points: recipe.points + tip + comboBonus, recipe: order.recipe });
   }
 
@@ -419,12 +443,44 @@ class Game {
         }
       }
     }
-    // clear working flags for players not actually chopping
+    // dirty plates arriving at the sink
+    if (this.pendingDirty.length) {
+      this.pendingDirty = this.pendingDirty.map((t) => t - dt);
+      const arrived = this.pendingDirty.filter((t) => t <= 0).length;
+      if (arrived) {
+        this.pendingDirty = this.pendingDirty.filter((t) => t > 0);
+        const sink = Object.values(this.stations).find((s) => s.type === 'sink');
+        if (sink) sink.dirty += arrived;
+        else this.plateSupply += arrived; // no sink: plates come back clean
+      }
+    }
+
+    // washing: any idle player adjacent to a sink with dirty plates scrubs
+    for (const [key, s] of Object.entries(this.stations)) {
+      if (s.type !== 'sink' || s.dirty <= 0) continue;
+      const [sx, sy] = key.split(',').map(Number);
+      const worker = Object.values(this.players).find((p) =>
+        !p.path.length && Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1);
+      if (worker) {
+        worker.working = true;
+        s.progress += dt / WASH_TIME;
+        if (s.progress >= 1) {
+          s.dirty--;
+          s.progress = 0;
+          if (this.plateSupply !== null) this.plateSupply++;
+          this.emit('washed', { x: sx, y: sy });
+        }
+      }
+    }
+
+    // clear working flags for players not actually chopping or washing
     for (const p of Object.values(this.players)) {
       if (p.working) {
         const px = Math.floor(p.x), py = Math.floor(p.y);
         const stillWorking = Object.entries(this.stations).some(([key, s]) => {
-          if (s.type !== 'board' || !s.item || s.item.state !== 'raw' || !CHOPPABLE.has(s.item.id)) return false;
+          const busyBoard = s.type === 'board' && s.item && s.item.state === 'raw' && CHOPPABLE.has(s.item.id);
+          const busySink = s.type === 'sink' && s.dirty > 0;
+          if (!busyBoard && !busySink) return false;
           const [sx, sy] = key.split(',').map(Number);
           return !p.path.length && Math.abs(px - sx) + Math.abs(py - sy) === 1;
         });
@@ -520,6 +576,9 @@ class Game {
     for (const [key, s] of Object.entries(this.stations)) {
       if (s.type === 'counter' && s.item) stations[key] = { item: s.item };
       else if (s.type === 'board' && s.item) stations[key] = { item: s.item, progress: s.progress };
+      else if (s.type === 'sink' && (s.dirty > 0 || s.progress > 0)) {
+        stations[key] = { dirty: s.dirty, progress: s.progress };
+      }
       else if (s.type === 'cook' && (s.contents.length || s.state !== 'idle')) {
         stations[key] = {
           contents: s.contents,
@@ -531,6 +590,8 @@ class Game {
     }
     return {
       t: Math.ceil(this.timeLeft),
+      plates: this.plateSupply,
+      incomingDirty: this.pendingDirty.length,
       score: this.score,
       combo: this.combo,
       phase: this.phase,

@@ -330,6 +330,7 @@
     'Tap a cutting board to chop — stay close while you work!',
     'Tap the stove to cook. Don’t let it burn! 🔥',
     'Grab a plate, tap counters to combine, then tap the green window to serve',
+    'Dirty dishes pile up at the sink 🫧 — stand there to scrub them clean',
   ];
   let hintIdx = 0;
   let hintTimer = null;
@@ -364,6 +365,7 @@
     pickup: 'pickup', place: 'place', plate: 'plate', chopped: 'chopped',
     sizzle: 'sizzle', ding: 'ding', serve: 'serve', reject: 'reject',
     burn: 'burn', expire: 'expire', order: 'order', trash: 'trash',
+    washed: 'washed',
   };
 
   socket.on('state', (state) => {

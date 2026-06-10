@@ -18,6 +18,7 @@ No app store, no install: one player starts a kitchen, shares a link, everyone j
   - **Crews**: your kitchen code is permanent. Come back next week, type the same code, and your stars, best scores, and unlocks are still there.
   - **Profiles**: each device keeps its chef (name + avatar), and the server tracks lifetime stats (meals served, stars earned, rounds played).
 - **12 avatars**, juicy animations, synthesized sound effects (no audio assets), combo multipliers, burnable food, and order tickets that shake when they're about to expire.
+- **Dishwashing** (level 2+): plates are limited, served plates come back dirty at the sink, and someone has to scrub them back into the stack — peak co-op chaos.
 - **Installable PWA** — Add to Home Screen on iOS and it launches full-screen like a native app.
 
 ## 🚀 Quick start

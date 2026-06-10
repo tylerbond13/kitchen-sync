@@ -238,6 +238,55 @@ test('expired orders cost points and reset combo', () => {
   assert.equal(game.missedCount, 1);
 });
 
+test('dishwashing loop: finite plates, dirty returns, washing restores supply', () => {
+  const game = makeGame('burger-bay'); // has a sink and plates: 4
+  const p = game.players.p1;
+  assert.equal(game.plateSupply, 4);
+  const plates = stationKey(game, 'plates');
+  const sinkKey = stationKey(game, 'sink');
+  const sink = game.stations[sinkKey];
+
+  // taking plates drains the supply; an empty stack refuses
+  for (let i = 0; i < 4; i++) {
+    p.carry = null;
+    game.interact(p, plates);
+    assert.equal(p.carry.kind, 'plate');
+  }
+  assert.equal(game.plateSupply, 0);
+  p.carry = null;
+  game.interact(p, plates);
+  assert.equal(p.carry, null, 'no plates left');
+
+  // serve a burger: the plate comes back dirty at the sink after a delay
+  game.tick(0.1); // spawn first order (burger)
+  p.carry = { kind: 'plate', contents: [{ id: 'bun', state: 'raw' }, { id: 'patty', state: 'cooked' }] };
+  game.interact(p, stationKey(game, 'serve'));
+  assert.equal(game.deliveredCount, 1);
+  assert.equal(game.pendingDirty.length, 1);
+
+  p.x = 100.5; p.y = 100.5; // away from everything while the plate travels
+  for (let i = 0; i < 75; i++) game.tick(0.1); // > 7s return delay
+  assert.equal(sink.dirty, 1, 'dirty plate arrived at the sink');
+  assert.equal(game.plateSupply, 0, 'still no clean plates');
+
+  // stand at the sink and scrub: supply comes back
+  standAt(game, p, sinkKey);
+  for (let i = 0; i < 30; i++) game.tick(0.1); // > 2.5s wash
+  assert.equal(sink.dirty, 0);
+  assert.equal(game.plateSupply, 1, 'washed plate rejoined the stack');
+});
+
+test('levels without a sink keep infinite plates', () => {
+  const game = makeGame('salad-days');
+  const p = game.players.p1;
+  assert.equal(game.plateSupply, null);
+  for (let i = 0; i < 6; i++) {
+    p.carry = null;
+    game.interact(p, stationKey(game, 'plates'));
+    assert.equal(p.carry.kind, 'plate');
+  }
+});
+
 test('tap pathfinds to a station and interacts on arrival', () => {
   const game = makeGame();
   const p = game.players.p1;

@@ -162,6 +162,27 @@
               this.bar(X, Y, s.progress, '#6FA84C');
             }
           }
+          if (s.dirty !== undefined) {
+            // dirty plate pile in the sink
+            const n = Math.min(s.dirty, 3);
+            for (let i = 0; i < n; i++) {
+              this.ctx.fillStyle = '#D8CBB4';
+              this.ctx.beginPath();
+              this.ctx.ellipse(X + ts / 2, Y + ts * (0.56 - i * 0.08), ts * 0.26, ts * 0.1, 0, 0, Math.PI * 2);
+              this.ctx.fill();
+              this.ctx.strokeStyle = '#A8927A';
+              this.ctx.lineWidth = 1.2 * this.dpr;
+              this.ctx.stroke();
+            }
+            if (s.dirty > 0) {
+              this.glyph('🫧', X + ts * 0.74, Y + ts * 0.3, ts * 0.3);
+              this.ctx.font = `800 ${ts * 0.26}px ui-rounded, system-ui`;
+              this.ctx.textAlign = 'center';
+              this.ctx.fillStyle = '#C93D2B';
+              this.ctx.fillText(String(s.dirty), X + ts * 0.2, Y + ts * 0.24);
+            }
+            if (s.progress > 0) this.bar(X, Y, s.progress, '#5BA8C9');
+          }
           if (s.contents) {
             // cooker contents
             const n = s.contents.length;
@@ -310,7 +331,9 @@
         ctx.fill();
       } else if (c === 'P') {
         base('#D9B98C');
-        for (let i = 0; i < 3; i++) {
+        const supply = this.cur ? this.cur.plates : null;
+        const shown = supply === null || supply === undefined ? 3 : Math.min(supply, 3);
+        for (let i = 0; i < shown; i++) {
           ctx.fillStyle = '#FFFDF8';
           ctx.beginPath();
           ctx.ellipse(X + ts / 2, Y + ts * (0.62 - i * 0.09), ts * 0.3, ts * 0.12, 0, 0, Math.PI * 2);
@@ -319,6 +342,29 @@
           ctx.lineWidth = 1.2 * this.dpr;
           ctx.stroke();
         }
+        if (supply !== null && supply !== undefined) {
+          ctx.font = `800 ${ts * 0.26}px ui-rounded, system-ui`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = supply === 0 ? '#C93D2B' : 'rgba(59,46,42,.75)';
+          ctx.fillText(String(supply), X + ts * 0.8, Y + ts * 0.22);
+        }
+      } else if (c === 'K') {
+        base('#8FB3C7');
+        ctx.fillStyle = '#5E8CA6';
+        this.rr(X + ts * 0.16, Y + ts * 0.3, ts * 0.68, ts * 0.44, ts * 0.12);
+        ctx.fill();
+        ctx.fillStyle = '#BFD9E8';
+        this.rr(X + ts * 0.22, Y + ts * 0.36, ts * 0.56, ts * 0.32, ts * 0.1);
+        ctx.fill();
+        // faucet
+        ctx.strokeStyle = '#5A5F66';
+        ctx.lineWidth = Math.max(2, ts * 0.06);
+        ctx.beginPath();
+        ctx.moveTo(X + ts * 0.5, Y + ts * 0.3);
+        ctx.lineTo(X + ts * 0.5, Y + ts * 0.18);
+        ctx.lineTo(X + ts * 0.34, Y + ts * 0.18);
+        ctx.stroke();
       } else if (c === 'W') {
         base('#6FA84C');
         ctx.fillStyle = '#5C8F3E';

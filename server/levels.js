@@ -10,6 +10,7 @@
 //   P  plate stack
 //   W  serving window
 //   T  trash
+//   K  sink (wash dirty plates back into the stack)
 //   1-9  ingredient crate (mapped via level.crates)
 //
 // Recipes are plates whose contents match a multiset of "id.state" tokens
@@ -85,7 +86,8 @@ const LEVELS = [
     blurb: 'Chop the meat, fire the pan — don’t let the patties burn!',
     emoji: '🍔',
     duration: 160,
-    stars: [350, 640, 950],
+    stars: [330, 600, 900],
+    plates: 4,
     crates: { 1: 'bun', 2: 'patty', 3: 'lettuce', 4: 'cheese' },
     layout: [
       '#1#2#3#',
@@ -93,9 +95,9 @@ const LEVELS = [
       'S.....B',
       'B..#..P',
       'T.....W',
-      '###P#W#',
+      '#K#P#W#',
     ],
-    orders: { recipes: ['burger', 'burger', 'cheeseburger'], every: 16, ttl: 78, maxOpen: 4 },
+    orders: { recipes: ['burger', 'burger', 'cheeseburger'], every: 18, ttl: 84, maxOpen: 4 },
   },
   {
     id: 'soups-on',
@@ -104,7 +106,8 @@ const LEVELS = [
     blurb: 'Three chopped veggies in the pot. Stir crazy.',
     emoji: '🥣',
     duration: 170,
-    stars: [400, 700, 1050],
+    stars: [380, 660, 980],
+    plates: 4,
     crates: { 1: 'onion', 2: 'tomato' },
     layout: [
       '#1#.#2#',
@@ -112,9 +115,9 @@ const LEVELS = [
       'O..#..O',
       '#.....P',
       'T.....W',
-      '###P#W#',
+      '#K#P#W#',
     ],
-    orders: { recipes: ['soup_onion', 'soup_tomato'], every: 17, ttl: 80, maxOpen: 4 },
+    orders: { recipes: ['soup_onion', 'soup_tomato'], every: 19, ttl: 86, maxOpen: 4 },
   },
   {
     id: 'sushi-squad',
@@ -123,7 +126,8 @@ const LEVELS = [
     blurb: 'Rice in the pot, fish on the board. Teamwork time.',
     emoji: '🍣',
     duration: 170,
-    stars: [420, 760, 1100],
+    stars: [400, 720, 1040],
+    plates: 4,
     crates: { 1: 'rice', 2: 'fish', 3: 'seaweed' },
     layout: [
       '#1#2#3#',
@@ -131,9 +135,9 @@ const LEVELS = [
       'O.....B',
       '#..#..P',
       'T.....W',
-      '###P#W#',
+      '#K#P#W#',
     ],
-    orders: { recipes: ['sushi'], every: 15, ttl: 75, maxOpen: 4 },
+    orders: { recipes: ['sushi'], every: 17, ttl: 82, maxOpen: 4 },
   },
   {
     id: 'pizza-panic',
@@ -142,7 +146,8 @@ const LEVELS = [
     blurb: 'Dough, sauce, cheese, oven. Hot and fast.',
     emoji: '🍕',
     duration: 180,
-    stars: [450, 820, 1200],
+    stars: [430, 780, 1130],
+    plates: 4,
     crates: { 1: 'dough', 2: 'tomato', 3: 'cheese' },
     layout: [
       '#1#2#3#',
@@ -150,9 +155,9 @@ const LEVELS = [
       'V..#..V',
       '#.....P',
       'T.....W',
-      '###P#W#',
+      '#K#P#W#',
     ],
-    orders: { recipes: ['pizza'], every: 16, ttl: 85, maxOpen: 4 },
+    orders: { recipes: ['pizza'], every: 18, ttl: 90, maxOpen: 4 },
   },
   {
     id: 'grand-feast',
@@ -161,7 +166,8 @@ const LEVELS = [
     blurb: 'Everything, everywhere, all at once. The full menu.',
     emoji: '👑',
     duration: 210,
-    stars: [550, 1000, 1500],
+    stars: [520, 950, 1400],
+    plates: 6,
     crates: { 1: 'lettuce', 2: 'tomato', 3: 'bun', 4: 'patty', 5: 'cheese', 6: 'onion' },
     layout: [
       '#1#2#3#4#',
@@ -171,9 +177,9 @@ const LEVELS = [
       'O...#...P',
       '#.......P',
       'T.......W',
-      '####P#W##',
+      '#K##P#W##',
     ],
-    orders: { recipes: ['salad', 'burger', 'cheeseburger', 'soup_onion', 'soup_tomato'], every: 13, ttl: 75, maxOpen: 4 },
+    orders: { recipes: ['salad', 'burger', 'cheeseburger', 'soup_onion', 'soup_tomato'], every: 15, ttl: 82, maxOpen: 4 },
   },
 ];
 

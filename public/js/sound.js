@@ -66,6 +66,7 @@
     expire() { tone({ freq: 330, dur: 0.18, vol: 0.14, type: 'square', slide: -160 }); tone({ freq: 220, dur: 0.25, vol: 0.12, type: 'square', slide: -100, delay: 0.15 }); },
     order()  { tone({ freq: 880, dur: 0.09, vol: 0.1 }); tone({ freq: 1108, dur: 0.12, vol: 0.1, delay: 0.09 }); },
     trash()  { noise({ dur: 0.12, vol: 0.12 }); },
+    washed() { noise({ dur: 0.15, vol: 0.08 }); tone({ freq: 880, dur: 0.12, vol: 0.1, type: 'triangle', slide: 320 }); },
     star(i)  { tone({ freq: 784 + i * 196, dur: 0.35, vol: 0.16, type: 'triangle' }); },
     over()   { [784, 659, 523, 392].forEach((f, i) => tone({ freq: f, dur: 0.2, vol: 0.12, type: 'triangle', delay: i * 0.12 })); },
   };
