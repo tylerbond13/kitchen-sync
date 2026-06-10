@@ -202,15 +202,31 @@ test('tap pathfinds to a station and interacts on arrival', () => {
   assert.deepEqual(p.carry, { id: 'tomato', state: 'raw' });
 });
 
+test('solo and duo games get gentler pacing and scaled star goals', () => {
+  const solo = makeGame(); // 1 player
+  solo.tick(0.1);
+  assert.ok(solo.orders[0].ttlMax > solo.level.orders.ttl, 'solo tickets last longer');
+  assert.ok(solo.starGoals[2] < solo.level.stars[2], 'solo star goals are lower');
+
+  const trio = new Game(LEVELS[0], [
+    { id: 'a', name: 'A', avatar: 'x' },
+    { id: 'b', name: 'B', avatar: 'y' },
+    { id: 'c', name: 'C', avatar: 'z' },
+  ], { rng: () => 0 });
+  trio.tick(0.1);
+  assert.equal(trio.orders[0].ttlMax, trio.level.orders.ttl, 'full crews get standard pacing');
+  assert.deepEqual(trio.starGoals, trio.level.stars);
+});
+
 test('game ends at time zero with star thresholds', () => {
   const game = makeGame();
   game.timeLeft = 0.05;
   game.tick(0.1);
   assert.equal(game.phase, 'over');
   assert.equal(game.starsEarned(), 0);
-  game.score = game.level.stars[0];
+  game.score = game.starGoals[0];
   assert.equal(game.starsEarned(), 1);
-  game.score = game.level.stars[2] + 50;
+  game.score = game.starGoals[2] + 50;
   assert.equal(game.starsEarned(), 3);
   const res = game.results();
   assert.equal(res.levelId, 'salad-days');

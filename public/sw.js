@@ -1,5 +1,5 @@
 // Kitchen Sync service worker: cache the static shell, never touch the socket.
-const CACHE = 'kitchen-sync-v1';
+const CACHE = 'kitchen-sync-v2';
 const SHELL = [
   '/',
   '/index.html',
@@ -43,14 +43,29 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  // cache-first for static assets
+  // icons never change: cache-first. Everything else (js/css/manifest):
+  // network-first so deploys reach players immediately, cache fallback offline.
+  if (url.pathname.startsWith('/icons/')) {
+    e.respondWith(
+      caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
+        return res;
+      }))
+    );
+    return;
+  }
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
-      if (res.ok && url.origin === location.origin) {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
-      }
-      return res;
-    }))
+    fetch(e.request)
+      .then((res) => {
+        if (res.ok && url.origin === location.origin) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });

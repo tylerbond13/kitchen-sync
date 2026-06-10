@@ -27,7 +27,9 @@ npm install
 npm start          # → http://localhost:3000
 ```
 
-Open it on two phones (or two browser tabs), create a kitchen on one, join with the code on the other.
+**Playing solo** works out of the box — start a kitchen, tap a level, and the game scales for you (solo and duo crews get slower order tickets and lower star goals).
+
+**Testing multiplayer on one machine:** a normal second tab won't work — both tabs share the same device identity, so the server treats tab 2 as you reconnecting. Instead, open the second window with **`http://localhost:3000/?guest`** (each `?guest` tab gets its own per-tab chef), or use a private/incognito window, or open `http://<your-mac-ip>:3000` on your phone over the same Wi-Fi.
 
 To play with people outside your network you need a public URL — see deployment below, or for a quick test session use a tunnel:
 

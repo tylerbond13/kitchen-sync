@@ -4,9 +4,13 @@
   const $ = (id) => document.getElementById(id);
 
   // ---------- profile (device identity) ----------
+  // ?guest makes the identity per-tab instead of per-device, so you can test
+  // multiplayer with extra windows on one machine (each tab = its own chef).
+  const IS_GUEST = new URLSearchParams(location.search).has('guest');
+  const profileStore = IS_GUEST ? sessionStorage : localStorage;
   function loadProfile() {
     let p = null;
-    try { p = JSON.parse(localStorage.getItem('ks-profile')); } catch {}
+    try { p = JSON.parse(profileStore.getItem('ks-profile')); } catch {}
     if (!p || !p.id) {
       p = {
         id: (crypto.randomUUID ? crypto.randomUUID() : 'p-' + Math.random().toString(36).slice(2) + Date.now()),
@@ -18,7 +22,7 @@
   }
   const profile = loadProfile();
   function saveProfile() {
-    localStorage.setItem('ks-profile', JSON.stringify(profile));
+    profileStore.setItem('ks-profile', JSON.stringify(profile));
   }
   saveProfile();
 
@@ -248,9 +252,11 @@
       $('level-list').appendChild(row);
     }
 
-    $('lobby-hint').textContent = iAmHost
-      ? 'You’re the host — tap a level to start cooking!'
-      : `Waiting for ${nameOf(state.hostId)} to pick a level…`;
+    $('lobby-hint').textContent = !iAmHost
+      ? `Waiting for ${nameOf(state.hostId)} to pick a level…`
+      : online.length === 1
+        ? 'Cook solo, or share the code 📤 to add chefs — tap a level to start!'
+        : 'You’re the host — tap a level to start cooking!';
   }
 
   function nameOf(id) {

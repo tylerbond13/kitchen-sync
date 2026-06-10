@@ -58,6 +58,13 @@ class Game {
       i++;
     }
 
+    // smaller crews get gentler pacing and scaled star goals
+    const n = roster.length;
+    this.pace = n === 1 ? { every: 1.6, ttl: 1.35, stars: 0.7 }
+      : n === 2 ? { every: 1.25, ttl: 1.15, stars: 0.85 }
+      : { every: 1, ttl: 1, stars: 1 };
+    this.starGoals = level.stars.map((s) => Math.max(50, Math.round((s * this.pace.stars) / 10) * 10));
+
     this.timeLeft = level.duration;
     this.score = 0;
     this.combo = 0;
@@ -447,8 +454,9 @@ class Game {
       const recipe = this.orders.length === 0
         ? cfg.recipes[0]
         : cfg.recipes[Math.floor(this.rng() * cfg.recipes.length)];
-      this.orders.push({ id: this.nextOrderId++, recipe, ttl: cfg.ttl, ttlMax: cfg.ttl });
-      this.orderClock = cfg.every;
+      const ttl = cfg.ttl * this.pace.ttl;
+      this.orders.push({ id: this.nextOrderId++, recipe, ttl, ttlMax: ttl });
+      this.orderClock = cfg.every * this.pace.every;
       this.emit('order', { recipe });
     }
     for (const o of this.orders) o.ttl -= dt;
@@ -474,7 +482,7 @@ class Game {
   }
 
   starsEarned() {
-    const [s1, s2, s3] = this.level.stars;
+    const [s1, s2, s3] = this.starGoals;
     if (this.score >= s3) return 3;
     if (this.score >= s2) return 2;
     if (this.score >= s1) return 1;
@@ -492,7 +500,7 @@ class Game {
       grid: this.level.layout,
       crates: this.level.crates,
       duration: this.level.duration,
-      starThresholds: this.level.stars,
+      starThresholds: this.starGoals,
     };
   }
 
@@ -537,7 +545,7 @@ class Game {
       levelId: this.level.id,
       score: this.score,
       stars: this.starsEarned(),
-      starThresholds: this.level.stars,
+      starThresholds: this.starGoals,
       delivered: this.deliveredCount,
       missed: this.missedCount,
       players: Object.values(this.players).map((p) => ({
