@@ -41,16 +41,42 @@
     toastTimer = setTimeout(() => { el.hidden = true; }, ms);
   }
 
+  // ---------- quick picks (the Bond crew) ----------
+  const FAMILY = [
+    { name: 'Eric', avatar: '🦁' },
+    { name: 'Stephanie', avatar: '🦊' },
+    { name: 'Tyler', avatar: '🐻' },
+    { name: 'Logan', avatar: '🐸' },
+    { name: 'Natalie', avatar: '🦄' },
+    { name: 'Nathan', avatar: '🤖' },
+  ];
+  const picksEl = $('quick-picks');
+  FAMILY.forEach((f) => {
+    const chip = document.createElement('button');
+    chip.className = 'quick-pick';
+    chip.innerHTML = `<span class="qp-face">${f.avatar}</span>${f.name}`;
+    chip.onclick = () => {
+      profile.name = f.name;
+      profile.avatar = f.avatar;
+      $('name-input').value = f.name;
+      saveProfile();
+      refreshPicker();
+      SFX.unlock(); SFX.tap();
+      sendHello();
+    };
+    picksEl.appendChild(chip);
+  });
+
   // ---------- avatar picker ----------
   const grid = $('avatar-grid');
   AVATARS.forEach((a) => {
     const cell = document.createElement('button');
-    cell.className = 'avatar-cell' + (a === profile.avatar ? ' sel' : '');
+    cell.className = 'avatar-cell';
     cell.textContent = a;
     cell.onclick = () => {
       profile.avatar = a;
       saveProfile();
-      grid.querySelectorAll('.avatar-cell').forEach((c) => c.classList.toggle('sel', c === cell));
+      refreshPicker();
       SFX.unlock(); SFX.tap();
       sendHello();
     };
@@ -60,8 +86,17 @@
   $('name-input').addEventListener('change', () => {
     profile.name = $('name-input').value.trim().slice(0, 14);
     saveProfile();
+    refreshPicker();
     sendHello();
   });
+
+  function refreshPicker() {
+    grid.querySelectorAll('.avatar-cell').forEach((c) =>
+      c.classList.toggle('sel', c.textContent === profile.avatar));
+    picksEl.querySelectorAll('.quick-pick').forEach((c, i) =>
+      c.classList.toggle('sel', FAMILY[i].name === profile.name && FAMILY[i].avatar === profile.avatar));
+  }
+  refreshPicker();
 
   function requireName() {
     profile.name = $('name-input').value.trim().slice(0, 14);

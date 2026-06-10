@@ -175,6 +175,33 @@ input[type="text"]:focus { border-color: var(--gold); }
 }
 .btn-icon:active { transform: scale(.92); }
 
+/* ---------- quick picks ---------- */
+.quick-picks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.quick-pick {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 6px;
+  background: var(--cream);
+  border: 2.5px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform .1s, border-color .1s, background .1s;
+}
+.quick-pick:active { transform: scale(.95); }
+.quick-pick.sel {
+  border-color: var(--gold);
+  background: #FFF4D6;
+}
+.quick-pick .qp-face { font-size: 18px; }
+
 /* ---------- avatar picker ---------- */
 .avatar-grid {
   display: grid;
@@ -379,6 +406,8 @@ input[type="text"]:focus { border-color: var(--gold); }
       </header>
 
       <div class="card profile-card">
+        <label class="field-label">Who’s cooking?</label>
+        <div class="quick-picks" id="quick-picks"></div>
         <label class="field-label" for="name-input">Your chef</label>
         <div class="avatar-grid" id="avatar-grid"></div>
         <input id="name-input" type="text" maxlength="14" placeholder="Your name" autocomplete="nickname" enterkeyhint="done">
