@@ -235,13 +235,19 @@ class Game {
         break;
       }
       case 'board': {
-        if (p.carry && !s.item && p.carry.kind !== 'plate' && p.carry.kind !== 'dish'
-            && CHOPPABLE.has(p.carry.id) && p.carry.state === 'raw') {
+        if (p.carry && !s.item && p.carry.kind !== 'plate') {
+          // any item can rest on a board; only raw choppables actually chop.
+          // a chopped item stays chopped — placing it back never re-chops it.
           s.item = p.carry; s.progress = 0; p.carry = null;
           this.emit('place', at);
         } else if (!p.carry && s.item) {
           p.carry = s.item; s.item = null; s.progress = 0;
           this.emit('pickup', at);
+        } else if (p.carry && p.carry.kind === 'plate' && s.item) {
+          // plate-first: scoop the board's item straight onto the plate
+          if (this.addToPlate(p.carry, s.item, at)) {
+            s.item = null; s.progress = 0;
+          }
         }
         break;
       }
@@ -253,6 +259,10 @@ class Game {
         if (!p.carry) {
           p.carry = { kind: 'plate', contents: [] };
           this.emit('pickup', at);
+        } else if (p.carry.kind !== 'plate') {
+          // ingredient-first: grab a plate under what you're holding
+          const plate = { kind: 'plate', contents: [] };
+          if (this.addToPlate(plate, p.carry, at)) p.carry = plate;
         }
         break;
       }
@@ -395,7 +405,7 @@ class Game {
     // chopping: any idle player adjacent to a board with an unchopped item works it
     for (const [key, s] of Object.entries(this.stations)) {
       if (s.type !== 'board') continue;
-      if (!s.item || s.item.state !== 'raw') continue;
+      if (!s.item || s.item.state !== 'raw' || !CHOPPABLE.has(s.item.id)) continue;
       const [sx, sy] = key.split(',').map(Number);
       const worker = Object.values(this.players).find((p) =>
         !p.path.length && Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1);
@@ -414,7 +424,7 @@ class Game {
       if (p.working) {
         const px = Math.floor(p.x), py = Math.floor(p.y);
         const stillWorking = Object.entries(this.stations).some(([key, s]) => {
-          if (s.type !== 'board' || !s.item || s.item.state !== 'raw') return false;
+          if (s.type !== 'board' || !s.item || s.item.state !== 'raw' || !CHOPPABLE.has(s.item.id)) return false;
           const [sx, sy] = key.split(',').map(Number);
           return !p.path.length && Math.abs(px - sx) + Math.abs(py - sy) === 1;
         });

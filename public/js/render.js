@@ -4,7 +4,9 @@
     lettuce: '🥬', tomato: '🍅', cucumber: '🥒', bun: '🍞', patty: '🥩',
     cheese: '🧀', onion: '🧅', rice: '🍚', fish: '🐟', seaweed: '🌿', dough: '🫓',
   };
-  const CHOPPED_EMOJI = { lettuce: '🥗', fish: '🍣' };
+  // only use a distinct emoji when it truly reads as "chopped X" —
+  // everything else keeps its emoji and gets a clear knife badge
+  const CHOPPED_EMOJI = { fish: '🍣' };
   const COOKED_EMOJI = { patty: '🍖' };
   const DISH_EMOJI = { soup_onion: '🥣', soup_tomato: '🍲', pizza: '🍕', burned: '🪨' };
   const PLAYER_COLORS = ['#E8543F', '#5BA8C9', '#6FA84C', '#B176C9', '#F4B942', '#E87BA4', '#48B59E', '#8A7568'];
@@ -22,6 +24,14 @@
     const [id, state] = token.split('.');
     if (state === 'dish') return DISH_EMOJI[id] || '🍽️';
     return itemEmoji({ id, state });
+  }
+
+  // HTML for order tickets: emoji plus a small state badge (🔪 chop / ♨️ cook)
+  function tokenHtml(token) {
+    const [id, state] = token.split('.');
+    const badge = state === 'chopped' && !CHOPPED_EMOJI[id] ? '🔪'
+      : state === 'cooked' && !COOKED_EMOJI[id] ? '♨️' : '';
+    return `<span class="need">${tokenEmoji(token)}${badge ? `<b>${badge}</b>` : ''}</span>`;
   }
 
   class Renderer {
@@ -157,7 +167,7 @@
             const n = s.contents.length;
             s.contents.forEach((it, i) => {
               const off = n > 1 ? (i - (n - 1) / 2) * ts * 0.26 : 0;
-              this.drawItem(it, X + ts / 2 + off, Y + ts / 2 - ts * 0.06, ts * (n > 1 ? 0.34 : 0.5));
+              this.drawItem(it, X + ts / 2 + off, Y + ts / 2 - ts * 0.06, ts * (n > 1 ? 0.34 : 0.5), false);
             });
             if (s.state === 'cooking') {
               this.bar(X, Y, s.progress, '#F4B942');
@@ -328,17 +338,28 @@
       }
     }
 
-    drawItem(item, x, y, size) {
+    drawItem(item, x, y, size, chip = true) {
       if (item.kind === 'plate') {
         this.drawPlate(item, x, y, size);
         return;
       }
+      if (chip) {
+        // white backing chip so items read clearly on any tile
+        const { ctx } = this;
+        ctx.fillStyle = 'rgba(255,253,248,.95)';
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.72, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(59,46,42,.15)';
+        ctx.lineWidth = 1.5 * this.dpr;
+        ctx.stroke();
+      }
       this.glyph(itemEmoji(item), x, y, size);
       // state badge
       if (item.state === 'chopped' && !CHOPPED_EMOJI[item.id]) {
-        this.badge('🔪', x + size * 0.42, y + size * 0.4, size * 0.45);
+        this.badge('🔪', x + size * 0.52, y + size * 0.46, size * 0.62);
       } else if (item.state === 'cooked' && !COOKED_EMOJI[item.id]) {
-        this.badge('♨️', x + size * 0.42, y + size * 0.4, size * 0.45);
+        this.badge('♨️', x + size * 0.52, y + size * 0.46, size * 0.62);
       }
     }
 
@@ -364,7 +385,10 @@
       ctx.beginPath();
       ctx.arc(x, y, size * 0.62, 0, Math.PI * 2);
       ctx.fill();
-      this.glyph(text, x, y, size);
+      ctx.strokeStyle = 'rgba(59,46,42,.35)';
+      ctx.lineWidth = 1.5 * this.dpr;
+      ctx.stroke();
+      this.glyph(text, x, y, size * 0.85);
     }
 
     bar(X, Y, frac, color) {
@@ -394,5 +418,5 @@
     }
   }
 
-  window.KSRender = { Renderer, itemEmoji, tokenEmoji };
+  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml };
 })();

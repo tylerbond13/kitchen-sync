@@ -138,6 +138,47 @@ test('pot rejects wrong ingredients, accepts soup combo', () => {
   assert.equal(game.stations[pot].state, 'idle');
 });
 
+test('chopped items stay chopped wherever they are placed', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const board = stationKey(game, 'board');
+
+  // put a chopped item back on a board — it must not re-chop or revert
+  p.carry = { id: 'lettuce', state: 'chopped' };
+  standAt(game, p, board);
+  game.interact(p, board);
+  assert.equal(p.carry, null, 'chopped item can rest on a board');
+  for (let i = 0; i < 40; i++) game.tick(0.1); // player standing right there
+  assert.equal(game.stations[board].item.state, 'chopped', 'still chopped');
+  assert.equal(game.stations[board].progress, 0, 'no chop progress on chopped items');
+
+  // a raw non-choppable (bun) can rest on a board without becoming "chopped"
+  game.interact(p, board); // pick the lettuce back up
+  game.interact(p, stationKey(game, 'trash'));
+  p.carry = { id: 'bun', state: 'raw' };
+  game.interact(p, board);
+  for (let i = 0; i < 40; i++) game.tick(0.1);
+  assert.equal(game.stations[board].item.state, 'raw', 'bun never chops');
+});
+
+test('plating works in either order: plate-first or ingredient-first', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+
+  // ingredient-first at the plate stack: holding food, tap plates → plated
+  p.carry = { id: 'lettuce', state: 'chopped' };
+  game.interact(p, stationKey(game, 'plates'));
+  assert.equal(p.carry.kind, 'plate');
+  assert.deepEqual(p.carry.contents, [{ id: 'lettuce', state: 'chopped' }]);
+
+  // plate-first at a board: chopped tomato on the board, tap with plate
+  const board = stationKey(game, 'board');
+  game.stations[board].item = { id: 'tomato', state: 'chopped' };
+  game.interact(p, board);
+  assert.equal(game.stations[board].item, null, 'board item scooped onto plate');
+  assert.equal(p.carry.contents.length, 2);
+});
+
 test('plates only accept items that fit some recipe', () => {
   const game = makeGame();
   const p = game.players.p1;

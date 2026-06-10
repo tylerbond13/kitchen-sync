@@ -176,6 +176,19 @@
     b.onclick = () => show(b.dataset.back);
   });
 
+  // ---------- tutorial ----------
+  let tutReturn = 'home';
+  function openTutorial(from) {
+    tutReturn = from;
+    SFX.unlock(); SFX.tap();
+    show('tutorial');
+  }
+  $('btn-how-home').onclick = () => openTutorial('home');
+  $('btn-how-lobby').onclick = () => openTutorial('lobby');
+  document.querySelectorAll('.tut-back').forEach((b) => {
+    b.onclick = () => { SFX.tap(); show(tutReturn); };
+  });
+
   // device backups: every phone carries the crew's progress + own stats, so a
   // fresh server (free hosting restarts) can be restored by any member.
   function readBackup(key) {
@@ -401,7 +414,7 @@
         el.className = 'ticket';
         el.innerHTML = `
           <div class="ticket-head"><span class="t-emoji">${o.emoji}</span><span>${o.name}</span></div>
-          <div class="ticket-needs">${o.needs.map(KSRender.tokenEmoji).join(' ')}</div>
+          <div class="ticket-needs">${o.needs.map(KSRender.tokenHtml).join(' ')}</div>
           <div class="ticket-bar"><i></i></div>`;
         strip.appendChild(el);
         ticketEls.set(o.id, el);

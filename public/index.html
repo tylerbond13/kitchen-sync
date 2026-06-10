@@ -175,6 +175,18 @@ input[type="text"]:focus { border-color: var(--gold); }
 }
 .btn-icon:active { transform: scale(.92); }
 
+/* ---------- tutorial ---------- */
+.btn-link {
+  font: inherit; font-size: 15px; font-weight: 800;
+  background: none; border: none; color: var(--ink-soft);
+  padding: 6px; cursor: pointer; text-align: center;
+}
+.tut-step { display: flex; gap: 14px; align-items: flex-start; }
+.tut-emoji { font-size: 28px; flex: 0 0 auto; line-height: 1.2; }
+.tut-step b { font-size: 15px; }
+.tut-step p { font-size: 13.5px; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
+#screen-tutorial { padding-bottom: calc(var(--sab) + 28px); }
+
 /* ---------- quick picks ---------- */
 .quick-picks {
   display: grid;
@@ -322,6 +334,8 @@ input[type="text"]:focus { border-color: var(--gold); }
 .ticket-head { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; }
 .ticket-head .t-emoji { font-size: 20px; }
 .ticket-needs { font-size: 13px; margin-top: 2px; letter-spacing: 2px; }
+.ticket-needs .need { position: relative; display: inline-block; margin-right: 5px; }
+.ticket-needs .need b { position: absolute; right: -6px; bottom: -3px; font-size: 9px; }
 .ticket-bar { height: 5px; background: var(--cream-deep); border-radius: 3px; margin-top: 6px; overflow: hidden; }
 .ticket-bar i { display: block; height: 100%; background: var(--leaf); border-radius: 3px; }
 .ticket.warn .ticket-bar i { background: var(--gold); }
@@ -417,6 +431,7 @@ input[type="text"]:focus { border-color: var(--gold); }
       <div class="home-actions">
         <button class="btn btn-primary" id="btn-create">Start a Kitchen</button>
         <button class="btn btn-secondary" id="btn-show-join">Join a Kitchen</button>
+        <button class="btn-link" id="btn-how-home">❓ How to play</button>
       </div>
       <p class="fineprint">Free to play with 2–8 chefs · Add to Home Screen for the full app feel</p>
     </div>
@@ -443,6 +458,7 @@ input[type="text"]:focus { border-color: var(--gold); }
           <span class="code-chip-label">KITCHEN</span>
           <span class="code-chip-code" id="lobby-code">····</span>
         </div>
+        <button class="btn-icon" id="btn-how-lobby" title="How to play">❓</button>
         <button class="btn-icon" id="btn-share" title="Invite">📤</button>
       </div>
 
@@ -459,6 +475,42 @@ input[type="text"]:focus { border-color: var(--gold); }
       <div class="lobby-foot">
         <p class="muted small" id="lobby-hint"></p>
       </div>
+    </div>
+  </section>
+
+  <!-- ============ TUTORIAL ============ -->
+  <section id="screen-tutorial" class="screen">
+    <div class="narrow-wrap">
+      <button class="btn-back tut-back">‹ Back</button>
+      <h2>How to Play 🍳</h2>
+      <p class="muted">You and your crew share one kitchen. Fill the order tickets at the top before they expire!</p>
+
+      <div class="card tut-step">
+        <div class="tut-emoji">👆</div>
+        <div><b>Tap to do everything.</b><p>Tap any station and your chef walks over and does the right thing. Tap open floor just to move.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">📦🔪</div>
+        <div><b>Grab &amp; chop.</b><p>Tap a crate to grab an ingredient, then tap a cutting board. Stand next to the board while the green bar fills. Chopped food wears a little 🔪 badge — and stays chopped forever.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">🍳🔥</div>
+        <div><b>Cook — but don't walk too far.</b><p>Pans, pots and ovens cook on their own. ✅ means ready. Leave it too long and it burns — trash it 🗑️ and start over.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">🍽️🛎️</div>
+        <div><b>Plate &amp; serve.</b><p>Grab a plate from the stack (or tap the stack while holding food). Plates and ingredients combine either way around — on counters, boards, or straight from the pot. Deliver finished plates to the green window.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">⏱️⭐</div>
+        <div><b>Fast food, big tips.</b><p>Serve before a ticket runs out for tips, and chain deliveries for a 🔥 combo. Beat the score goals to earn up to 3 stars and unlock the next level.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">🧑‍🍳🤝</div>
+        <div><b>Cook together.</b><p>Split the jobs — one chops, one cooks, one runs plates. Anyone can pause. Your kitchen code keeps your stars forever, so the crew can come back any time.</p></div>
+      </div>
+
+      <button class="btn btn-primary tut-back">Got it — let's cook!</button>
     </div>
   </section>
 
