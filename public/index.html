@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Kitchen Sync — Cook together, apart</title>
+  <meta name="description" content="A real-time co-op cooking game for your phone. Join with a code, cook with your crew.">
+  <meta name="theme-color" content="#FFF3E2">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kitchen Sync">
+  <meta property="og:title" content="Kitchen Sync">
+  <meta property="og:description" content="Cook together, apart. Join my kitchen!">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- ============ HOME ============ -->
+  <section id="screen-home" class="screen active">
+    <div class="home-wrap">
+      <header class="logo">
+        <div class="logo-pan">🍳</div>
+        <h1>Kitchen <span>Sync</span></h1>
+        <p class="tagline">Cook together, apart</p>
+      </header>
+
+      <div class="card profile-card">
+        <label class="field-label" for="name-input">Your chef</label>
+        <div class="avatar-grid" id="avatar-grid"></div>
+        <input id="name-input" type="text" maxlength="14" placeholder="Your name" autocomplete="nickname" enterkeyhint="done">
+        <div class="profile-stats" id="profile-stats"></div>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn btn-primary" id="btn-create">Start a Kitchen</button>
+        <button class="btn btn-secondary" id="btn-show-join">Join a Kitchen</button>
+      </div>
+      <p class="fineprint">Free to play with 2–8 chefs · Add to Home Screen for the full app feel</p>
+    </div>
+  </section>
+
+  <!-- ============ JOIN ============ -->
+  <section id="screen-join" class="screen">
+    <div class="narrow-wrap">
+      <button class="btn-back" data-back="home">‹ Back</button>
+      <h2>Join a Kitchen</h2>
+      <p class="muted">Type the 4-letter code from your host.</p>
+      <input id="code-input" class="code-input" type="text" maxlength="4" placeholder="CODE"
+             autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+      <button class="btn btn-primary" id="btn-join">Join</button>
+    </div>
+  </section>
+
+  <!-- ============ LOBBY ============ -->
+  <section id="screen-lobby" class="screen">
+    <div class="lobby-wrap">
+      <div class="lobby-head">
+        <button class="btn-back" id="btn-leave">‹ Leave</button>
+        <div class="code-chip" id="code-chip">
+          <span class="code-chip-label">KITCHEN</span>
+          <span class="code-chip-code" id="lobby-code">····</span>
+        </div>
+        <button class="btn-icon" id="btn-share" title="Invite">📤</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Crew <span class="muted" id="crew-count"></span></div>
+        <div class="member-row" id="member-row"></div>
+      </div>
+
+      <div class="card levels-card">
+        <div class="card-title">Levels</div>
+        <div class="level-list" id="level-list"></div>
+      </div>
+
+      <div class="lobby-foot">
+        <p class="muted small" id="lobby-hint"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="screen-game" class="screen">
+    <div class="game-top">
+      <div class="hud-pill hud-timer" id="hud-timer">⏱ 0:00</div>
+      <div class="hud-pill hud-score" id="hud-score">🪙 0</div>
+      <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
+      <div class="hud-buttons">
+        <button class="btn-icon" id="btn-mute" title="Sound">🔊</button>
+        <button class="btn-icon" id="btn-pause" title="Pause">⏸️</button>
+      </div>
+    </div>
+    <div class="orders-strip" id="orders-strip"></div>
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div class="pause-overlay" id="pause-overlay" hidden>
+        <div class="pause-box">
+          <h2>Paused</h2>
+          <p class="muted">Waiting on the host…</p>
+          <button class="btn btn-primary" id="btn-resume" hidden>Resume</button>
+        </div>
+      </div>
+    </div>
+    <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section id="screen-results" class="screen">
+    <div class="narrow-wrap results-wrap">
+      <h2 id="results-title">Time’s up!</h2>
+      <div class="stars-row" id="stars-row">
+        <span class="star" data-i="0">★</span><span class="star" data-i="1">★</span><span class="star" data-i="2">★</span>
+      </div>
+      <div class="big-score" id="results-score">0</div>
+      <div class="results-stats" id="results-stats"></div>
+      <div class="results-players" id="results-players"></div>
+      <button class="btn btn-primary" id="btn-results-done">Back to the Kitchen</button>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" hidden></div>
+  <div id="connection-banner" class="connection-banner" hidden>Reconnecting…</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sound.js"></script>
+  <script src="/js/render.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
