@@ -49,14 +49,14 @@ const RECIPES = {
 // What appliances can cook: a multiset of input tokens -> output.
 // kind 'item' keeps id+state, kind 'dish' produces a finished dish item.
 const COOK_COMBOS = [
-  { tool: 'pan',  inputs: ['patty.raw'],                                      out: { kind: 'item', id: 'patty', state: 'cooked' }, time: 6,  burnAfter: 8 },
+  { tool: 'pan',  inputs: ['patty.chopped'],                                  out: { kind: 'item', id: 'patty', state: 'cooked' }, time: 6,  burnAfter: 8 },
   { tool: 'pot',  inputs: ['onion.chopped', 'onion.chopped', 'onion.chopped'], out: { kind: 'dish', id: 'soup_onion' },             time: 10, burnAfter: 12 },
   { tool: 'pot',  inputs: ['tomato.chopped', 'tomato.chopped', 'tomato.chopped'], out: { kind: 'dish', id: 'soup_tomato' },         time: 10, burnAfter: 12 },
   { tool: 'pot',  inputs: ['rice.raw'],                                       out: { kind: 'item', id: 'rice', state: 'cooked' },  time: 7,  burnAfter: 12 },
   { tool: 'oven', inputs: ['dough.raw', 'tomato.chopped', 'cheese.chopped'],  out: { kind: 'dish', id: 'pizza' },                  time: 9,  burnAfter: 10 },
 ];
 
-const CHOPPABLE = new Set(['lettuce', 'tomato', 'cucumber', 'cheese', 'onion', 'fish']);
+const CHOPPABLE = new Set(['lettuce', 'tomato', 'cucumber', 'cheese', 'onion', 'fish', 'patty']);
 
 const LEVELS = [
   {
@@ -82,7 +82,7 @@ const LEVELS = [
     id: 'burger-bay',
     n: 2,
     name: 'Burger Bay',
-    blurb: 'Fire up the pan — and don’t let the patties burn!',
+    blurb: 'Chop the meat, fire the pan — don’t let the patties burn!',
     emoji: '🍔',
     duration: 160,
     stars: [350, 640, 950],
@@ -91,11 +91,11 @@ const LEVELS = [
       '#1#2#3#',
       'S.....4',
       'S.....B',
-      '#..#..P',
+      'B..#..P',
       'T.....W',
       '###P#W#',
     ],
-    orders: { recipes: ['burger', 'burger', 'cheeseburger'], every: 16, ttl: 70, maxOpen: 4 },
+    orders: { recipes: ['burger', 'burger', 'cheeseburger'], every: 16, ttl: 78, maxOpen: 4 },
   },
   {
     id: 'soups-on',

@@ -92,11 +92,17 @@ test('chopping requires standing at the board', () => {
   assert.deepEqual(p.carry, { id: 'lettuce', state: 'chopped' });
 });
 
-test('pan cooks a patty, then burns it', () => {
+test('pan rejects raw patty, cooks a chopped one, then burns it', () => {
   const game = makeGame('burger-bay');
   const p = game.players.p1;
   const pan = stationKey(game, 'cook', (s) => s.tool === 'pan');
+
   p.carry = { id: 'patty', state: 'raw' };
+  game.interact(p, pan);
+  assert.notEqual(p.carry, null, 'raw patty must be chopped first');
+  assert.equal(game.stations[pan].state, 'idle');
+
+  p.carry = { id: 'patty', state: 'chopped' };
   game.interact(p, pan);
   assert.equal(game.stations[pan].state, 'cooking');
 
