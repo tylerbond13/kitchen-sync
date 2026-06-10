@@ -96,12 +96,15 @@ test('two players: create, join, play a round, progress persists', async () => {
   const meLater = later.players.find((p) => p.id === 'u-sib');
   assert.ok(Math.abs(meLater.x - me.x) > 0.01 || Math.abs(meLater.y - me.y) > 0.01, 'chef moved');
 
-  // fast-forward to the end of the round
+  // fast-forward to the end of the round (register listeners first —
+  // game_over and the post-game lobby broadcast arrive back-to-back)
   const rooms = require('../server/rooms');
   const room = rooms.getRoom(code);
+  const overP = waitFor(sib, 'game_over');
+  const postLobbyP = waitFor(tyler, 'lobby');
   room.game.score = 999; // enough for 3 stars on level 1
   room.game.timeLeft = 0.2;
-  const over = await waitFor(sib, 'game_over');
+  const over = await overP;
   assert.equal(over.stars, 3);
   assert.equal(over.levelId, 'salad-days');
 
@@ -110,7 +113,7 @@ test('two players: create, join, play a round, progress persists', async () => {
   assert.equal(crew.progress['salad-days'].stars, 3);
   assert.ok(crew.members['u-sib']);
 
-  const postLobby = await waitFor(tyler, 'lobby');
+  const postLobby = await postLobbyP;
   const unlocked = postLobby.levels.filter((l) => l.unlocked).map((l) => l.id);
   assert.ok(unlocked.includes('burger-bay'), 'level 2 unlocked after starring level 1');
 
