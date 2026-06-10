@@ -177,7 +177,15 @@
       if (res.game) {
         // a round is already running — jump in
         startRound(res.game);
-      } else if (!document.getElementById('screen-game').classList.contains('active')) {
+      } else {
+        // no live round: if we were stuck on a dead game screen (round ended
+        // or server restarted while we were disconnected), return to lobby
+        if (document.getElementById('screen-game').classList.contains('active')) {
+          if (renderer) { renderer.destroy(); renderer = null; }
+          clearInterval(hintTimer);
+          ticketEls.clear();
+          toast('That round wrapped up — back to the kitchen!');
+        }
         show('lobby');
       }
     });
@@ -324,7 +332,11 @@
     comboEl.hidden = state.combo < 2;
     comboEl.textContent = `🔥 x${state.combo}`;
     $('pause-overlay').hidden = !state.paused;
-    $('btn-resume').hidden = !iAmHost;
+    if (state.paused) {
+      $('pause-byline').textContent = state.pausedBy
+        ? `${state.pausedBy} paused the game — anyone can resume.`
+        : 'Anyone can resume.';
+    }
 
     renderOrders(state.orders);
 
@@ -372,10 +384,7 @@
     }
   }
 
-  $('btn-pause').onclick = () => {
-    if (!iAmHost) return toast('Only the host can pause.');
-    socket.emit('pause', true);
-  };
+  $('btn-pause').onclick = () => socket.emit('pause', true);
   $('btn-resume').onclick = () => socket.emit('pause', false);
 
   $('btn-mute').onclick = () => {

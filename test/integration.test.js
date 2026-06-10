@@ -96,6 +96,17 @@ test('two players: create, join, play a round, progress persists', async () => {
   const meLater = later.players.find((p) => p.id === 'u-sib');
   assert.ok(Math.abs(meLater.x - me.x) > 0.01 || Math.abs(meLater.y - me.y) > 0.01, 'chef moved');
 
+  // any chef can pause and resume, with attribution
+  sib.emit('pause', true);
+  let st = await waitFor(sib, 'state');
+  for (let i = 0; i < 30 && !st.paused; i++) st = await waitFor(sib, 'state');
+  assert.ok(st.paused, 'non-host can pause');
+  assert.equal(st.pausedBy, 'Megan');
+  tyler.emit('pause', false);
+  let st2 = await waitFor(tyler, 'state');
+  for (let i = 0; i < 30 && st2.paused; i++) st2 = await waitFor(tyler, 'state');
+  assert.ok(!st2.paused, 'anyone can resume');
+
   // fast-forward to the end of the round (register listeners first —
   // game_over and the post-game lobby broadcast arrive back-to-back)
   const rooms = require('../server/rooms');

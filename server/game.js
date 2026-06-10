@@ -75,6 +75,7 @@ class Game {
     this.orderClock = 0; // spawn first order immediately
     this.phase = 'playing';
     this.paused = false;
+    this.pausedBy = null;
     this.events = [];
   }
 
@@ -524,6 +525,7 @@ class Game {
       combo: this.combo,
       phase: this.phase,
       paused: this.paused,
+      pausedBy: this.pausedBy,
       players: Object.values(this.players).map((p) => ({
         id: p.id, name: p.name, avatar: p.avatar,
         x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100,

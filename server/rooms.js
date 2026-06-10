@@ -196,8 +196,11 @@ function attach(io) {
 
     socket.on('pause', (on) => {
       if (!joined || !joined.room.game) return;
-      if (joined.playerId !== effectiveHost(joined.room)) return;
-      joined.room.game.paused = !!on;
+      // any chef can pause or resume — it's a family kitchen
+      const game = joined.room.game;
+      game.paused = !!on;
+      const p = joined.room.players.get(joined.playerId);
+      game.pausedBy = on ? (p ? p.name : 'someone') : null;
     });
 
     socket.on('leave', () => {
