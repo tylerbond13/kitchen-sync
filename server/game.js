@@ -309,7 +309,19 @@ class Game {
           s.item = p.carry; p.carry = null;
           this.emit('place', at);
         } else if (p.carry && s.item) {
-          if (p.carry.kind === 'plate' && s.item.kind !== 'plate') {
+          if (p.carry.kind === 'plate' && s.item.kind === 'plate') {
+            // merge plates: pour the held plate onto the seated one,
+            // walk away with the empty plate still in hand
+            const tokens = s.item.contents.map(itemToken).concat(p.carry.contents.map(itemToken));
+            const fitsAny = Object.values(RECIPES).some((r) => isSubset(tokens, r.needs));
+            if (fitsAny && p.carry.contents.length) {
+              s.item.contents.push(...p.carry.contents);
+              p.carry.contents = [];
+              this.emit('plate', at);
+            } else {
+              this.emit('reject', at);
+            }
+          } else if (p.carry.kind === 'plate' && s.item.kind !== 'plate') {
             if (this.addToPlate(p.carry, s.item, at)) s.item = null;
           } else if (s.item.kind === 'plate' && p.carry.kind !== 'plate') {
             if (this.addToPlate(s.item, p.carry, at)) p.carry = null;

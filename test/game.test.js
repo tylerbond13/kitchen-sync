@@ -232,6 +232,28 @@ test('grabbing a bun from the crate while holding the patty also stacks', () => 
   assert.equal(p.carry.kind, 'stack');
 });
 
+test('merging plates pours contents onto the seated plate, empty stays in hand', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const counter = Object.entries(game.stations).find(([k, s]) => {
+    if (s.type !== 'counter') return false;
+    const [x, y] = k.split(',').map(Number);
+    return game.adjacentFloors(x, y).length > 0;
+  })[0];
+
+  game.stations[counter].item = { kind: 'plate', contents: [{ id: 'lettuce', state: 'chopped' }] };
+  p.carry = { kind: 'plate', contents: [{ id: 'tomato', state: 'chopped' }] };
+  game.interact(p, counter);
+  assert.equal(game.stations[counter].item.contents.length, 2, 'seated plate has both ingredients');
+  assert.deepEqual(p.carry, { kind: 'plate', contents: [] }, 'empty plate stays in hand');
+
+  // pouring something that fits no recipe is rejected, nothing moves
+  p.carry = { kind: 'plate', contents: [{ id: 'tomato', state: 'chopped' }] };
+  game.interact(p, counter); // salad + extra tomato fits nothing
+  assert.equal(game.stations[counter].item.contents.length, 2);
+  assert.equal(p.carry.contents.length, 1);
+});
+
 test('non-handheld combos swap instead of stacking', () => {
   const game = makeGame();
   const p = game.players.p1;
