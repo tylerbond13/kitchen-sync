@@ -74,6 +74,25 @@ function getCrew(code) {
   return crews.data[(code || '').toUpperCase().trim()] || null;
 }
 
+// "BOND" — the family admin kitchen: always exists, all levels unlocked
+// (see rooms.levelList), and a fat wallet for testing upgrades.
+const ADMIN_CODE = 'BOND';
+function ensureAdminCrew() {
+  if (!crews.data[ADMIN_CODE]) {
+    crews.data[ADMIN_CODE] = {
+      code: ADMIN_CODE,
+      createdAt: Date.now(),
+      hostId: 'admin',
+      members: {},
+      progress: {},
+    };
+    ensureCrewExtras(crews.data[ADMIN_CODE]);
+    crews.data[ADMIN_CODE].wallet.coins = 50000;
+    crews.save();
+  }
+  return crews.data[ADMIN_CODE];
+}
+
 function touchCrewMember(crew, profile) {
   const existing = crew.members[profile.id] || { joinedAt: Date.now() };
   crew.members[profile.id] = {
@@ -232,4 +251,5 @@ module.exports = {
   getPlayer, upsertPlayer, recordPlayerResult, flushAll,
   restoreCrew, mergeCrew, mergePlayerStats,
   ensureCrewExtras, buyUpgrade,
+  ensureAdminCrew, ADMIN_CODE,
 };

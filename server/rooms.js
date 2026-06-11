@@ -12,10 +12,11 @@ const MAX_PLAYERS = 8;
 const rooms = new Map(); // code -> room
 
 function levelList(crew) {
+  const adminCrew = crew.code === store.ADMIN_CODE; // BOND: everything unlocked
   return LEVELS.map((lvl, i) => {
     const prog = crew.progress[lvl.id] || { stars: 0, bestScore: 0 };
     const prevId = i > 0 ? LEVELS[i - 1].id : null;
-    const unlocked = i === 0 || (crew.progress[prevId] || {}).stars >= 1;
+    const unlocked = adminCrew || i === 0 || (crew.progress[prevId] || {}).stars >= 1;
     return {
       id: lvl.id, n: lvl.n, name: lvl.name, blurb: lvl.blurb, emoji: lvl.emoji,
       section: lvl.section || 'diner',
@@ -141,6 +142,9 @@ function attach(io) {
       if (typeof ack !== 'function') return;
       if (!profile || !profile.id) return ack({ error: 'No profile' });
       let crew = store.getCrew(code);
+      if (!crew && String(code || '').toUpperCase().trim() === store.ADMIN_CODE) {
+        crew = store.ensureAdminCrew(); // the admin kitchen always exists
+      }
       if (!crew && crewBackup) {
         // server lost its data (ephemeral disk) — restore from this phone's backup
         crew = store.restoreCrew(crewBackup);

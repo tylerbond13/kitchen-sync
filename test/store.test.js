@@ -85,6 +85,17 @@ test('device backups carry the wallet (upgrades survive server loss)', () => {
   assert.equal(crew.stats.meals, 40);
 });
 
+test('BOND admin kitchen: always exists, everything unlocked, rich wallet', () => {
+  const rooms = require('../server/rooms');
+  const admin = store.ensureAdminCrew();
+  assert.equal(admin.code, 'BOND');
+  assert.equal(admin.wallet.coins, 50000);
+  const levels = rooms.levelList(admin);
+  assert.ok(levels.length >= 14);
+  assert.ok(levels.every((l) => l.unlocked), 'every level unlocked with zero stars');
+  assert.equal(store.ensureAdminCrew(), admin, 'idempotent');
+});
+
 test('mergePlayerStats takes per-counter maximums', () => {
   store.upsertPlayer({ id: 'p9', name: 'Z', avatar: 'z' });
   store.recordPlayerResult('p9', { delivered: 5, stars: 1 });
