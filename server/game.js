@@ -221,6 +221,19 @@ class Game {
     }
 
     if (this.isFloor(tx, ty)) {
+      // forgiving taps: tapping your own tile (often hidden under your chef
+      // and the item floating above their head) tries the adjacent station
+      // instead of doing nothing — preferring the tile above, where the
+      // carried item visually sits
+      if (tx === px && ty === py && p.carry) {
+        for (const [dx, dy] of [[0, -1], [1, 0], [-1, 0], [0, 1]]) {
+          const k = `${tx + dx},${ty + dy}`;
+          if (this.stations[k]) {
+            this.interact(p, k);
+            return;
+          }
+        }
+      }
       const path = this.findPath(px, py, tx, ty);
       if (path) {
         p.path = path;

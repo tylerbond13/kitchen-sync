@@ -232,6 +232,62 @@ test('grabbing a bun from the crate while holding the patty also stacks', () => 
   assert.equal(p.carry.kind, 'stack');
 });
 
+test('plating is order-independent: any ingredient can start or finish a plate', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const lettuce = () => ({ id: 'lettuce', state: 'chopped' });
+  const tomato = () => ({ id: 'tomato', state: 'chopped' });
+  const cucumber = () => ({ id: 'cucumber', state: 'chopped' });
+
+  // direction 1: tomato-first plate, add lettuce from hand
+  let plate = { kind: 'plate', contents: [tomato()] };
+  assert.ok(game.addToPlate(plate, lettuce(), { x: 0, y: 0 }), 'lettuce onto tomato plate');
+
+  // direction 2: lettuce-first plate, add tomato from hand
+  plate = { kind: 'plate', contents: [lettuce()] };
+  assert.ok(game.addToPlate(plate, tomato(), { x: 0, y: 0 }), 'tomato onto lettuce plate');
+
+  // all 3! big-salad ingredients in reverse ticket order
+  plate = { kind: 'plate', contents: [cucumber()] };
+  assert.ok(game.addToPlate(plate, tomato(), { x: 0, y: 0 }));
+  assert.ok(game.addToPlate(plate, lettuce(), { x: 0, y: 0 }));
+  assert.equal(plate.contents.length, 3);
+
+  // via counter station too, both directions
+  const counter = Object.entries(game.stations).find(([k, s]) => {
+    if (s.type !== 'counter') return false;
+    const [x, y] = k.split(',').map(Number);
+    return game.adjacentFloors(x, y).length > 0;
+  })[0];
+  game.stations[counter].item = { kind: 'plate', contents: [tomato()] };
+  p.carry = lettuce();
+  game.interact(p, counter); // hand ingredient -> seated plate
+  assert.equal(game.stations[counter].item.contents.length, 2);
+  assert.equal(p.carry, null);
+
+  game.stations[counter].item = lettuce();
+  p.carry = { kind: 'plate', contents: [tomato()] };
+  game.interact(p, counter); // seated ingredient -> held plate
+  assert.equal(p.carry.contents.length, 2);
+  assert.equal(game.stations[counter].item, null);
+});
+
+test('half-chopped item returns to the SAME board (tap-driven, like a player)', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const board = stationKey(game, 'board');
+  const [bx, by] = board.split(',').map(Number);
+  p.carry = { id: 'lettuce', state: 'raw' };
+  standAt(game, p, board);
+  game.interact(p, board); // place
+  for (let i = 0; i < 11; i++) game.tick(0.1); // ~50% chopped
+  game.tap('p1', bx, by); // pick it up
+  assert.ok(p.carry && p.carry.prog > 0.3, 'holding the half-chopped item');
+  game.tap('p1', bx, by); // tap the SAME board again
+  assert.equal(p.carry, null, 'placed back on the same board');
+  assert.ok(game.stations[board].item.prog > 0.3, 'progress preserved');
+});
+
 test('merging plates pours contents onto the seated plate, empty stays in hand', () => {
   const game = makeGame();
   const p = game.players.p1;

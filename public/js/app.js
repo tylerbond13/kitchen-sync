@@ -424,8 +424,9 @@
     $('game-players').innerHTML = '';
     gpEls.clear();
     const acBtn = $('btn-autochop');
-    acBtn.hidden = !staticState.autoChopAllowed;
-    acBtn.textContent = '🔪';
+    acBtn.hidden = false; // always visible — locked until the crew buys it
+    acBtn.textContent = staticState.autoChopAllowed ? '🔪' : '🔒';
+    acBtn.classList.toggle('locked', !staticState.autoChopAllowed);
     renderer = new KSRender.Renderer($('game-canvas'), staticState, profile.id, (x, y) => {
       SFX.tap();
       socket.emit('tap', { x, y });
@@ -476,7 +477,7 @@
     banner.hidden = !state.rush;
     if (state.rush) banner.textContent = `🔥 LUNCH RUSH! Double tips — ${state.rush}s`;
 
-    // auto-chop toggle state
+    // auto-chop toggle state (locked button keeps its 🔒)
     if (curStatic && curStatic.autoChopAllowed) {
       $('btn-autochop').textContent = state.autoChop ? '🤖' : '🔪';
       $('btn-autochop').classList.toggle('active', !!state.autoChop);
@@ -552,6 +553,10 @@
   $('btn-resume').onclick = () => socket.emit('pause', false);
   $('btn-autochop').onclick = () => {
     SFX.tap();
+    if (curStatic && !curStatic.autoChopAllowed) {
+      toast('🤖 Auto-Chopper is a Kitchen Shop upgrade — grab it in the lobby! (800 🪙)');
+      return;
+    }
     socket.emit('autochop', $('btn-autochop').textContent !== '🤖');
   };
 
