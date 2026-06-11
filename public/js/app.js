@@ -220,6 +220,7 @@
       }
       myCode = res.code;
       sessionStorage.setItem('ks-code', myCode);
+      syncUrl(myCode); // address bar always matches the kitchen you're in
       saveCrewBackup(res.crew);
       savePlayerBackup(res.player);
       renderLobby(res.lobby);
@@ -244,9 +245,21 @@
     socket.emit('leave');
     myCode = null;
     sessionStorage.removeItem('ks-code');
+    syncUrl(null);
     show('home');
     sendHello();
   };
+
+  // keep the address bar in sync with the kitchen shown on screen
+  function syncUrl(code) {
+    try {
+      const q = new URLSearchParams(location.search);
+      if (code) q.set('join', code);
+      else q.delete('join');
+      const qs = q.toString();
+      history.replaceState(null, '', location.pathname + (qs ? `?${qs}` : ''));
+    } catch { /* older browsers: cosmetic only */ }
+  }
 
   $('btn-share').onclick = async () => {
     const url = `${location.origin}/?join=${myCode}`;
@@ -657,11 +670,12 @@
   if (joinParam && /^[A-Z]{4}$/.test(joinParam)) {
     $('code-input').value = joinParam;
     if (profile.name) {
-      // returning player with a profile: join straight away once connected
-      socket.on('connect', function autoJoin() {
-        socket.off('connect', autoJoin);
-        joinCrew(joinParam);
-      });
+      // the link's code wins over any previous kitchen this tab was in —
+      // otherwise two joins race and the page can show a different code
+      // than the URL
+      myCode = joinParam;
+      sessionStorage.setItem('ks-code', joinParam);
+      // (the connect handler's auto-rejoin performs the single join)
     } else {
       show('home');
       toast(`Pick your chef, then you’ll join kitchen ${joinParam}!`, 4000);
