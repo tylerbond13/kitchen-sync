@@ -115,6 +115,7 @@
   let lobby = null;
   let renderer = null;
   let iAmHost = false;
+  let curStatic = null; // current round's static state (theme, star goals, ...)
 
   socket.on('connect', () => {
     $('connection-banner').hidden = true;
@@ -285,7 +286,22 @@
     }
 
     $('level-list').innerHTML = '';
+    let lastSection = null;
     for (const lvl of state.levels) {
+      if (lvl.section !== lastSection) {
+        lastSection = lvl.section;
+        const sec = (state.sections || []).find((s) => s.id === lvl.section);
+        if (sec) {
+          const head = document.createElement('div');
+          head.className = 'section-head';
+          const secLevels = state.levels.filter((l) => l.section === sec.id);
+          const earned = secLevels.reduce((n, l) => n + l.stars, 0);
+          head.innerHTML = `<span class="sec-emoji">${sec.emoji}</span>
+            <span class="sec-name">${sec.name}</span>
+            <span class="sec-stars">★ ${earned}/${secLevels.length * 3}</span>`;
+          $('level-list').appendChild(head);
+        }
+      }
       const row = document.createElement('div');
       row.className = 'level-row' + (lvl.unlocked ? '' : ' locked');
       const stars = [1, 2, 3].map((i) => `<span class="${lvl.stars >= i ? '' : 'off'}">★</span>`).join('');
@@ -308,6 +324,9 @@
       $('level-list').appendChild(row);
     }
 
+    renderShop(state);
+    renderCrewStats(state);
+
     $('lobby-hint').textContent = !iAmHost
       ? `Waiting for ${nameOf(state.hostId)} to pick a level…`
       : online.length === 1
@@ -318,6 +337,48 @@
   function nameOf(id) {
     const p = lobby && lobby.players.find((x) => x.id === id);
     return p ? p.name : 'the host';
+  }
+
+  // ---------- kitchen shop ----------
+  function renderShop(state) {
+    const card = $('shop-card');
+    if (!state.wallet || !state.upgrades) { card.hidden = true; return; }
+    card.hidden = false;
+    $('shop-coins').textContent = `🪙 ${state.wallet.coins.toLocaleString()}`;
+    const list = $('shop-list');
+    list.innerHTML = '';
+    for (const [id, up] of Object.entries(state.upgrades)) {
+      const owned = !!state.wallet.upgrades[id];
+      const affordable = state.wallet.coins >= up.cost;
+      const row = document.createElement('div');
+      row.className = 'shop-row' + (owned ? ' owned' : '');
+      row.innerHTML = `
+        <div class="shop-emoji">${up.emoji}</div>
+        <div class="shop-info">
+          <div class="shop-name">${up.name}</div>
+          <div class="shop-desc">${up.desc}</div>
+        </div>
+        <button class="shop-buy" ${owned || !affordable ? 'disabled' : ''}>
+          ${owned ? '✓ Owned' : `🪙 ${up.cost.toLocaleString()}`}
+        </button>`;
+      if (!owned) {
+        row.querySelector('.shop-buy').onclick = () => {
+          SFX.tap();
+          socket.emit('buy_upgrade', id, (res) => {
+            if (res && res.error) toast(res.error);
+            else { SFX.serve(); toast(`${up.emoji} ${up.name} unlocked for the crew!`); }
+          });
+        };
+      }
+      list.appendChild(row);
+    }
+  }
+
+  function renderCrewStats(state) {
+    const el = $('crew-stats');
+    if (!state.crewStats) { el.textContent = ''; return; }
+    const s = state.crewStats;
+    el.textContent = `🍽️ ${s.meals.toLocaleString()} meals served · 🎮 ${s.rounds} rounds · 🪙 ${s.earned.toLocaleString()} earned all-time`;
   }
 
   function escapeHtml(s) {
@@ -341,9 +402,17 @@
 
   function startRound(staticState) {
     if (renderer) renderer.destroy();
+    curStatic = staticState;
     show('game');
     $('pause-overlay').hidden = true;
     $('orders-strip').innerHTML = '';
+    ticketEls.clear();
+    $('rush-banner').hidden = true;
+    $('game-players').innerHTML = '';
+    gpEls.clear();
+    const acBtn = $('btn-autochop');
+    acBtn.hidden = !staticState.autoChopAllowed;
+    acBtn.textContent = '🔪';
     renderer = new KSRender.Renderer($('game-canvas'), staticState, profile.id, (x, y) => {
       SFX.tap();
       socket.emit('tap', { x, y });
@@ -365,7 +434,8 @@
     pickup: 'pickup', place: 'place', plate: 'plate', chopped: 'chopped',
     sizzle: 'sizzle', ding: 'ding', serve: 'serve', reject: 'reject',
     burn: 'burn', expire: 'expire', order: 'order', trash: 'trash',
-    washed: 'washed',
+    washed: 'washed', chop: 'chop',
+    rush_start: 'serve', rush_end: 'place',
   };
 
   socket.on('state', (state) => {
@@ -387,6 +457,37 @@
         ? `${state.pausedBy} paused the game — anyone can resume.`
         : 'Anyone can resume.';
     }
+
+    // lunch rush banner
+    const banner = $('rush-banner');
+    banner.hidden = !state.rush;
+    if (state.rush) banner.textContent = `🔥 LUNCH RUSH! Double tips — ${state.rush}s`;
+
+    // auto-chop toggle state
+    if (curStatic && curStatic.autoChopAllowed) {
+      $('btn-autochop').textContent = state.autoChop ? '🤖' : '🔪';
+      $('btn-autochop').classList.toggle('active', !!state.autoChop);
+    }
+
+    // star goal progress
+    if (curStatic && curStatic.starThresholds) {
+      const [g1, g2, g3] = curStatic.starThresholds;
+      const frac = Math.min(state.score / g3, 1);
+      $('star-fill').style.width = `${frac * 100}%`;
+      const marks = document.querySelectorAll('#star-progress .star-mark');
+      [g1, g2, g3].forEach((g, i) => {
+        const m = marks[i];
+        if (m) {
+          m.style.left = `${(g / g3) * 100}%`;
+          m.classList.toggle('hit', state.score >= g);
+          m.title = String(g);
+        }
+      });
+      $('star-progress').title = `⭐${g1} ⭐⭐${g2} ⭐⭐⭐${g3}`;
+    }
+
+    // live crew strip
+    renderGamePlayers(state.players);
 
     renderOrders(state.orders);
 
@@ -413,10 +514,10 @@
       let el = ticketEls.get(o.id);
       if (!el) {
         el = document.createElement('div');
-        el.className = 'ticket';
+        el.className = 'ticket' + (o.vip ? ' vip' : '');
         el.innerHTML = `
-          <div class="ticket-head"><span class="t-emoji">${o.emoji}</span><span>${o.name}</span></div>
-          <div class="ticket-needs">${o.needs.map(KSRender.tokenHtml).join(' ')}</div>
+          <div class="ticket-head"><span class="t-emoji">${o.emoji}</span><span>${o.vip ? '👑 ' : ''}${o.name}</span></div>
+          <div class="ticket-needs">${o.needs.map(KSRender.prepChainHtml).join('')}</div>
           <div class="ticket-bar"><i></i></div>`;
         strip.appendChild(el);
         ticketEls.set(o.id, el);
@@ -436,6 +537,43 @@
 
   $('btn-pause').onclick = () => socket.emit('pause', true);
   $('btn-resume').onclick = () => socket.emit('pause', false);
+  $('btn-autochop').onclick = () => {
+    SFX.tap();
+    socket.emit('autochop', $('btn-autochop').textContent !== '🤖');
+  };
+
+  // ---------- live crew strip ----------
+  const gpEls = new Map();
+  function renderGamePlayers(players) {
+    const wrap = $('game-players');
+    for (const p of players) {
+      let el = gpEls.get(p.id);
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'gp';
+        el.innerHTML = `<span class="gp-face"></span><span class="gp-count"></span>`;
+        wrap.appendChild(el);
+        gpEls.set(p.id, el);
+      }
+      el.querySelector('.gp-face').textContent = p.avatar;
+      el.querySelector('.gp-count').textContent = `${p.delivered}🍽`;
+      el.classList.toggle('me', p.id === profile.id);
+    }
+  }
+
+  // ---------- emotes ----------
+  const EMOTES = ['🔥', '😱', '🙏', '🎉', '🍽️', '❤️'];
+  const emoteBar = $('emote-bar');
+  EMOTES.forEach((e, i) => {
+    const b = document.createElement('button');
+    b.textContent = e;
+    b.onclick = () => { SFX.tap(); socket.emit('emote', i); };
+    emoteBar.appendChild(b);
+  });
+  socket.on('emote', ({ playerId, emoji }) => {
+    if (renderer) renderer.addEmote(playerId, emoji);
+    SFX.order();
+  });
 
   $('btn-mute').onclick = () => {
     SFX.toggleMute();
@@ -461,6 +599,20 @@
     $('results-score').textContent = '0';
     $('results-stats').innerHTML =
       `<span>🍽️ ${results.delivered} served</span><span>💨 ${results.missed} missed</span>`;
+
+    // recap awards: only meaningful with real numbers behind them
+    const awards = [];
+    const top = (key) => [...results.players].sort((a, b) => (b[key] || 0) - (a[key] || 0))[0];
+    const mvp = top('delivered');
+    if (mvp && mvp.delivered > 0) awards.push({ emoji: '🏆', title: 'MVP', name: mvp.name, detail: `${mvp.delivered} served` });
+    const prep = top('chops');
+    if (prep && prep.chops > 0 && results.players.length > 1) awards.push({ emoji: '🔪', title: 'Prep Master', name: prep.name, detail: `${prep.chops} chopped` });
+    const dish = top('washed');
+    if (dish && dish.washed > 0) awards.push({ emoji: '🫧', title: 'Dish Hero', name: dish.name, detail: `${dish.washed} washed` });
+    const aw = $('results-awards');
+    aw.innerHTML = awards.map((a) =>
+      `<div class="award"><span class="aw-emoji">${a.emoji}</span><div><b>${a.title}</b><br>${escapeHtml(a.name)} · <span class="muted">${a.detail}</span></div></div>`
+    ).join('');
 
     const rp = $('results-players');
     rp.innerHTML = '';

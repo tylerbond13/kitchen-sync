@@ -85,13 +85,40 @@ function touchCrewMember(crew, profile) {
   crews.save();
 }
 
-function recordLevelResult(crew, levelId, score, stars) {
+// wallet / settings / lifetime stats, lazily initialized on older crews.
+// coins are retro-seeded from best scores so long-time crews aren't broke
+// when the Kitchen Shop arrives.
+function ensureCrewExtras(crew) {
+  if (!crew.wallet) {
+    const seed = Object.values(crew.progress || {}).reduce((sum, p) => sum + (p.bestScore || 0), 0);
+    crew.wallet = { coins: seed, upgrades: {} };
+  }
+  if (!crew.settings) crew.settings = {};
+  if (!crew.stats) crew.stats = { meals: 0, rounds: 0, earned: crew.wallet.coins };
+  return crew;
+}
+
+function buyUpgrade(crew, id, cost) {
+  ensureCrewExtras(crew);
+  if (crew.wallet.upgrades[id] || crew.wallet.coins < cost) return false;
+  crew.wallet.coins -= cost;
+  crew.wallet.upgrades[id] = true;
+  crews.save();
+  return true;
+}
+
+function recordLevelResult(crew, levelId, score, stars, delivered = 0) {
+  ensureCrewExtras(crew);
   const prev = crew.progress[levelId] || { stars: 0, bestScore: 0, plays: 0 };
   crew.progress[levelId] = {
     stars: Math.max(prev.stars, stars),
     bestScore: Math.max(prev.bestScore, score),
     plays: prev.plays + 1,
   };
+  crew.wallet.coins += score;
+  crew.stats.earned += score;
+  crew.stats.meals += delivered;
+  crew.stats.rounds += 1;
   crews.save();
 }
 
@@ -157,6 +184,22 @@ function mergeCrew(crew, backup) {
       };
     }
   }
+  // wallet / settings / stats survive in device backups too
+  ensureCrewExtras(crew);
+  if (backup.wallet && typeof backup.wallet === 'object') {
+    crew.wallet.coins = Math.max(crew.wallet.coins, int(backup.wallet.coins, 1e9));
+    for (const [id, owned] of Object.entries(backup.wallet.upgrades || {})) {
+      if (owned && typeof id === 'string' && id.length <= 32) crew.wallet.upgrades[id] = true;
+    }
+  }
+  if (backup.settings && typeof backup.settings === 'object') {
+    crew.settings.autoChop = !!backup.settings.autoChop || !!crew.settings.autoChop;
+  }
+  if (backup.stats && typeof backup.stats === 'object') {
+    for (const k of ['meals', 'rounds', 'earned']) {
+      crew.stats[k] = Math.max(crew.stats[k] || 0, int(backup.stats[k], 1e9));
+    }
+  }
   crews.save();
 }
 
@@ -188,4 +231,5 @@ module.exports = {
   createCrew, getCrew, touchCrewMember, recordLevelResult,
   getPlayer, upsertPlayer, recordPlayerResult, flushAll,
   restoreCrew, mergeCrew, mergePlayerStats,
+  ensureCrewExtras, buyUpgrade,
 };

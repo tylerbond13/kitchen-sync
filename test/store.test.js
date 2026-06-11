@@ -54,6 +54,37 @@ test('mergeCrew keeps the best of both records and sanitizes values', () => {
   assert.equal(crew.members.m2.name, 'Megan');
 });
 
+test('kitchen shop wallet: retro-seeded coins, earning, buying', () => {
+  const crew = store.restoreCrew({
+    code: 'SHOP', hostId: 'h',
+    progress: { 'salad-days': { stars: 1, bestScore: 500, plays: 1 } },
+  });
+  store.ensureCrewExtras(crew);
+  assert.equal(crew.wallet.coins, 500, 'coins retro-seeded from best scores');
+  assert.ok(!store.buyUpgrade(crew, 'auto_chopper', 800), 'cannot afford yet');
+
+  store.recordLevelResult(crew, 'salad-days', 600, 2, 5);
+  assert.equal(crew.wallet.coins, 1100, 'round score banked');
+  assert.equal(crew.stats.meals, 5);
+  assert.equal(crew.stats.rounds, 1);
+
+  assert.ok(store.buyUpgrade(crew, 'auto_chopper', 800));
+  assert.equal(crew.wallet.coins, 300);
+  assert.ok(crew.wallet.upgrades.auto_chopper);
+  assert.ok(!store.buyUpgrade(crew, 'auto_chopper', 800), 'no double-buy');
+});
+
+test('device backups carry the wallet (upgrades survive server loss)', () => {
+  const crew = store.restoreCrew({ code: 'WLLT', hostId: 'h', progress: {} });
+  store.mergeCrew(crew, {
+    wallet: { coins: 2500, upgrades: { fast_shoes: true } },
+    stats: { meals: 40, rounds: 9, earned: 4000 },
+  });
+  assert.equal(crew.wallet.coins, 2500);
+  assert.ok(crew.wallet.upgrades.fast_shoes);
+  assert.equal(crew.stats.meals, 40);
+});
+
 test('mergePlayerStats takes per-counter maximums', () => {
   store.upsertPlayer({ id: 'p9', name: 'Z', avatar: 'z' });
   store.recordPlayerResult('p9', { delivered: 5, stars: 1 });

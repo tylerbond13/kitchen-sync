@@ -1,8 +1,10 @@
 // Live room management: lobby membership, game lifecycle, socket wiring.
 // A "crew" is the persistent record (store.js); a "room" is its live session.
 const { Game } = require('./game');
-const { LEVELS, RECIPES } = require('./levels');
+const { LEVELS, RECIPES, SECTIONS, UPGRADES } = require('./levels');
 const store = require('./store');
+
+const EMOTES = ['🔥', '😱', '🙏', '🎉', '🍽️', '❤️'];
 
 const TICK_MS = 1000 / 12;
 const MAX_PLAYERS = 8;
@@ -16,6 +18,7 @@ function levelList(crew) {
     const unlocked = i === 0 || (crew.progress[prevId] || {}).stars >= 1;
     return {
       id: lvl.id, n: lvl.n, name: lvl.name, blurb: lvl.blurb, emoji: lvl.emoji,
+      section: lvl.section || 'diner',
       stars: prog.stars, bestScore: prog.bestScore, unlocked,
       thresholds: lvl.stars,
     };
@@ -48,11 +51,16 @@ function roomBroadcast(io, room, event, data) {
 }
 
 function lobbyState(room) {
+  store.ensureCrewExtras(room.crew);
   return {
     code: room.code,
     hostId: effectiveHost(room),
     players: [...room.players.values()],
     levels: levelList(room.crew),
+    sections: SECTIONS,
+    wallet: room.crew.wallet,
+    crewStats: room.crew.stats,
+    upgrades: UPGRADES,
     inGame: !!room.game && room.game.phase === 'playing',
   };
 }
@@ -76,7 +84,11 @@ function startGame(io, room, levelId) {
   const roster = [...room.players.values()].filter((p) => p.connected);
   if (!roster.length) return { error: 'No players' };
 
-  room.game = new Game(level, roster);
+  store.ensureCrewExtras(room.crew);
+  room.game = new Game(level, roster, {
+    upgrades: room.crew.wallet.upgrades,
+    autoChop: room.crew.settings.autoChop,
+  });
   roomBroadcast(io, room, 'game_start', room.game.staticState());
 
   let last = Date.now();
@@ -97,7 +109,7 @@ function finishGame(io, room) {
   clearInterval(room.loop);
   room.loop = null;
   const results = room.game.results();
-  store.recordLevelResult(room.crew, results.levelId, results.score, results.stars);
+  store.recordLevelResult(room.crew, results.levelId, results.score, results.stars, results.delivered);
   for (const p of results.players) {
     store.recordPlayerResult(p.id, { delivered: p.delivered, stars: results.stars });
   }
@@ -192,6 +204,38 @@ function attach(io) {
     socket.on('tap', ({ x, y }) => {
       if (!joined || !joined.room.game) return;
       joined.room.game.tap(joined.playerId, x, y);
+    });
+
+    socket.on('autochop', (on) => {
+      if (!joined) return;
+      const crew = joined.room.crew;
+      store.ensureCrewExtras(crew);
+      if (!crew.wallet.upgrades.auto_chopper) return; // shop upgrade required
+      crew.settings.autoChop = !!on;
+      if (joined.room.game) joined.room.game.autoChop = !!on;
+    });
+
+    socket.on('emote', (idx) => {
+      if (!joined) return;
+      const emoji = EMOTES[idx];
+      if (!emoji) return;
+      const now = Date.now();
+      if (socket._lastEmote && now - socket._lastEmote < 900) return; // gentle rate limit
+      socket._lastEmote = now;
+      roomBroadcast(io, joined.room, 'emote', { playerId: joined.playerId, emoji });
+    });
+
+    socket.on('buy_upgrade', (id, ack) => {
+      if (typeof ack !== 'function') ack = () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      const up = UPGRADES[id];
+      if (!up) return ack({ error: 'Unknown upgrade' });
+      const crew = joined.room.crew;
+      if (!store.buyUpgrade(crew, id, up.cost)) {
+        return ack({ error: 'Not enough coins yet — keep cooking!' });
+      }
+      ack({ ok: true });
+      roomBroadcast(io, joined.room, 'lobby', lobbyState(joined.room));
     });
 
     socket.on('pause', (on) => {

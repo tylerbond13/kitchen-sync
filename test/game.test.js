@@ -156,7 +156,7 @@ test('chopped items stay chopped wherever they are placed', () => {
   assert.equal(p.carry, null, 'chopped item can rest on a board');
   for (let i = 0; i < 40; i++) game.tick(0.1); // player standing right there
   assert.equal(game.stations[board].item.state, 'chopped', 'still chopped');
-  assert.equal(game.stations[board].progress, 0, 'no chop progress on chopped items');
+  assert.equal(game.stations[board].item.prog, undefined, 'no chop progress on chopped items');
 
   // a raw non-choppable (bun) can rest on a board without becoming "chopped"
   game.interact(p, board); // pick the lettuce back up
@@ -165,6 +165,129 @@ test('chopped items stay chopped wherever they are placed', () => {
   game.interact(p, board);
   for (let i = 0; i < 40; i++) game.tick(0.1);
   assert.equal(game.stations[board].item.state, 'raw', 'bun never chops');
+});
+
+test('tapping a busy board with full hands swaps items (no dead taps)', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const board = stationKey(game, 'board');
+  game.stations[board].item = { id: 'lettuce', state: 'chopped' };
+  p.carry = { id: 'tomato', state: 'raw' };
+  standAt(game, p, board);
+  game.interact(p, board);
+  assert.deepEqual(p.carry, { id: 'lettuce', state: 'chopped' }, 'hands now hold the chopped item');
+  assert.deepEqual(game.stations[board].item, { id: 'tomato', state: 'raw' }, 'tomato took its place');
+  // and the freshly swapped-in tomato chops while we stand here
+  for (let i = 0; i < 30; i++) game.tick(0.1);
+  assert.equal(game.stations[board].item.state, 'chopped');
+});
+
+test('chop progress lives on the item and survives pickup/replace', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const board = stationKey(game, 'board');
+  p.carry = { id: 'lettuce', state: 'raw' };
+  standAt(game, p, board);
+  game.interact(p, board);
+  for (let i = 0; i < 11; i++) game.tick(0.1); // ~50% of the 2.2s chop
+  const half = game.stations[board].item.prog;
+  assert.ok(half > 0.3 && half < 0.7, `mid-chop progress ${half}`);
+
+  game.interact(p, board); // pick up mid-chop
+  assert.ok(p.carry.prog > 0.3, 'progress travels with the item');
+  game.interact(p, board); // put it back
+  for (let i = 0; i < 14; i++) game.tick(0.1); // only the REMAINING time
+  assert.equal(game.stations[board].item.state, 'chopped', 'finished without restarting');
+});
+
+test('handheld stacks: burger built on the bun, served without a plate', () => {
+  const game = makeGame('burger-bay');
+  const p = game.players.p1;
+  game.tick(0.1); // first order: burger
+  const counter = Object.entries(game.stations).find(([k, s]) => {
+    if (s.type !== 'counter') return false;
+    const [x, y] = k.split(',').map(Number);
+    return game.adjacentFloors(x, y).length > 0;
+  })[0];
+  game.stations[counter].item = { id: 'patty', state: 'cooked' };
+  p.carry = { id: 'bun', state: 'raw' };
+  standAt(game, p, counter);
+  game.interact(p, counter);
+  assert.equal(p.carry.kind, 'stack', 'bun + cooked patty stack up');
+  assert.equal(p.carry.contents.length, 2);
+
+  const platesBefore = game.plateSupply;
+  game.interact(p, stationKey(game, 'serve'));
+  assert.equal(p.carry, null, 'burger served straight off the bun');
+  assert.equal(game.deliveredCount, 1);
+  assert.equal(game.plateSupply, platesBefore, 'no plate consumed');
+  assert.equal(game.pendingDirty.length, 0, 'no dirty dish from a handheld serve');
+});
+
+test('grabbing a bun from the crate while holding the patty also stacks', () => {
+  const game = makeGame('burger-bay');
+  const p = game.players.p1;
+  p.carry = { id: 'patty', state: 'cooked' };
+  game.interact(p, stationKey(game, 'crate', (s) => s.ing === 'bun'));
+  assert.equal(p.carry.kind, 'stack');
+});
+
+test('non-handheld combos swap instead of stacking', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const counter = stationKey(game, 'counter');
+  game.stations[counter].item = { id: 'tomato', state: 'chopped' };
+  p.carry = { id: 'lettuce', state: 'chopped' };
+  game.interact(p, counter);
+  // salad isn't handheld — items swap rather than stacking plateless
+  assert.deepEqual(p.carry, { id: 'tomato', state: 'chopped' });
+  assert.deepEqual(game.stations[counter].item, { id: 'lettuce', state: 'chopped' });
+});
+
+test('auto-chopper upgrade chops unmanned boards, slowly', () => {
+  const level = LEVELS.find((l) => l.id === 'salad-days');
+  const off = new Game(level, ROSTER, { rng: () => 0 });
+  const on = new Game(level, ROSTER, { rng: () => 0, upgrades: { auto_chopper: true }, autoChop: true });
+  for (const game of [off, on]) {
+    const board = stationKey(game, 'board');
+    game.stations[board].item = { id: 'lettuce', state: 'raw' };
+    game.players.p1.x = 100.5; game.players.p1.y = 100.5; // nobody nearby
+    for (let i = 0; i < 60; i++) game.tick(0.1); // 6s > 2.2/0.45
+  }
+  assert.equal(off.stations[stationKey(off, 'board')].item.state, 'raw', 'no upgrade: nothing happens');
+  assert.equal(on.stations[stationKey(on, 'board')].item.state, 'chopped', 'auto-chopper works alone');
+});
+
+test('kitchen upgrades apply: shoes, extra plate, non-stick', () => {
+  const level = LEVELS.find((l) => l.id === 'burger-bay');
+  const plain = new Game(level, ROSTER);
+  const upgraded = new Game(level, ROSTER, {
+    upgrades: { fast_shoes: true, extra_plate: true, nonstick: true, turbo_stove: true },
+  });
+  assert.ok(upgraded.speed > plain.speed);
+  assert.equal(upgraded.plateSupply, plain.plateSupply + 1);
+  assert.equal(upgraded.burnBonus, 3);
+  assert.ok(upgraded.cookMult < 1);
+});
+
+test('lunch rush kicks in and speeds up orders', () => {
+  const game = makeGame();
+  game.timeLeft = game.rushMarks[0] + 0.05;
+  const events = [];
+  game.tick(0.1);
+  assert.ok(game.rush > 0, 'rush window opened');
+  for (let i = 0; i < 200 && game.rush > 0; i++) events.push(...game.tick(0.5));
+  assert.equal(game.rush, 0, 'rush window closed');
+  assert.ok(events.some((e) => e.type === 'rush_end'));
+});
+
+test('VIP orders are worth more and expire faster', () => {
+  const game = makeGame(); // rng()=0 makes every non-first order a VIP
+  for (let i = 0; i < 60 && game.orders.length < 2; i++) game.tick(0.5);
+  assert.ok(game.orders.length >= 2);
+  assert.equal(game.orders[0].vip, false, 'first order is never a VIP');
+  assert.equal(game.orders[1].vip, true);
+  assert.ok(game.orders[1].ttlMax < game.orders[0].ttlMax, 'VIP timers are tighter');
 });
 
 test('plating works in either order: plate-first or ingredient-first', () => {

@@ -13,12 +13,16 @@ No app store, no install: one player starts a kitchen, shares a link, everyone j
 - **Real-time co-op for 1–8 chefs** — server-authoritative simulation over WebSockets; everyone sees the same kitchen live.
 - **Jackbox-style joining** — share `https://your-host/?join=TACO` and family is in.
 - **Mobile-first controls** — tap a crate to grab, tap a board to chop, tap the stove to cook, tap the window to serve. One gesture, zero learning curve, designed for one-handed iPhone play.
-- **A 6-level campaign with stars** — salads → burgers → soups → sushi → pizza → the Grand Feast. Score thresholds award 1–3 stars; each star unlocks the next level.
+- **A 14-level campaign across 3 themed worlds** — 🍳 The Family Diner, ❄️ Winter Wonderland, and 🏖️ Beach Club, each with its own palette, ingredients, and recipes (stew, hot cocoa, smoothies, poke, fish tacos...). Score thresholds award 1–3 stars; each star unlocks the next level.
 - **Persistent memory** —
   - **Crews**: your kitchen code is permanent. Come back next week, type the same code, and your stars, best scores, and unlocks are still there.
   - **Profiles**: each device keeps its chef (name + avatar), and the server tracks lifetime stats (meals served, stars earned, rounds played).
 - **12 avatars**, juicy animations, synthesized sound effects (no audio assets), combo multipliers, burnable food, and order tickets that shake when they're about to expire.
-- **Dishwashing** (level 2+): plates are limited, served plates come back dirty at the sink, and someone has to scrub them back into the stack — peak co-op chaos.
+- **Dishwashing** (level 2+): plates are limited, served plates come back dirty at the sink, and someone has to scrub them back into the stack — peak co-op chaos. (Handheld food — burgers on buns, fish tacos — skips the plate entirely.)
+- **The Kitchen Shop**: rounds bank coins into a persistent crew wallet; buy upgrades like the 🤖 Auto-Chopper, 👟 Speedy Sneakers, 🫧 Dish-Bot, and 🔥 Turbo Burners.
+- **Lunch rushes & VIP orders**: twice a round the kitchen goes into overdrive (double tips!), and gold 👑 tickets pay triple on a tight timer.
+- **Recap awards & emotes**: MVP / Prep Master / Dish Hero titles after each round, and tap-to-send emotes (🔥 😱 🙏 🎉) for cross-state trash talk.
+- **Prep-chain tickets & custom art**: every ticket shows the exact steps (🥩 › 🔪 › 🍳), with hand-drawn art for the ambiguous ingredients.
 - **Installable PWA** — Add to Home Screen on iOS and it launches full-screen like a native app.
 
 ## 🚀 Quick start

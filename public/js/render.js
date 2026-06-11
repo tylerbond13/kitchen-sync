@@ -3,13 +3,25 @@
   const ING_EMOJI = {
     lettuce: '🥬', tomato: '🍅', cucumber: '🥒', bun: '🍞', patty: '🥩',
     cheese: '🧀', onion: '🧅', rice: '🍚', fish: '🐟', seaweed: '🌿', dough: '🫓',
+    potato: '🥔', carrot: '🥕', milk: '🥛', cocoa: '🍫', tortilla: '🌮',
+    pineapple: '🍍', strawberry: '🍓', banana: '🍌',
   };
   // only use a distinct emoji when it truly reads as "chopped X" —
   // everything else keeps its emoji and gets a clear knife badge
   const CHOPPED_EMOJI = { fish: '🍣' };
   const COOKED_EMOJI = { patty: '🍖' };
-  const DISH_EMOJI = { soup_onion: '🥣', soup_tomato: '🍲', pizza: '🍕', burned: '🪨' };
+  const DISH_EMOJI = {
+    soup_onion: '🥣', soup_tomato: '🍲', pizza: '🍕', burned: '🪨',
+    stew: '🥘', cocoa: '☕', juice: '🍹',
+  };
   const PLAYER_COLORS = ['#E8543F', '#5BA8C9', '#6FA84C', '#B176C9', '#F4B942', '#E87BA4', '#48B59E', '#8A7568'];
+
+  // per-section visual palettes
+  const THEMES = {
+    diner:  { floorA: '#F3E3C3', floorB: '#EEDBB5', counter: '#D9B98C', bg: '#E8D5B5' },
+    winter: { floorA: '#E6EEF6', floorB: '#DBE6F1', counter: '#B8CDDE', bg: '#CFE0EF' },
+    beach:  { floorA: '#F9EDC9', floorB: '#F4E4B2', counter: '#D9C079', bg: '#CBE6DB' },
+  };
 
   function itemEmoji(item) {
     if (!item) return '';
@@ -34,6 +46,41 @@
     return `<span class="need">${tokenEmoji(token)}${badge ? `<b>${badge}</b>` : ''}</span>`;
   }
 
+  // ticket icon: custom art when we have it, emoji otherwise
+  function ico(token) {
+    return (window.KSArt && KSArt.svg(token)) || tokenEmoji(token);
+  }
+
+  // prep chains for finished dishes (what goes in + the appliance)
+  const DISH_PREP = {
+    soup_onion:  ['🧅🧅🧅', '🔪', '🥘'],
+    soup_tomato: ['🍅🍅🍅', '🔪', '🥘'],
+    pizza:       () => [ico('dough.raw') + '🍅🧀', '🔪', '🔥'],
+    stew:        ['🥔🥕🧅', '🔪', '🥘'],
+    cocoa:       ['🥛🍫', '🔪', '🥘'],
+    juice:       ['🍍🍓🍌', '🔪', '🥘'],
+  };
+  const COOK_TOOL = { patty: '🍳', rice: '🥘' };
+
+  // a full "how to make this" chain for one ticket requirement
+  function prepChainHtml(token) {
+    const [id, state] = token.split('.');
+    let steps;
+    if (state === 'dish') {
+      const d = DISH_PREP[id];
+      steps = typeof d === 'function' ? d() : (d || [tokenEmoji(token)]);
+    } else if (state === 'chopped') {
+      steps = [ico(`${id}.raw`), '🔪'];
+    } else if (state === 'cooked') {
+      steps = id === 'patty'
+        ? [ico('patty.raw'), '🔪', '🍳']
+        : [ico(`${id}.raw`), COOK_TOOL[id] || '🍳'];
+    } else {
+      steps = [ico(token)];
+    }
+    return `<div class="chain">${steps.join('<i>›</i>')}</div>`;
+  }
+
   class Renderer {
     constructor(canvas, staticState, myId, onTap) {
       this.canvas = canvas;
@@ -47,6 +94,9 @@
       this.curAt = 0;
       this.fx = [];
       this.colorOf = {};
+      this.emotes = {}; // playerId -> { emoji, until }
+      this.theme = THEMES[staticState.theme] || THEMES.diner;
+      canvas.parentElement.style.background = this.theme.bg;
       this.running = true;
       this.dpr = Math.min(window.devicePixelRatio || 1, 3);
 
@@ -91,6 +141,10 @@
         if (!this.colorOf[p.id]) this.colorOf[p.id] = PLAYER_COLORS[Object.keys(this.colorOf).length % PLAYER_COLORS.length];
       });
       for (const ev of state.events) this.addFx(ev);
+    }
+
+    addEmote(playerId, emoji) {
+      this.emotes[playerId] = { emoji, until: performance.now() + 2500 };
     }
 
     addFx(ev) {
@@ -143,7 +197,7 @@
           const c = lvl.grid[y][x];
           const X = ox + x * ts, Y = oy + y * ts;
           // floor under everything
-          ctx.fillStyle = (x + y) % 2 ? '#F3E3C3' : '#EEDBB5';
+          ctx.fillStyle = (x + y) % 2 ? this.theme.floorA : this.theme.floorB;
           ctx.fillRect(X, Y, ts, ts);
           if (c === '.') continue;
           this.drawStation(c, x, y, X, Y);
@@ -241,6 +295,20 @@
           }
         }
 
+        // emote bubble
+        const em = this.emotes[p.id];
+        if (em && em.until > now) {
+          const by = Y - bounce - r * 2.4;
+          ctx.fillStyle = '#FFFDF8';
+          ctx.strokeStyle = 'rgba(59,46,42,.2)';
+          ctx.lineWidth = 1.5 * this.dpr;
+          ctx.beginPath();
+          ctx.arc(X, by, r * 0.75, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          this.glyph(em.emoji, X, by, r * 0.9);
+        }
+
         // name
         ctx.font = `700 ${Math.max(9, ts * 0.2)}px ui-rounded, system-ui`;
         ctx.textAlign = 'center';
@@ -301,9 +369,9 @@
       };
 
       if (c === '#') {
-        base('#D9B98C');
+        base(this.theme.counter);
       } else if (c === 'B') {
-        base('#D9B98C');
+        base(this.theme.counter);
         ctx.fillStyle = '#F2E2C4';
         this.rr(X + ts * 0.16, Y + ts * 0.2, ts * 0.68, ts * 0.52, r * 0.5);
         ctx.fill();
@@ -330,7 +398,7 @@
         this.rr(X + ts * 0.27, Y + ts * 0.5, ts * 0.46, ts * 0.16, r * 0.3);
         ctx.fill();
       } else if (c === 'P') {
-        base('#D9B98C');
+        base(this.theme.counter);
         const supply = this.cur ? this.cur.plates : null;
         const shown = supply === null || supply === undefined ? 3 : Math.min(supply, 3);
         for (let i = 0; i < shown; i++) {
@@ -380,13 +448,17 @@
         this.rr(X + ts * 0.12, Y + ts * 0.12, ts * 0.76, ts * 0.2, r * 0.4);
         ctx.fill();
         const ing = this.lvl.crates[c];
-        this.glyph(ING_EMOJI[ing] || '📦', X + ts / 2, Y + ts * 0.56, ts * 0.5);
+        this.drawBare({ id: ing, state: 'raw' }, X + ts / 2, Y + ts * 0.56, ts * 0.5);
       }
     }
 
     drawItem(item, x, y, size, chip = true) {
       if (item.kind === 'plate') {
         this.drawPlate(item, x, y, size);
+        return;
+      }
+      if (item.kind === 'stack') {
+        this.drawStack(item, x, y, size);
         return;
       }
       if (chip) {
@@ -400,13 +472,30 @@
         ctx.lineWidth = 1.5 * this.dpr;
         ctx.stroke();
       }
+      this.drawBare(item, x, y, size);
+    }
+
+    // the item artwork itself (custom art or emoji + state badge)
+    drawBare(item, x, y, size) {
+      if (window.KSArt && KSArt.canDraw(item)) {
+        KSArt.draw(this.ctx, item, x, y, size); // state is drawn, no badge needed
+        return;
+      }
       this.glyph(itemEmoji(item), x, y, size);
-      // state badge
       if (item.state === 'chopped' && !CHOPPED_EMOJI[item.id]) {
         this.badge('🔪', x + size * 0.52, y + size * 0.46, size * 0.62);
       } else if (item.state === 'cooked' && !COOKED_EMOJI[item.id]) {
         this.badge('♨️', x + size * 0.52, y + size * 0.46, size * 0.62);
       }
+    }
+
+    // handheld assembly (burger on its bun): contents stacked bottom-up
+    drawStack(stack, x, y, size) {
+      const n = stack.contents.length;
+      stack.contents.forEach((it, i) => {
+        this.drawBare(it, x, y + size * 0.16 - i * size * 0.26, size * 0.85);
+      });
+      if (n === 0) this.glyph('🍽️', x, y, size * 0.6);
     }
 
     drawPlate(plate, x, y, size) {
@@ -421,7 +510,7 @@
       const n = plate.contents.length;
       plate.contents.forEach((it, i) => {
         const off = (i - (n - 1) / 2) * size * 0.35;
-        this.glyph(itemEmoji(it), x + off, y - size * 0.12, size * 0.5);
+        this.drawBare(it, x + off, y - size * 0.12, size * 0.5);
       });
     }
 
@@ -464,5 +553,5 @@
     }
   }
 
-  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml };
+  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml };
 })();

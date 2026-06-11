@@ -5,18 +5,28 @@ const { ING, DISHES, RECIPES, COOK_COMBOS, CHOPPABLE } = require('./levels');
 
 const SPEED = 3.4;        // tiles per second
 const CHOP_TIME = 2.2;    // seconds of standing at a board
+const AUTO_CHOP_RATE = 0.45; // unmanned boards chop at this fraction of full speed
+const CHOP_SOUND_EVERY = 0.55;
 const WASH_TIME = 2.5;    // seconds of standing at the sink, per plate
+const DISH_BOT_RATE = WASH_TIME / 9; // upgrade: ~1 plate every 9s, unmanned
 const DIRTY_RETURN_DELAY = 7; // seconds after serving until the dirty plate hits the sink
 const EXPIRE_PENALTY = 20;
+const RUSH_DURATION = 18; // seconds of lunch rush
+const VIP_CHANCE = 0.15;
 
-const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T' };
+const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T', SINK: 'K' };
 const TOOL_FOR = { S: 'pan', O: 'pot', V: 'oven' };
 
 function itemToken(item) {
   if (!item) return null;
-  if (item.kind === 'plate') return null;
+  if (item.kind === 'plate' || item.kind === 'stack') return null;
   if (item.kind === 'dish') return `${item.id}.dish`;
   return `${item.id}.${item.state}`;
+}
+
+// a plain item is its own contents; plates/stacks carry theirs
+function contentsOf(item) {
+  return item.kind === 'plate' || item.kind === 'stack' ? item.contents : [item];
 }
 
 function multisetEqual(a, b) {
@@ -47,6 +57,15 @@ class Game {
     this.spawnTiles = [];
     this.parseLayout();
 
+    // crew upgrades (Kitchen Shop)
+    const u = opts.upgrades || {};
+    this.speed = SPEED * (u.fast_shoes ? 1.12 : 1);
+    this.burnBonus = u.nonstick ? 3 : 0;
+    this.cookMult = u.turbo_stove ? 0.85 : 1;
+    this.dishBot = !!u.dish_bot;
+    this.autoChopAllowed = !!u.auto_chopper;
+    this.autoChop = this.autoChopAllowed && !!opts.autoChop;
+
     this.players = {};
     let i = 0;
     for (const p of roster) {
@@ -55,7 +74,7 @@ class Game {
         id: p.id, name: p.name, avatar: p.avatar,
         x: spawn.x + 0.5, y: spawn.y + 0.5,
         path: [], intent: null, carry: null, working: false,
-        delivered: 0,
+        delivered: 0, chops: 0, washed: 0,
       };
       i++;
     }
@@ -70,7 +89,9 @@ class Game {
     // plates are finite when the level has a sink: served plates come back
     // dirty and must be washed to rejoin the stack
     const hasSink = Object.values(this.stations).some((s) => s.type === 'sink');
-    this.plateSupply = hasSink && level.plates ? level.plates : null; // null = infinite
+    this.plateSupply = hasSink && level.plates
+      ? level.plates + (u.extra_plate ? 1 : 0)
+      : null; // null = infinite
     this.pendingDirty = []; // seconds until each served plate lands in the sink
 
     this.timeLeft = level.duration;
@@ -84,6 +105,9 @@ class Game {
     this.phase = 'playing';
     this.paused = false;
     this.pausedBy = null;
+    // two lunch-rush windows per round, at ~60% and ~28% time remaining
+    this.rushMarks = [Math.round(level.duration * 0.6), Math.round(level.duration * 0.28)];
+    this.rush = 0;
     this.events = [];
   }
 
@@ -93,12 +117,11 @@ class Game {
         const c = this.grid[y][x];
         const key = `${x},${y}`;
         if (c === TILE.FLOOR) {
-          // interior floor tiles are spawn candidates
           this.spawnTiles.push({ x, y });
         } else if (c === TILE.COUNTER) {
           this.stations[key] = { type: 'counter', item: null };
         } else if (c === TILE.BOARD) {
-          this.stations[key] = { type: 'board', item: null, progress: 0 };
+          this.stations[key] = { type: 'board', item: null, soundAcc: 0 };
         } else if (TOOL_FOR[c]) {
           this.stations[key] = { type: 'cook', tool: TOOL_FOR[c], contents: [], combo: null, progress: 0, state: 'idle' };
         } else if (c === TILE.PLATES) {
@@ -107,7 +130,7 @@ class Game {
           this.stations[key] = { type: 'serve' };
         } else if (c === TILE.TRASH) {
           this.stations[key] = { type: 'trash' };
-        } else if (c === 'K') {
+        } else if (c === TILE.SINK) {
           this.stations[key] = { type: 'sink', dirty: 0, progress: 0 };
         } else if (/[1-9]/.test(c)) {
           this.stations[key] = { type: 'crate', ing: this.level.crates[c] };
@@ -178,14 +201,12 @@ class Game {
     const stationKey = `${tx},${ty}`;
 
     if (this.stations[stationKey]) {
-      // already adjacent? interact now.
       if (Math.abs(px - tx) + Math.abs(py - ty) === 1) {
         p.path = [];
         p.intent = null;
         this.interact(p, stationKey);
         return;
       }
-      // walk to the nearest adjacent floor tile, then interact.
       let best = null;
       for (const f of this.adjacentFloors(tx, ty)) {
         const path = this.findPath(px, py, f.x, f.y);
@@ -209,6 +230,53 @@ class Game {
     }
   }
 
+  // ---- combining helpers --------------------------------------------------
+
+  // combine two non-plate items into a handheld stack (e.g. patty onto bun)
+  tryStack(a, b) {
+    if (!a || !b || a.kind === 'plate' || b.kind === 'plate') return null;
+    const contents = [...contentsOf(a), ...contentsOf(b)];
+    const tokens = contents.map(itemToken);
+    if (tokens.some((t) => t === null)) return null;
+    const fits = Object.values(RECIPES).some((r) => r.handheld && isSubset(tokens, r.needs));
+    if (!fits) return null;
+    return { kind: 'stack', contents };
+  }
+
+  addToPlate(plate, item, at) {
+    if (item.kind === 'plate') return false;
+    const incoming = contentsOf(item);
+    const tokens = plate.contents.map(itemToken).concat(incoming.map(itemToken));
+    if (tokens.some((t) => t === null)) return false;
+    const fitsAny = Object.values(RECIPES).some((r) => isSubset(tokens, r.needs));
+    if (!fitsAny) {
+      this.emit('reject', at);
+      return false;
+    }
+    plate.contents.push(...incoming);
+    this.emit('plate', at);
+    return true;
+  }
+
+  // merge a produced item (e.g. cooked patty from the pan) into whatever the
+  // player is holding: empty hand, plate, or a handheld stack-in-progress
+  mergeIntoCarry(p, out, at) {
+    if (!p.carry) {
+      p.carry = out;
+      this.emit('pickup', at);
+      return true;
+    }
+    if (p.carry.kind === 'plate') return this.addToPlate(p.carry, out, at);
+    const stack = this.tryStack(p.carry, out);
+    if (stack) {
+      p.carry = stack;
+      this.emit('plate', at);
+      return true;
+    }
+    this.emit('reject', at);
+    return false;
+  }
+
   // ---- interactions -------------------------------------------------------
 
   interact(p, stationKey) {
@@ -219,11 +287,17 @@ class Game {
 
     switch (s.type) {
       case 'crate': {
+        const fresh = { id: s.ing, state: 'raw' };
         if (!p.carry) {
-          p.carry = { id: s.ing, state: 'raw' };
+          p.carry = fresh;
           this.emit('pickup', at);
         } else if (p.carry.kind === 'plate') {
-          this.addToPlate(p.carry, { id: s.ing, state: 'raw' }, at);
+          this.addToPlate(p.carry, fresh, at);
+        } else {
+          // holding food and grabbing a base from the crate (e.g. bun under a patty)
+          const stack = this.tryStack(p.carry, fresh);
+          if (stack) { p.carry = stack; this.emit('plate', at); }
+          else this.emit('reject', at);
         }
         break;
       }
@@ -235,28 +309,45 @@ class Game {
           s.item = p.carry; p.carry = null;
           this.emit('place', at);
         } else if (p.carry && s.item) {
-          // combine plate + item in either direction
           if (p.carry.kind === 'plate' && s.item.kind !== 'plate') {
             if (this.addToPlate(p.carry, s.item, at)) s.item = null;
           } else if (s.item.kind === 'plate' && p.carry.kind !== 'plate') {
             if (this.addToPlate(s.item, p.carry, at)) p.carry = null;
+          } else if (p.carry.kind !== 'plate' && s.item.kind !== 'plate') {
+            const stack = this.tryStack(p.carry, s.item);
+            if (stack) {
+              p.carry = stack; s.item = null;
+              this.emit('plate', at);
+            } else {
+              // swap hands with the counter — no more dead taps
+              [p.carry, s.item] = [s.item, p.carry];
+              this.emit('pickup', at);
+            }
           }
         }
         break;
       }
       case 'board': {
         if (p.carry && !s.item && p.carry.kind !== 'plate') {
-          // any item can rest on a board; only raw choppables actually chop.
-          // a chopped item stays chopped — placing it back never re-chops it.
-          s.item = p.carry; s.progress = 0; p.carry = null;
+          // anything non-plate can rest on a board; only raw choppables chop.
+          // chop progress lives ON the item, so it always survives moves.
+          s.item = p.carry; p.carry = null;
           this.emit('place', at);
         } else if (!p.carry && s.item) {
-          p.carry = s.item; s.item = null; s.progress = 0;
+          p.carry = s.item; s.item = null;
           this.emit('pickup', at);
-        } else if (p.carry && p.carry.kind === 'plate' && s.item) {
-          // plate-first: scoop the board's item straight onto the plate
-          if (this.addToPlate(p.carry, s.item, at)) {
-            s.item = null; s.progress = 0;
+        } else if (p.carry && s.item) {
+          if (p.carry.kind === 'plate') {
+            if (this.addToPlate(p.carry, s.item, at)) s.item = null;
+          } else {
+            const stack = this.tryStack(p.carry, s.item);
+            if (stack) {
+              p.carry = stack; s.item = null;
+              this.emit('plate', at);
+            } else {
+              [p.carry, s.item] = [s.item, p.carry];
+              this.emit('pickup', at);
+            }
           }
         }
         break;
@@ -289,7 +380,7 @@ class Game {
         break;
       }
       case 'serve': {
-        if (p.carry && p.carry.kind === 'plate' && p.carry.contents.length) {
+        if (p.carry && (p.carry.kind === 'plate' || p.carry.kind === 'stack') && p.carry.contents.length) {
           this.tryServe(p, at);
         } else {
           this.emit('reject', at);
@@ -307,31 +398,10 @@ class Game {
     }
   }
 
-  addToPlate(plate, item, at) {
-    if (item.kind === 'plate') return false;
-    const token = itemToken(item);
-    // only allow additions that keep the plate a sub-multiset of some recipe
-    const tokens = plate.contents.map(itemToken).concat(token);
-    const fitsAny = Object.values(RECIPES).some((r) => isSubset(tokens, r.needs));
-    if (!fitsAny) {
-      this.emit('reject', at);
-      return false;
-    }
-    plate.contents.push(item);
-    this.emit('plate', at);
-    return true;
-  }
-
   interactCook(p, s, at) {
     if (s.state === 'done') {
       const out = s.contents[0];
-      if (!p.carry) {
-        p.carry = out;
-        this.resetCooker(s);
-        this.emit('pickup', at);
-      } else if (p.carry.kind === 'plate') {
-        if (this.addToPlate(p.carry, out, at)) this.resetCooker(s);
-      }
+      if (this.mergeIntoCarry(p, out, at)) this.resetCooker(s);
       return;
     }
     if (s.state === 'burned') {
@@ -343,7 +413,7 @@ class Game {
       return;
     }
     // idle / filling / cooking: try to add an ingredient
-    if (p.carry && p.carry.kind !== 'plate' && p.carry.kind !== 'dish') {
+    if (p.carry && p.carry.kind !== 'plate' && p.carry.kind !== 'dish' && p.carry.kind !== 'stack') {
       const token = itemToken(p.carry);
       const tokens = s.contents.map(itemToken).concat(token);
       const candidates = COOK_COMBOS.filter((c) => c.tool === s.tool && isSubset(tokens, c.inputs));
@@ -382,16 +452,19 @@ class Game {
     const order = this.orders[idx];
     this.orders.splice(idx, 1);
     const recipe = RECIPES[order.recipe];
-    const tip = Math.round(recipe.points * 0.5 * (order.ttl / order.ttlMax));
+    const base = recipe.points * (order.vip ? 3 : 1);
+    let tip = Math.round(base * 0.5 * (order.ttl / order.ttlMax));
+    if (this.rush > 0) tip *= 2; // rush hour: double tips
     this.combo = Math.min(this.combo + 1, 4);
     const comboBonus = (this.combo - 1) * 10;
-    this.score += recipe.points + tip + comboBonus;
+    this.score += base + tip + comboBonus;
     this.deliveredCount++;
     p.delivered++;
+    const wasPlate = p.carry.kind === 'plate';
     p.carry = null;
-    // the plate comes back dirty at the sink in a few seconds
-    if (this.plateSupply !== null) this.pendingDirty.push(DIRTY_RETURN_DELAY);
-    this.emit('serve', { ...at, points: recipe.points + tip + comboBonus, recipe: order.recipe });
+    // plates come back dirty at the sink; handheld stacks don't dirty a dish
+    if (wasPlate && this.plateSupply !== null) this.pendingDirty.push(DIRTY_RETURN_DELAY);
+    this.emit('serve', { ...at, points: base + tip + comboBonus, recipe: order.recipe, vip: !!order.vip });
   }
 
   // ---- simulation ---------------------------------------------------------
@@ -404,6 +477,20 @@ class Game {
 
     this.timeLeft -= dt;
 
+    // lunch rush windows
+    if (this.rushMarks.length && this.timeLeft <= this.rushMarks[0]) {
+      this.rushMarks.shift();
+      this.rush = RUSH_DURATION;
+      this.emit('rush_start', {});
+    }
+    if (this.rush > 0) {
+      this.rush -= dt;
+      if (this.rush <= 0) {
+        this.rush = 0;
+        this.emit('rush_end', {});
+      }
+    }
+
     // movement + arrival interactions
     for (const p of Object.values(this.players)) {
       if (p.path.length) {
@@ -411,7 +498,7 @@ class Game {
         const tx = wp.x + 0.5, ty = wp.y + 0.5;
         const dx = tx - p.x, dy = ty - p.y;
         const dist = Math.hypot(dx, dy);
-        const step = SPEED * dt;
+        const step = this.speed * dt;
         if (dist <= step) {
           p.x = tx; p.y = ty;
           p.path.shift();
@@ -426,23 +513,38 @@ class Game {
       }
     }
 
-    // chopping: any idle player adjacent to a board with an unchopped item works it
+    // chopping: a chef standing at the board works at full speed;
+    // with the Auto-Chopper enabled, unmanned boards work slowly by themselves
     for (const [key, s] of Object.entries(this.stations)) {
       if (s.type !== 'board') continue;
       if (!s.item || s.item.state !== 'raw' || !CHOPPABLE.has(s.item.id)) continue;
       const [sx, sy] = key.split(',').map(Number);
       const worker = Object.values(this.players).find((p) =>
         !p.path.length && Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1);
+      let rate = 0;
       if (worker) {
         worker.working = true;
-        s.progress += dt / CHOP_TIME;
-        if (s.progress >= 1) {
+        rate = 1;
+      } else if (this.autoChop) {
+        rate = AUTO_CHOP_RATE;
+      }
+      if (rate > 0) {
+        s.item.prog = (s.item.prog || 0) + (dt * rate) / CHOP_TIME;
+        s.soundAcc = (s.soundAcc || 0) + dt * rate;
+        if (s.soundAcc >= CHOP_SOUND_EVERY) {
+          s.soundAcc = 0;
+          this.emit('chop', { x: sx, y: sy });
+        }
+        if (s.item.prog >= 1) {
           s.item.state = 'chopped';
-          s.progress = 0;
+          delete s.item.prog;
+          s.soundAcc = 0;
+          if (worker) worker.chops++;
           this.emit('chopped', { x: sx, y: sy });
         }
       }
     }
+
     // dirty plates arriving at the sink
     if (this.pendingDirty.length) {
       this.pendingDirty = this.pendingDirty.map((t) => t - dt);
@@ -455,19 +557,27 @@ class Game {
       }
     }
 
-    // washing: any idle player adjacent to a sink with dirty plates scrubs
+    // washing: a chef at the sink scrubs at full speed; the Dish-Bot upgrade
+    // washes slowly on its own
     for (const [key, s] of Object.entries(this.stations)) {
       if (s.type !== 'sink' || s.dirty <= 0) continue;
       const [sx, sy] = key.split(',').map(Number);
       const worker = Object.values(this.players).find((p) =>
         !p.path.length && Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1);
+      let rate = 0;
       if (worker) {
         worker.working = true;
-        s.progress += dt / WASH_TIME;
+        rate = 1;
+      } else if (this.dishBot) {
+        rate = DISH_BOT_RATE;
+      }
+      if (rate > 0) {
+        s.progress += (dt * rate) / WASH_TIME;
         if (s.progress >= 1) {
           s.dirty--;
           s.progress = 0;
           if (this.plateSupply !== null) this.plateSupply++;
+          if (worker) worker.washed++;
           this.emit('washed', { x: sx, y: sy });
         }
       }
@@ -493,7 +603,7 @@ class Game {
       if (s.type !== 'cook' || s.state === 'idle' || s.state === 'burned') continue;
       if (s.state === 'cooking') {
         s.progress += dt;
-        if (s.progress >= s.combo.time) {
+        if (s.progress >= s.combo.time * this.cookMult) {
           const out = s.combo.out.kind === 'dish'
             ? { kind: 'dish', id: s.combo.out.id }
             : { id: s.combo.out.id, state: s.combo.out.state };
@@ -505,7 +615,7 @@ class Game {
         }
       } else if (s.state === 'done') {
         s.progress += dt;
-        if (s.progress >= s.combo.burnAfter) {
+        if (s.progress >= s.combo.burnAfter + this.burnBonus) {
           s.contents = [{ kind: 'dish', id: 'burned' }];
           s.state = 'burned';
           const [sx, sy] = key.split(',').map(Number);
@@ -517,14 +627,15 @@ class Game {
     // orders
     this.orderClock -= dt;
     const cfg = this.level.orders;
+    const spawnEvery = cfg.every * this.pace.every * (this.rush > 0 ? 0.55 : 1);
     if (this.orderClock <= 0 && this.orders.length < cfg.maxOpen && this.timeLeft > 15) {
-      const recipe = this.orders.length === 0
-        ? cfg.recipes[0]
-        : cfg.recipes[Math.floor(this.rng() * cfg.recipes.length)];
-      const ttl = cfg.ttl * this.pace.ttl;
-      this.orders.push({ id: this.nextOrderId++, recipe, ttl, ttlMax: ttl });
-      this.orderClock = cfg.every * this.pace.every;
-      this.emit('order', { recipe });
+      const first = this.orders.length === 0 && this.nextOrderId === 1;
+      const recipe = first ? cfg.recipes[0] : cfg.recipes[Math.floor(this.rng() * cfg.recipes.length)];
+      const vip = !first && this.rng() < VIP_CHANCE;
+      const ttl = cfg.ttl * this.pace.ttl * (vip ? 0.75 : 1);
+      this.orders.push({ id: this.nextOrderId++, recipe, vip, ttl, ttlMax: ttl });
+      this.orderClock = spawnEvery;
+      this.emit('order', { recipe, vip });
     }
     for (const o of this.orders) o.ttl -= dt;
     const expired = this.orders.filter((o) => o.ttl <= 0);
@@ -562,12 +673,14 @@ class Game {
     return {
       levelId: this.level.id,
       name: this.level.name,
+      theme: this.level.theme || 'diner',
       w: this.w,
       h: this.h,
       grid: this.level.layout,
       crates: this.level.crates,
       duration: this.level.duration,
       starThresholds: this.starGoals,
+      autoChopAllowed: this.autoChopAllowed,
     };
   }
 
@@ -575,7 +688,9 @@ class Game {
     const stations = {};
     for (const [key, s] of Object.entries(this.stations)) {
       if (s.type === 'counter' && s.item) stations[key] = { item: s.item };
-      else if (s.type === 'board' && s.item) stations[key] = { item: s.item, progress: s.progress };
+      else if (s.type === 'board' && s.item) {
+        stations[key] = { item: s.item, progress: s.item.prog || 0 };
+      }
       else if (s.type === 'sink' && (s.dirty > 0 || s.progress > 0)) {
         stations[key] = { dirty: s.dirty, progress: s.progress };
       }
@@ -583,8 +698,8 @@ class Game {
         stations[key] = {
           contents: s.contents,
           state: s.state,
-          progress: s.state === 'cooking' ? s.progress / s.combo.time
-            : s.state === 'done' ? s.progress / s.combo.burnAfter : 0,
+          progress: s.state === 'cooking' ? s.progress / (s.combo.time * this.cookMult)
+            : s.state === 'done' ? s.progress / (s.combo.burnAfter + this.burnBonus) : 0,
         };
       }
     }
@@ -594,6 +709,8 @@ class Game {
       incomingDirty: this.pendingDirty.length,
       score: this.score,
       combo: this.combo,
+      rush: this.rush > 0 ? Math.ceil(this.rush) : 0,
+      autoChop: this.autoChop,
       phase: this.phase,
       paused: this.paused,
       pausedBy: this.pausedBy,
@@ -601,10 +718,11 @@ class Game {
         id: p.id, name: p.name, avatar: p.avatar,
         x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100,
         carry: p.carry, working: p.working, moving: p.path.length > 0,
+        delivered: p.delivered,
       })),
       stations,
       orders: this.orders.map((o) => ({
-        id: o.id, recipe: o.recipe,
+        id: o.id, recipe: o.recipe, vip: !!o.vip,
         name: RECIPES[o.recipe].name, emoji: RECIPES[o.recipe].emoji,
         needs: RECIPES[o.recipe].needs,
         ttl: Math.max(0, o.ttl), ttlMax: o.ttlMax,
@@ -622,10 +740,11 @@ class Game {
       delivered: this.deliveredCount,
       missed: this.missedCount,
       players: Object.values(this.players).map((p) => ({
-        id: p.id, name: p.name, avatar: p.avatar, delivered: p.delivered,
+        id: p.id, name: p.name, avatar: p.avatar,
+        delivered: p.delivered, chops: p.chops, washed: p.washed,
       })),
     };
   }
 }
 
-module.exports = { Game, itemToken, multisetEqual, isSubset };
+module.exports = { Game, itemToken, multisetEqual, isSubset, contentsOf };

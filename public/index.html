@@ -333,9 +333,107 @@ input[type="text"]:focus { border-color: var(--gold); }
 @keyframes ticket-shake { 25% { transform: rotate(1.4deg);} 75% { transform: rotate(-1.4deg);} }
 .ticket-head { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; }
 .ticket-head .t-emoji { font-size: 20px; }
-.ticket-needs { font-size: 13px; margin-top: 2px; letter-spacing: 2px; }
+.ticket-needs { font-size: 13px; margin-top: 2px; }
 .ticket-needs .need { position: relative; display: inline-block; margin-right: 5px; }
 .ticket-needs .need b { position: absolute; right: -6px; bottom: -3px; font-size: 9px; }
+.ticket-needs .chain { display: flex; align-items: center; gap: 2px; font-size: 12px; line-height: 1.5; white-space: nowrap; }
+.ticket-needs .chain i { font-style: normal; color: var(--ink-soft); font-size: 10px; font-weight: 800; padding: 0 1px; }
+.ticket-needs svg.art { width: 15px; height: 15px; vertical-align: middle; }
+.ticket.vip {
+  border-top-color: var(--gold);
+  background: linear-gradient(180deg, #FFF8E3 0%, var(--card) 60%);
+  box-shadow: 0 0 0 1.5px var(--gold), var(--shadow);
+}
+
+/* ---------- rush banner & star progress ---------- */
+.rush-banner {
+  background: linear-gradient(90deg, var(--tomato) 0%, var(--gold) 100%);
+  color: #fff; font-weight: 800; font-size: 14px;
+  text-align: center; padding: 8px 12px; border-radius: 12px;
+  animation: rush-pulse .6s infinite;
+  box-shadow: 0 4px 14px rgba(232, 84, 63, .4);
+}
+@keyframes rush-pulse { 50% { transform: scale(1.02); filter: brightness(1.1); } }
+.star-progress {
+  position: relative; height: 10px;
+  background: var(--cream-deep); border-radius: 6px;
+  margin: 0 2px;
+}
+.star-progress i {
+  display: block; height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--leaf), var(--gold));
+  border-radius: 6px; transition: width .4s;
+}
+.star-progress .star-mark {
+  position: absolute; top: 50%;
+  transform: translate(-100%, -54%);
+  font-size: 13px; color: #D9C8AC;
+  text-shadow: 0 1px 2px rgba(59,46,42,.18);
+}
+.star-progress .star-mark.hit { color: var(--gold); }
+
+/* ---------- emotes & crew strip ---------- */
+.foot-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.emote-bar { display: flex; gap: 5px; }
+.emote-bar button {
+  font-size: 16px; width: 34px; height: 34px;
+  border: none; border-radius: 50%;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform .08s;
+}
+.emote-bar button:active { transform: scale(.85); }
+.game-foot { display: flex; flex-direction: column; gap: 4px; }
+.game-players { display: flex; gap: 8px; flex-wrap: wrap; }
+.gp {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 12px; font-weight: 800; color: var(--ink-soft);
+  background: var(--card); border-radius: 10px; padding: 3px 8px;
+  box-shadow: var(--shadow);
+}
+.gp.me { outline: 2px solid var(--gold); }
+.gp-face { font-size: 15px; }
+
+/* ---------- kitchen shop & crew stats ---------- */
+.crew-stats { margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.shop-coins { float: right; color: var(--ink); }
+.shop-list { display: flex; flex-direction: column; gap: 8px; }
+.shop-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--cream); border-radius: 14px; padding: 9px 12px;
+}
+.shop-row.owned { opacity: .65; }
+.shop-emoji { font-size: 22px; }
+.shop-info { flex: 1; min-width: 0; }
+.shop-name { font-weight: 800; font-size: 13.5px; }
+.shop-desc { font-size: 11.5px; color: var(--ink-soft); }
+.shop-buy {
+  font: inherit; font-size: 12px; font-weight: 800;
+  border: none; border-radius: 10px; padding: 7px 10px;
+  background: var(--tomato); color: #fff; cursor: pointer;
+  white-space: nowrap;
+}
+.shop-buy:disabled { background: var(--cream-deep); color: var(--ink-soft); }
+.shop-row.owned .shop-buy { background: var(--leaf); color: #fff; }
+
+/* ---------- level sections ---------- */
+.section-head {
+  display: flex; align-items: center; gap: 8px;
+  margin: 8px 2px 0;
+  font-weight: 800; font-size: 14px;
+}
+.section-head .sec-emoji { font-size: 18px; }
+.section-head .sec-stars { margin-left: auto; font-size: 12px; color: var(--gold); font-weight: 800; }
+
+/* ---------- recap awards ---------- */
+.results-awards { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.award {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card); border-radius: 14px; padding: 8px 14px;
+  box-shadow: var(--shadow); font-size: 12.5px; text-align: left;
+}
+.award .aw-emoji { font-size: 22px; }
 .ticket-bar { height: 5px; background: var(--cream-deep); border-radius: 3px; margin-top: 6px; overflow: hidden; }
 .ticket-bar i { display: block; height: 100%; background: var(--leaf); border-radius: 3px; }
 .ticket.warn .ticket-bar i { background: var(--gold); }
@@ -465,6 +563,12 @@ input[type="text"]:focus { border-color: var(--gold); }
       <div class="card">
         <div class="card-title">Crew <span class="muted" id="crew-count"></span></div>
         <div class="member-row" id="member-row"></div>
+        <div class="crew-stats" id="crew-stats"></div>
+      </div>
+
+      <div class="card" id="shop-card" hidden>
+        <div class="card-title">Kitchen Shop <span class="shop-coins" id="shop-coins"></span></div>
+        <div class="shop-list" id="shop-list"></div>
       </div>
 
       <div class="card levels-card">
@@ -491,7 +595,7 @@ input[type="text"]:focus { border-color: var(--gold); }
       </div>
       <div class="card tut-step">
         <div class="tut-emoji">📦🔪</div>
-        <div><b>Grab &amp; chop.</b><p>Tap a crate to grab an ingredient, then tap a cutting board. Stand next to the board while the green bar fills. Chopped food wears a little 🔪 badge — and stays chopped forever.</p></div>
+        <div><b>Grab &amp; chop.</b><p>Tap a crate to grab an ingredient, then tap a cutting board. Stand next to the board while the green bar fills. Chopped food wears a little 🔪 badge — and stays chopped forever. (Crews that buy the 🤖 Auto-Chopper can flip a switch in-game and boards chop themselves, slowly.)</p></div>
       </div>
       <div class="card tut-step">
         <div class="tut-emoji">🍳🔥</div>
@@ -525,9 +629,17 @@ input[type="text"]:focus { border-color: var(--gold); }
       <div class="hud-pill hud-score" id="hud-score">🪙 0</div>
       <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
       <div class="hud-buttons">
+        <button class="btn-icon" id="btn-autochop" title="Auto-chop" hidden>🔪</button>
         <button class="btn-icon" id="btn-mute" title="Sound">🔊</button>
         <button class="btn-icon" id="btn-pause" title="Pause">⏸️</button>
       </div>
+    </div>
+    <div class="rush-banner" id="rush-banner" hidden></div>
+    <div class="star-progress" id="star-progress">
+      <i id="star-fill"></i>
+      <span class="star-mark" data-i="0">★</span>
+      <span class="star-mark" data-i="1">★</span>
+      <span class="star-mark" data-i="2">★</span>
     </div>
     <div class="orders-strip" id="orders-strip"></div>
     <div class="canvas-wrap" id="canvas-wrap">
@@ -540,7 +652,13 @@ input[type="text"]:focus { border-color: var(--gold); }
         </div>
       </div>
     </div>
-    <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
+    <div class="game-foot">
+      <div class="foot-row">
+        <div class="game-players" id="game-players"></div>
+        <div class="emote-bar" id="emote-bar"></div>
+      </div>
+      <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
+    </div>
   </section>
 
   <!-- ============ RESULTS ============ -->
@@ -552,6 +670,7 @@ input[type="text"]:focus { border-color: var(--gold); }
       </div>
       <div class="big-score" id="results-score">0</div>
       <div class="results-stats" id="results-stats"></div>
+      <div class="results-awards" id="results-awards"></div>
       <div class="results-players" id="results-players"></div>
       <button class="btn btn-primary" id="btn-results-done">Back to the Kitchen</button>
     </div>
@@ -562,6 +681,7 @@ input[type="text"]:focus { border-color: var(--gold); }
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/sound.js"></script>
+  <script src="/js/art.js"></script>
   <script src="/js/render.js"></script>
   <script src="/js/app.js"></script>
   <script>
