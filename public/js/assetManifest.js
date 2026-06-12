@@ -46,7 +46,7 @@
     // Keys without a front-facing HD render yet use hand-built SVG stand-ins
     // (assets/images/flat/) — swap each back to its .png as regens land.
     counter:        { path: HD + 'ks-countertop.png', flat: true },
-    chopping_board: { path: FLAT + 'board.svg', flat: true },
+    chopping_board: { path: HD + 'ks-chopping-block.png', flat: true },
     oven:           { path: HD + 'ks-industrial-baking-oven.png' },
     stove:          { path: HD + 'ks-stove-pan.png' },
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
