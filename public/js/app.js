@@ -1,6 +1,5 @@
 // Kitchen Sync app: profile, screens, socket flow, game wiring.
 (function () {
-  const AVATARS = ['🧑‍🍳', '👩‍🍳', '👨‍🍳', '🦊', '🐱', '🐼', '🐸', '🦁', '🐙', '🤖', '🦄', '🐻'];
   const $ = (id) => document.getElementById(id);
   const CHEFS = (window.KS_CHEFS || []).filter((c) => c && c.key && hasAsset(c.key));
   if (!CHEFS.length) CHEFS.push({ key: 'chef', name: 'Chef' });
@@ -27,7 +26,7 @@
   }
 
   function playerFaceHtml(player, cls = 'chef-face-img') {
-    return chefImgHtml(player && player.chef, cls) || escapeHtml((player && player.avatar) || '🧑‍🍳');
+    return chefImgHtml(player && player.chef, cls) || chefImgHtml('chef', cls);
   }
 
   // ---------- profile (device identity) ----------
@@ -42,14 +41,14 @@
       p = {
         id: (crypto.randomUUID ? crypto.randomUUID() : 'p-' + Math.random().toString(36).slice(2) + Date.now()),
         name: '',
-        avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
         chef: 'chef',
       };
     }
+    p.chef = chefChoice(p.chef).key;
+    p.avatar = p.avatar || '';
     return p;
   }
   const profile = loadProfile();
-  profile.chef = chefChoice(profile.chef).key;
   function saveProfile() {
     profileStore.setItem('ks-profile', JSON.stringify(profile));
   }
@@ -73,23 +72,15 @@
   }
 
   // ---------- quick picks (the Bond crew) ----------
-  const FAMILY = [
-    { name: 'Eric', avatar: '🦁' },
-    { name: 'Stephanie', avatar: '🦊' },
-    { name: 'Tyler', avatar: '🐻' },
-    { name: 'Logan', avatar: '🐸' },
-    { name: 'Natalie', avatar: '🦄' },
-    { name: 'Nathan', avatar: '🤖' },
-  ];
+  const FAMILY = ['Eric', 'Stephanie', 'Tyler', 'Logan', 'Natalie', 'Nathan'];
   const picksEl = $('quick-picks');
   FAMILY.forEach((f) => {
     const chip = document.createElement('button');
     chip.className = 'quick-pick';
-    chip.innerHTML = `<span class="qp-face">${f.avatar}</span>${f.name}`;
+    chip.textContent = f;
     chip.onclick = () => {
-      profile.name = f.name;
-      profile.avatar = f.avatar;
-      $('name-input').value = f.name;
+      profile.name = f;
+      $('name-input').value = f;
       saveProfile();
       refreshPicker();
       SFX.unlock(); SFX.tap();
@@ -116,21 +107,6 @@
     chefGrid.appendChild(cell);
   });
 
-  const grid = $('avatar-grid');
-  AVATARS.forEach((a) => {
-    const cell = document.createElement('button');
-    cell.className = 'avatar-cell';
-    cell.type = 'button';
-    cell.textContent = a;
-    cell.onclick = () => {
-      profile.avatar = a;
-      saveProfile();
-      refreshPicker();
-      SFX.unlock(); SFX.tap();
-      sendHello();
-    };
-    grid.appendChild(cell);
-  });
   $('name-input').value = profile.name;
   $('name-input').addEventListener('change', () => {
     profile.name = $('name-input').value.trim().slice(0, 14);
@@ -143,10 +119,8 @@
     profile.chef = chefChoice(profile.chef).key;
     chefGrid.querySelectorAll('.chef-cell').forEach((c) =>
       c.classList.toggle('sel', c.dataset.chef === profile.chef));
-    grid.querySelectorAll('.avatar-cell').forEach((c) =>
-      c.classList.toggle('sel', c.textContent === profile.avatar));
     picksEl.querySelectorAll('.quick-pick').forEach((c, i) =>
-      c.classList.toggle('sel', FAMILY[i].name === profile.name && FAMILY[i].avatar === profile.avatar));
+      c.classList.toggle('sel', FAMILY[i] === profile.name));
   }
   refreshPicker();
 

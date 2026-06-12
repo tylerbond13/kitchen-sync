@@ -363,9 +363,8 @@ input[type="text"]:focus {
   background: #FFF0F8;
   box-shadow: 0 0 0 4px rgba(255, 111, 174, 0.10);
 }
-.quick-pick .qp-face { font-size: 20px; }
 
-/* ============ Chef + avatar picker ============ */
+/* ============ Chef picker ============ */
 .chef-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -406,28 +405,6 @@ input[type="text"]:focus {
   font-size: 10.5px;
   font-weight: 800;
   line-height: 1.1;
-}
-.avatar-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.avatar-cell {
-  font-size: 27px;
-  aspect-ratio: 1;
-  display: grid; place-items: center;
-  background: var(--cream);
-  border: 2px solid transparent;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: transform .1s, border-color .1s, background .1s;
-}
-.avatar-cell.sel {
-  border-color: var(--bubblegum);
-  background: #FFF0F8;
-  transform: scale(1.1);
-  box-shadow: 0 0 0 3px rgba(255, 111, 174, 0.15);
 }
 .profile-stats { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
 
@@ -934,8 +911,6 @@ input[type="text"]:focus {
         <input id="name-input" type="text" maxlength="14" placeholder="Your name" autocomplete="nickname" enterkeyhint="done">
         <label class="field-label">Choose your chef</label>
         <div class="chef-grid" id="chef-grid"></div>
-        <label class="field-label">Badge</label>
-        <div class="avatar-grid" id="avatar-grid"></div>
         <div class="profile-stats" id="profile-stats"></div>
       </div>
 
