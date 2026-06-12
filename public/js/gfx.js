@@ -1,144 +1,165 @@
 // ============================================================================
-//  Kitchen Sync — IMAGE ASSET MANIFEST + sprite loader
+//  Kitchen Sync — GFX sprite loader
 //  ---------------------------------------------------------------------------
-//  The renderer does ONE thing: position and blit these image files.
-//  There is no shape-drawing for game objects anywhere in the engine.
+//  Consumes window.ASSETS (assetManifest.js). For every asset key:
 //
-//  To use your own art: drop a real .png (or animated .gif) at any path below.
-//  Until you do, a bundled .svg placeholder of the same name is shown so the
-//  game is never blank. Real files win automatically — no code change needed.
+//    1. Load the source image (one fetch per file — sheet crops share it).
+//    2. Crop to the manifest's crop rect, if any.
+//    3. KEY OUT the flat studio background: if the corners are opaque, flood
+//       every border-connected pixel within tolerance of the corner colour to
+//       transparent. (HD renders arrive on plain white/beige cards.)
+//    4. TRIM to the alpha bounding box, so the prepared sprite's pixel
+//       dimensions exactly match its visible content — draw calls keep true
+//       proportions automatically.
+//
+//    Prepared sprites are cached canvases. Real .png missing? The same path
+//    with .svg is tried (bundled placeholders), so the game is never blank.
 // ============================================================================
 (function () {
+  const ASSETS = window.ASSETS || {};
 
-  // Every game object → its image file. This is the single source of truth.
-  const ASSETS = {
-    // ── Characters (the players you control) ───────────────────────────────
-    chef:             'assets/images/characters/chef.png',
-
-    // ── Customers (one sprite each) ────────────────────────────────────────
-    grandma_rose:     'assets/images/customers/grandma_rose.png',
-    influencer:       'assets/images/customers/influencer.png',
-    workhorse:        'assets/images/customers/workhorse.png',
-    socialite:        'assets/images/customers/socialite.png',
-    kid:              'assets/images/customers/kid.png',
-
-    // ── Stations / appliances ──────────────────────────────────────────────
-    counter:          'assets/images/stations/counter.png',
-    chopping_board:   'assets/images/stations/chopping_board.png',
-    stove:            'assets/images/stations/stove.png',
-    pot:              'assets/images/stations/pot.png',
-    oven:             'assets/images/stations/oven.png',
-    plate_stack:      'assets/images/stations/plate_stack.png',
-    serve_window:     'assets/images/stations/serve_window.png',
-    trash:            'assets/images/stations/trash.png',
-    sink:             'assets/images/stations/sink.png',
-
-    // ── Ingredients (raw / chopped / cooked variants) ──────────────────────
-    lettuce:          'assets/images/ingredients/lettuce.png',
-    lettuce_chopped:  'assets/images/ingredients/lettuce_chopped.png',
-    tomato:           'assets/images/ingredients/tomato.png',
-    tomato_chopped:   'assets/images/ingredients/tomato_chopped.png',
-    cucumber:         'assets/images/ingredients/cucumber.png',
-    cucumber_chopped: 'assets/images/ingredients/cucumber_chopped.png',
-    onion:            'assets/images/ingredients/onion.png',
-    onion_chopped:    'assets/images/ingredients/onion_chopped.png',
-    cheese:           'assets/images/ingredients/cheese.png',
-    cheese_chopped:   'assets/images/ingredients/cheese_chopped.png',
-    potato:           'assets/images/ingredients/potato.png',
-    carrot:           'assets/images/ingredients/carrot.png',
-    bun:              'assets/images/ingredients/bun.png',
-    patty:            'assets/images/ingredients/patty.png',
-    patty_cooked:     'assets/images/ingredients/patty_cooked.png',
-    rice:             'assets/images/ingredients/rice.png',
-    fish:             'assets/images/ingredients/fish.png',
-    fish_chopped:     'assets/images/ingredients/fish_sashimi.png',
-    seaweed:          'assets/images/ingredients/seaweed.png',
-    dough:            'assets/images/ingredients/dough.png',
-    milk:             'assets/images/ingredients/milk.png',
-    cocoa:            'assets/images/ingredients/cocoa.png',
-    pineapple:        'assets/images/ingredients/pineapple.png',
-    strawberry:       'assets/images/ingredients/strawberry.png',
-    banana:           'assets/images/ingredients/banana.png',
-    tortilla:         'assets/images/ingredients/tortilla.png',
-    plate:            'assets/images/ingredients/plate.png',
-
-    // ── Plated dishes (what a customer orders) ─────────────────────────────
-    dish_salad:         'assets/images/dishes/salad.png',
-    dish_big_salad:     'assets/images/dishes/big_salad.png',
-    dish_burger:        'assets/images/dishes/burger.png',
-    dish_cheeseburger:  'assets/images/dishes/cheeseburger.png',
-    dish_soup_onion:    'assets/images/dishes/soup_onion.png',
-    dish_soup_tomato:   'assets/images/dishes/soup_tomato.png',
-    dish_sushi:         'assets/images/dishes/sushi.png',
-    dish_pizza:         'assets/images/dishes/pizza.png',
-    dish_stew:          'assets/images/dishes/stew.png',
-    dish_cocoa:         'assets/images/dishes/cocoa.png',
-    dish_juice:         'assets/images/dishes/juice.png',
-    dish_poke:          'assets/images/dishes/poke.png',
-    dish_fish_taco:     'assets/images/dishes/fish_taco.png',
-    dish_burned:        'assets/images/dishes/burned.png',
-
-    // ── Environment tiles ──────────────────────────────────────────────────
-    // floor/floor_alt are 2:1 isometric diamonds (256×128); counter and every
-    // station are 256×256 iso blocks (base diamond center y=192, top y=96).
-    floor:            'assets/images/env/floor.png',
-    floor_alt:        'assets/images/env/floor_alt.png',
-    wall:             'assets/images/env/wall.png',
-
-    // ── UI props rendered on the canvas ────────────────────────────────────
-    speech_bubble:    'assets/images/ui/speech_bubble.png',
-    heart:            'assets/images/ui/heart.png',
-    heart_empty:      'assets/images/ui/heart_empty.png',
+  const norm = (key) => {
+    const e = ASSETS[key];
+    if (!e) return null;
+    return typeof e === 'string' ? { path: e } : e;
   };
 
-  // path → Image (loaded) | null (still loading) | false (png + placeholder both failed)
-  const cache = new Map();
+  const imgCache  = new Map();  // path → Image | null(loading) | false(missing)
+  const prepCache = new Map();  // key  → canvas | false
+  const pending   = new Map();  // path → [callback, ...] while loading
+                                // (several keys may crop one shared sheet)
 
-  function load(path) {
-    if (!path) return false;
-    if (cache.has(path)) return cache.get(path);
-    cache.set(path, null);
+  function loadImage(path, onDone) {
+    const v = imgCache.get(path);
+    if (v) { onDone(v); return v; }
+    if (v === false) return false;
+    if (imgCache.has(path)) { pending.get(path).push(onDone); return null; }
+
+    imgCache.set(path, null);
+    pending.set(path, [onDone]);
+    const fire = (image) => {
+      imgCache.set(path, image);
+      const cbs = pending.get(path) || [];
+      pending.delete(path);
+      if (image) for (const cb of cbs) cb(image);
+    };
     const img = new Image();
-    img.onload  = () => { cache.set(path, img); GFX._fire(); };
+    img.onload  = () => fire(img);
     img.onerror = () => {
-      // Real PNG not present → fall back to the bundled SVG placeholder.
       if (/\.png$/.test(path)) {
         const ph = new Image();
-        const svg = path.replace(/\.png$/, '.svg');
-        ph.onload  = () => { cache.set(path, ph); GFX._fire(); };
-        ph.onerror = () => { cache.set(path, false); };
-        ph.src = '/' + svg;
+        ph.onload  = () => fire(ph);
+        ph.onerror = () => fire(false);
+        ph.src = '/' + path.replace(/\.png$/, '.svg');
       } else {
-        cache.set(path, false);
+        fire(false);
       }
     };
     img.src = '/' + path;
     return null;
   }
 
+  // Background-key + trim. Returns a tight canvas of just the sprite.
+  function prepare(img, ent) {
+    const crop = ent.crop;
+    const sx = crop ? crop[0] : 0, sy = crop ? crop[1] : 0;
+    const sw = crop ? crop[2] : (img.naturalWidth  || img.width);
+    const sh = crop ? crop[3] : (img.naturalHeight || img.height);
+    const c = document.createElement('canvas');
+    c.width = sw; c.height = sh;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    if (ent.nokey) return c;
+
+    let d;
+    try { d = x.getImageData(0, 0, sw, sh); } catch (e) { return c; }
+    const px = d.data;
+    const at = (ix, iy) => (iy * sw + ix) * 4;
+
+    // Key the background only when the corners are opaque (HD studio cards).
+    const corners = [at(0,0), at(sw-1,0), at(0,sh-1), at(sw-1,sh-1)];
+    if (corners.every(o => px[o+3] > 200)) {
+      const br = (px[corners[0]]+px[corners[1]]+px[corners[2]]+px[corners[3]])/4;
+      const bg = (px[corners[0]+1]+px[corners[1]+1]+px[corners[2]+1]+px[corners[3]+1])/4;
+      const bb = (px[corners[0]+2]+px[corners[1]+2]+px[corners[2]+2]+px[corners[3]+2])/4;
+      const TOL = 2400; // squared RGB distance — flat AI backgrounds are uniform
+      const near = (o) => {
+        const dr=px[o]-br, dg=px[o+1]-bg, db=px[o+2]-bb;
+        return dr*dr + dg*dg + db*db < TOL;
+      };
+      const seen = new Uint8Array(sw*sh);
+      const stack = [];
+      for (let ix=0; ix<sw; ix++) { stack.push(ix, (sh-1)*sw + ix); }
+      for (let iy=0; iy<sh; iy++) { stack.push(iy*sw, iy*sw + sw-1); }
+      while (stack.length) {
+        const i = stack.pop();
+        if (seen[i]) continue;
+        seen[i] = 1;
+        const o = i*4;
+        if (!near(o)) continue;
+        px[o+3] = 0;
+        const ix = i % sw, iy = (i / sw) | 0;
+        if (ix > 0)    stack.push(i-1);
+        if (ix < sw-1) stack.push(i+1);
+        if (iy > 0)    stack.push(i-sw);
+        if (iy < sh-1) stack.push(i+sw);
+      }
+    }
+
+    // Trim to alpha bounding box.
+    let minX=sw, minY=sh, maxX=-1, maxY=-1;
+    for (let iy=0; iy<sh; iy++) for (let ix=0; ix<sw; ix++) {
+      if (px[at(ix,iy)+3] > 8) {
+        if (ix<minX) minX=ix; if (ix>maxX) maxX=ix;
+        if (iy<minY) minY=iy; if (iy>maxY) maxY=iy;
+      }
+    }
+    if (maxX < 0) return c;                        // fully transparent — keep as is
+    x.putImageData(d, 0, 0);
+    const bw = maxX-minX+1, bh = maxY-minY+1;
+    const out = document.createElement('canvas');
+    out.width = bw; out.height = bh;
+    out.getContext('2d').drawImage(c, minX, minY, bw, bh, 0, 0, bw, bh);
+    return out;
+  }
+
   const GFX = {
     ASSETS,
-    _listeners: [],
-    onReady(fn) { this._listeners.push(fn); },
-    _fire() { for (const fn of this._listeners) fn(); },
 
-    // Returns the Image for a manifest key (or raw path), or null if not ready.
-    img(key) { const img = load(ASSETS[key] || key); return img || null; },
-    has(key) { return !!(ASSETS[key]); },
+    // Prepared sprite canvas for a key, or null while loading / missing.
+    img(key) {
+      if (prepCache.has(key)) return prepCache.get(key) || null;
+      const ent = norm(key);
+      if (!ent) { prepCache.set(key, false); return null; }
+      prepCache.set(key, false);                   // claimed; filled on load
+      loadImage(ent.path, (image) => { prepCache.set(key, prepare(image, ent)); });
+      return prepCache.get(key) || null;
+    },
 
-    // Blit centered inside a w×h box, preserving aspect ratio. → true if drawn.
+    has(key) { return !!ASSETS[key]; },
+    dims(key) { const i=this.img(key); return i ? [i.width, i.height] : null; },
+
+    // Contain-fit centered inside a w×h box (aspect preserved). → drew?
     draw(ctx, key, cx, cy, w, h) {
       const img = this.img(key);
-      if (!img) return false;
-      const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
-      if (!iw || !ih) return false;
-      const s = Math.min(w / iw, h / ih);
-      const dw = iw * s, dh = ih * s;
-      ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
+      if (!img || !img.width || !img.height) return false;
+      const s = Math.min(w / img.width, h / img.height);
+      const dw = img.width * s, dh = img.height * s;
+      ctx.drawImage(img, cx - dw/2, cy - dh/2, dw, dh);
       return true;
     },
 
-    // Stretch-blit to fill a box from its top-left (for floor/wall/counter tiles).
+    // Bottom-center anchored at baseY, scaled to width w (aspect preserved).
+    // This is how everything standing in the iso world is placed.
+    drawAnchored(ctx, key, cx, baseY, w) {
+      const img = this.img(key);
+      if (!img || !img.width || !img.height) return false;
+      const h = w * img.height / img.width;
+      ctx.drawImage(img, cx - w/2, baseY - h, w, h);
+      return true;
+    },
+
+    // Stretch-blit to fill an exact rect (floor diamonds, backdrop, patch).
     tile(ctx, key, x, y, w, h) {
       const img = this.img(key);
       if (!img) return false;
@@ -146,10 +167,8 @@
       return true;
     },
 
-    // Warm the cache so the first frame already has art.
-    preload() { for (const k in ASSETS) load(ASSETS[k]); },
+    preload() { for (const k in ASSETS) this.img(k); },
   };
 
   window.GFX = GFX;
-  window.ASSETS = ASSETS;
 })();

@@ -356,14 +356,24 @@
       const renderQueue = [];
       const {lvl}=this;
 
-      // 1. Floor tiles — every tile is an element in the queue.
-      for (let gy=0; gy<lvl.h; gy++) for (let gx=0; gx<lvl.w; gx++) {
-        const [sx, sy] = this.project(gx, gy);
-        const key = (gx+gy)%2 ? 'floor_alt' : 'floor';
-        renderQueue.push({ screenY: sy - TILE_HEIGHT, draw: () => {
-          if(!GFX.tile(ctx, key, sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT))
-            GFX.tile(ctx, 'floor', sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT);
-        }});
+      // 1. Floor. The HD checkered patch is itself an iso diamond whose
+      // corners are the island's corners — one draw covers the whole floor.
+      // Per-tile diamonds are the fallback while it loads.
+      if (GFX.img('floor_patch')) {
+        const [lx]  = this.project(0, lvl.h-1), [rx]  = this.project(lvl.w-1, 0);
+        const [,ty] = this.project(0, 0),       [,by] = this.project(lvl.w-1, lvl.h-1);
+        renderQueue.push({ screenY: -1e9, draw: () =>
+          GFX.tile(ctx, 'floor_patch', lx-TILE_WIDTH/2, ty-TILE_HEIGHT/2,
+                   (rx-lx)+TILE_WIDTH, (by-ty)+TILE_HEIGHT) });
+      } else {
+        for (let gy=0; gy<lvl.h; gy++) for (let gx=0; gx<lvl.w; gx++) {
+          const [sx, sy] = this.project(gx, gy);
+          const key = (gx+gy)%2 ? 'floor_alt' : 'floor';
+          renderQueue.push({ screenY: sy - TILE_HEIGHT, draw: () => {
+            if(!GFX.tile(ctx, key, sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT))
+              GFX.tile(ctx, 'floor', sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT);
+          }});
+        }
       }
       // Queue-zone walkway tiles (faded) in front of the kitchen.
       for (let i=-1;i<5;i++) {
@@ -383,6 +393,10 @@
         const [sx, sy] = this.project(gx, gy);
         renderQueue.push({ screenY: sy, draw: () => this.drawBlock(c, gx, gy, sx, sy, now) });
       }
+
+      // 2b. Background Layer: wall decor + scattered clutter, depth-sorted
+      // with everything else.
+      this.pushDecor(renderQueue);
 
       if (this.cur) {
         // 3. Chefs — feet anchor.
@@ -413,19 +427,64 @@
       this.drawEffects(now);
     }
 
+    // ── Background Layer: wall-mounted decor + decorative clutter ────────────
+    // Everything here goes through the same renderQueue and the same
+    // drawAnchored asset path as the gameplay objects. Wall items anchor to
+    // back-perimeter tiles with screenY just behind their row, so the counters
+    // overlap their bottom edge and chefs always pass in front; clutter
+    // crates anchor outside the island (gy < 0), peeking over the back wall.
+    pushDecor(queue) {
+      const {lvl}=this;
+      // Hang an item on the wall above a back-perimeter tile.
+      const hang = (key, gx, gy, w) => {
+        const [sx, sy] = this.project(gx, gy);
+        queue.push({ screenY: sy - 0.5, draw: () =>
+          GFX.drawAnchored(this.ctx, key, sx, sy - BLOCK_LIFT - 6, w) });
+      };
+      // Back-right wall (row 0): multi-pane street window, clock, photos.
+      hang('wall_window', Math.max(1, Math.round(lvl.w*0.30)), 0, 92);
+      hang('wall_clock',  Math.max(2, Math.round(lvl.w*0.55)), 0, 22);
+      hang('wall_photos', Math.max(3, Math.round(lvl.w*0.78)), 0, 56);
+      // Back-left wall (column 0): the INDUSTRIAL BAKERY sign.
+      hang('wall_sign', 0, Math.max(1, Math.round(lvl.h*0.45)), 40);
+
+      // Flower vase with utensils on the back-corner counter top.
+      if (lvl.grid[0][0] !== '.') {
+        const [sx, sy] = this.project(0, 0);
+        queue.push({ screenY: sy + 0.02, draw: () =>
+          GFX.drawAnchored(this.ctx, 'decor_vase', sx, sy - BLOCK_LIFT + 2, 20) });
+      }
+      // Spare produce baskets stacked outside along the back wall.
+      const clutter = (key, gx, w) => {
+        const [sx, sy] = this.project(gx, -0.55);
+        queue.push({ screenY: sy, draw: () =>
+          GFX.drawAnchored(this.ctx, key, sx, sy + TILE_HEIGHT/2, w) });
+      };
+      clutter('crate_lettuce', Math.max(1, Math.round(lvl.w*0.12)), 44);
+      clutter('crate_tomato',  Math.max(1, Math.round(lvl.w*0.12)) + 1.15, 40);
+    }
+
     // ── Blocks (counters, stations, crates) + whatever sits on them ──────────
     drawBlock(c, gx, gy, sx, sy, now) {
       const {ctx}=this;
       const TW=TILE_WIDTH, TH=TILE_HEIGHT;
-      // Block sprite is square (256×256): drawn TW×TW so its base diamond
-      // lands exactly on this tile's floor diamond.
+      const baseY = sy + TH/2;            // tile's south corner — ground anchor
+      const ing = this.lvl.crates && this.lvl.crates[c];
+
+      // Crates with dedicated art ARE the art (market basket on the floor).
+      if (ing && GFX.img('crate_'+ing)) {
+        GFX.drawAnchored(ctx, 'crate_'+ing, sx, baseY - 1, TW*0.92);
+        return;
+      }
+
+      // Bottom-anchored, aspect-true: iso block placeholders and full 3D
+      // renders both stand on the tile's floor diamond this way.
       const key = STATION_KEY[c] || 'counter';
-      if (!GFX.tile(ctx, key, sx-TW/2, sy+TH/2-TW, TW, TW))
-        GFX.tile(ctx, 'counter', sx-TW/2, sy+TH/2-TW, TW, TW);
+      if (!GFX.drawAnchored(ctx, key, sx, baseY, TW))
+        GFX.drawAnchored(ctx, 'counter', sx, baseY, TW);
       const topY = sy - BLOCK_LIFT;
 
-      // Ingredient crates (digits 1-9): big, clear ingredient sprite on top.
-      const ing = this.lvl.crates && this.lvl.crates[c];
+      // Crates without dedicated art: counter + ingredient sprite on top.
       if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 22);
 
       const s = this.cur && this.cur.stations[`${gx},${gy}`];
