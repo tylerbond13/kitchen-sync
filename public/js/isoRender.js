@@ -477,17 +477,23 @@
         return;
       }
 
+      const s = this.cur && this.cur.stations[`${gx},${gy}`];
+
       // Bottom-anchored, aspect-true: iso block placeholders and full 3D
       // renders both stand on the tile's floor diamond this way.
-      const key = STATION_KEY[c] || 'counter';
-      if (!GFX.drawAnchored(ctx, key, sx, baseY, TW))
+      // Stations with state-variant art swap sprites live.
+      let key = STATION_KEY[c] || 'counter';
+      if (c==='S' && s && s.contents && (s.state==='cooking'||s.state==='burned')) key='stove_fire';
+      if (c==='K' && s && s.dirty > 0) key='sink_dirty';
+      // Per-station footprint tweaks for renders whose aspect runs tall.
+      const scale = c==='T' ? 0.74 : 1;
+      if (!GFX.drawAnchored(ctx, key, sx, baseY, TW*scale))
         GFX.drawAnchored(ctx, 'counter', sx, baseY, TW);
       const topY = sy - BLOCK_LIFT;
 
       // Crates without dedicated art: counter + ingredient sprite on top.
       if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 22);
 
-      const s = this.cur && this.cur.stations[`${gx},${gy}`];
       if (!s) return;
 
       if (s.item) {
@@ -496,8 +502,11 @@
           this.bar(sx, topY - 28, s.progress, '#3DC9A0','#A8F0D8');
       }
       if (s.dirty!==undefined) {
-        const n=Math.min(s.dirty,3);
-        for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,26,26);
+        // The dirty-sink render already shows piled plates; don't double up.
+        if (key !== 'sink_dirty') {
+          const n=Math.min(s.dirty,3);
+          for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,26,26);
+        }
         if (s.dirty>0) {
           this.glyph('🫧',sx+13,topY-14,12);
           ctx.font='800 10px ui-rounded,system-ui';

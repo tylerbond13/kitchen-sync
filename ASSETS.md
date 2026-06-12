@@ -17,8 +17,8 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | Status | File | Notes |
 |---|---|---|
 | ✅ | (sheet crop) | Static chef girl — current stand-in |
-| ⬜ | ks-chef-idle-front.png | Facing camera (SE-ish), empty hands |
-| ⬜ | ks-chef-idle-back.png | Facing away (NE-ish) |
+| ✅ | ks-chef-idle-front.png | Facing camera (SE-ish), empty hands |
+| ✅ | ks-chef-idle-back.png | Facing away (NE-ish) |
 | ⬜ | ks-chef-walk-se-1..4.png | 4 frames walking toward camera-right |
 | ⬜ | ks-chef-walk-ne-1..4.png | 4 frames walking away-right (mirrored for left) |
 | ⬜ | ks-chef-carry-se-1..4.png | Optional: walking with plate held up |
@@ -29,9 +29,9 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 |---|---|---|
 | ✅ | ks-char-grandma-rose.png | Grandma Rose |
 | ✅ | ks-char-businessman.png | The Workhorse |
-| ⬜ | ks-char-influencer.png | The Influencer — trendy young woman, phone in hand |
-| ⬜ | ks-char-socialite.png | The Socialite — big hat, gown, gloves |
-| ⬜ | ks-char-kid.png | The Kid — small, overalls, pigtails or cap |
+| ✅ | ks-char-influencer.png | The Influencer — trendy young woman, phone in hand |
+| ✅ | ks-char-socialite.png | The Socialite — big hat, gown, gloves |
+| ✅ | ks-char-kid.png | The Kid — small, overalls, pigtails or cap |
 | ⬜ | ks-char-*-worried.png ×5 | Optional: worried expression variants |
 | ⬜ | ks-char-*-angry.png ×5 | Optional: about-to-leave variants |
 
@@ -42,14 +42,14 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | ✅ | ks-countertop.png | `#` counter |
 | ✅ | ks-chopping-block.png | `B` cutting board |
 | ✅ | ks-industrial-baking-oven.png | `V` oven |
-| ⬜ | ks-stove-pan.png | `S` — range with frying pan on top |
-| ⬜ | ks-stockpot.png | `O` — big soup pot on a burner |
-| ⬜ | ks-plate-stack.png | `P` — shelf/rack of clean plates |
-| ⬜ | ks-serve-window.png | `W` — pass window with bell, green accent |
-| ⬜ | ks-trash-can.png | `T` — kitchen trash can |
-| ⬜ | ks-sink.png | `K` — sink with faucet |
-| ⬜ | ks-stove-pan-fire.png | Optional: cooking/burning state |
-| ⬜ | ks-sink-dirty.png | Optional: sink piled with dirty plates |
+| ✅ | ks-stove-pan.png | `S` — range with frying pan on top |
+| ✅ | ks-stockpot.png | `O` — big soup pot on a burner |
+| ✅ | ks-plate-stack.png | `P` — shelf/rack of clean plates |
+| ✅ | ks-serve-window.png | `W` — pass window with bell, green accent |
+| ✅ | ks-trash-can.png | `T` — kitchen trash can |
+| ✅ | ks-sink.png | `K` — sink with faucet |
+| ✅ | ks-stove-pan-fire.png | Optional: cooking/burning state |
+| ✅ | ks-sink-dirty.png | Optional: sink piled with dirty plates |
 
 ## 4. Ingredients — raw/whole (19)
 
@@ -57,17 +57,17 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 |---|---|
 | ✅ | ks-lettuce.png |
 | ✅ | ks-tomato.png |
-| ⬜ | ks-cucumber.png |
-| ⬜ | ks-cheese.png |
-| ⬜ | ks-onion.png |
-| ⬜ | ks-fish.png |
-| ⬜ | ks-patty.png (raw beef patty) |
-| ⬜ | ks-potato.png |
-| ⬜ | ks-carrot.png |
-| ⬜ | ks-cocoa.png (chocolate bar) |
-| ⬜ | ks-pineapple.png |
-| ⬜ | ks-strawberry.png |
-| ⬜ | ks-banana.png |
+| ✅ | ks-cucumber.png |
+| ✅ | ks-cheese.png |
+| ✅ | ks-onion.png |
+| ✅ | ks-fish.png |
+| ✅ | ks-patty.png (raw beef patty) |
+| ✅ | ks-potato.png |
+| ✅ | ks-carrot.png |
+| ✅ | ks-cocoa.png (chocolate bar) |
+| ✅ | ks-pineapple.png |
+| ✅ | ks-strawberry.png |
+| ✅ | ks-banana.png |
 | ⬜ | ks-bun.png |
 | ⬜ | ks-rice.png (rice in a small bowl/sack) |
 | ⬜ | ks-seaweed.png (nori sheets) |
@@ -139,9 +139,9 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | ✅ | ks-dish-stew.png | Hearty Stew |
 | ✅ | ks-dish-cocoa.png | Hot Cocoa (mug) |
 | ✅ | ks-dish-juice.png | Smoothie (glass) |
-| ⬜ | ks-dish-poke.png | Poke Bowl |
-| ⬜ | ks-dish-fish-taco.png | Fish Taco |
-| ⬜ | ks-dish-burned.png | Burned mess (charcoal lump on plate) |
+| ✅ | ks-dish-poke.png | Poke Bowl |
+| ✅ | ks-dish-fish-taco.png | Fish Taco |
+| ✅ | ks-dish-burned.png | Burned mess (charcoal lump on plate) |
 
 ## 9. Dishware
 
@@ -198,14 +198,14 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 | Category | Have | Needed | Optional extra |
 |---|---|---|---|
-| Chef | 1 static | 10 (idle+walk) | 4 carry |
-| Customers | 2 | 3 | 10 emotions |
-| Stations | 3 | 6 | 2 states |
-| Ingredients raw | 2 | 17 | — |
+| Chef | idle front+back | 8 walk frames | 4 carry |
+| Customers | 5 | 0 | 10 emotions |
+| Stations | 9 (+2 states) | 0 | — |
+| Ingredients raw | 13 | 6 | — |
 | Ingredients chopped | 2 | 11 | — |
 | Ingredients cooked | 0 | 2 | — |
 | Crates | 2 | 17 | — |
-| Dishes | 11 | 3 | — |
+| Dishes | 14 | 0 | — |
 | Dishware | 0 | 2 | — |
 | Env: diner | 6 | 1 | 1 |
 | Env: winter | 0 | 6 | — |

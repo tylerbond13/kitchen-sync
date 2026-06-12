@@ -25,26 +25,28 @@
 
   window.ASSETS = {
     // ── Characters ──────────────────────────────────────────────────────────
-    // Chef girl (with cake) is cropped from the master sheet.
-    chef:           { path: SHEET, crop: [55, 10, 320, 490], width: 320, height: 490 },
+    chef:           { path: HD + 'ks-chef-idle-front.png' },
+    chef_back:      { path: HD + 'ks-chef-idle-back.png' },   // for walk anim later
 
     // ── Customers ───────────────────────────────────────────────────────────
     grandma_rose:   { path: HD + 'ks-char-grandma-rose.png', width: 1408, height: 768 },
     workhorse:      { path: HD + 'ks-char-businessman.png',  width: 1408, height: 768 },
-    influencer:     'assets/images/customers/influencer.png',
-    socialite:      'assets/images/customers/socialite.png',
-    kid:            'assets/images/customers/kid.png',
+    influencer:     { path: HD + 'ks-char-influencer.png' },
+    socialite:      { path: HD + 'ks-char-socialite.png' },
+    kid:            { path: HD + 'ks-char-kid.png' },
 
     // ── Stations / appliances ───────────────────────────────────────────────
     counter:        { path: HD + 'ks-countertop.png',             width: 1408, height: 768 },
     chopping_board: { path: HD + 'ks-chopping-block.png',         width: 1408, height: 768 },
     oven:           { path: HD + 'ks-industrial-baking-oven.png', width: 1408, height: 768 },
-    stove:          'assets/images/stations/stove.png',
-    pot:            'assets/images/stations/pot.png',
-    plate_stack:    'assets/images/stations/plate_stack.png',
-    serve_window:   'assets/images/stations/serve_window.png',
-    trash:          'assets/images/stations/trash.png',
-    sink:           'assets/images/stations/sink.png',
+    stove:          { path: HD + 'ks-stove-pan.png' },
+    stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },   // cooking/burning state
+    pot:            { path: HD + 'ks-stockpot.png' },
+    plate_stack:    { path: HD + 'ks-plate-stack.png' },
+    serve_window:   { path: HD + 'ks-serve-window.png' },
+    trash:          { path: HD + 'ks-trash-can.png' },
+    sink:           { path: HD + 'ks-sink.png' },
+    sink_dirty:     { path: HD + 'ks-sink-dirty.png' },       // plates piled up state
 
     // Ingredient crates with dedicated art render as themselves (a market
     // basket); other crates render as counter + ingredient icon.
@@ -56,27 +58,27 @@
     lettuce_chopped:  { path: HD + 'ks-lettuce-chopped.png', width: 1408, height: 768 },
     tomato:           { path: HD + 'ks-tomato.png',          width: 1408, height: 768 },
     tomato_chopped:   { path: HD + 'ks-tomato-chopped.png',  width: 1408, height: 768 },
-    cucumber:         'assets/images/ingredients/cucumber.png',
+    cucumber:         { path: HD + 'ks-cucumber.png' },
     cucumber_chopped: 'assets/images/ingredients/cucumber_chopped.png',
-    onion:            'assets/images/ingredients/onion.png',
+    onion:            { path: HD + 'ks-onion.png' },
     onion_chopped:    'assets/images/ingredients/onion_chopped.png',
-    cheese:           'assets/images/ingredients/cheese.png',
+    cheese:           { path: HD + 'ks-cheese.png' },
     cheese_chopped:   'assets/images/ingredients/cheese_chopped.png',
-    potato:           'assets/images/ingredients/potato.png',
-    carrot:           'assets/images/ingredients/carrot.png',
+    potato:           { path: HD + 'ks-potato.png' },
+    carrot:           { path: HD + 'ks-carrot.png' },
     bun:              'assets/images/ingredients/bun.png',
-    patty:            'assets/images/ingredients/patty.png',
+    patty:            { path: HD + 'ks-patty.png' },
     patty_cooked:     'assets/images/ingredients/patty_cooked.png',
     rice:             'assets/images/ingredients/rice.png',
-    fish:             'assets/images/ingredients/fish.png',
+    fish:             { path: HD + 'ks-fish.png' },
     fish_chopped:     'assets/images/ingredients/fish_sashimi.png',
     seaweed:          'assets/images/ingredients/seaweed.png',
     dough:            'assets/images/ingredients/dough.png',
     milk:             'assets/images/ingredients/milk.png',
-    cocoa:            'assets/images/ingredients/cocoa.png',
-    pineapple:        'assets/images/ingredients/pineapple.png',
-    strawberry:       'assets/images/ingredients/strawberry.png',
-    banana:           'assets/images/ingredients/banana.png',
+    cocoa:            { path: HD + 'ks-cocoa.png' },
+    pineapple:        { path: HD + 'ks-pineapple.png' },
+    strawberry:       { path: HD + 'ks-strawberry.png' },
+    banana:           { path: HD + 'ks-banana.png' },
     tortilla:         'assets/images/ingredients/tortilla.png',
     plate:            'assets/images/ingredients/plate.png',
 
@@ -92,9 +94,9 @@
     dish_stew:         { path: HD + 'ks-dish-stew.png' },
     dish_cocoa:        { path: HD + 'ks-dish-cocoa.png' },
     dish_juice:        { path: HD + 'ks-dish-juice.png' },
-    dish_poke:         'assets/images/dishes/poke.png',
-    dish_fish_taco:    'assets/images/dishes/fish_taco.png',
-    dish_burned:       'assets/images/dishes/burned.png',
+    dish_poke:         { path: HD + 'ks-dish-poke.png' },
+    dish_fish_taco:    { path: HD + 'ks-dish-fish-taco.png' },
+    dish_burned:       { path: HD + 'ks-dish-burned.png' },
 
     // ── Environment ─────────────────────────────────────────────────────────
     // Checkered floor patch covers the whole island floor in one draw.
