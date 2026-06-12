@@ -41,6 +41,7 @@ function ensureRoom(crew) {
       game: null,
       loop: null,
       hostId: crew.hostId,
+      exited: new Set(), // players who backed out of the current round
     };
     rooms.set(crew.code, room);
   }
@@ -86,6 +87,7 @@ function startGame(io, room, levelId) {
   if (!roster.length) return { error: 'No players' };
 
   store.ensureCrewExtras(room.crew);
+  room.exited = new Set();
   room.game = new Game(level, roster, {
     upgrades: room.crew.wallet.upgrades,
     autoChop: room.crew.settings.autoChop,
@@ -104,6 +106,16 @@ function startGame(io, room, levelId) {
     }
   }, TICK_MS);
   return { ok: true };
+}
+
+// A round nobody is playing anymore (everyone exited to the lobby or
+// disconnected) must not keep running — it blocks every new start with
+// "Game in progress" until its timer runs out.
+function endIfAbandoned(io, room) {
+  if (!room.game || room.game.phase !== 'playing') return;
+  const active = [...room.players.values()]
+    .filter((p) => p.connected && !room.exited.has(p.id));
+  if (!active.length) finishGame(io, room);
 }
 
 function finishGame(io, room) {
@@ -174,6 +186,7 @@ function attach(io) {
         id: profile.id, name: profile.name, avatar: profile.avatar, connected: true,
       });
       joined = { room, playerId: profile.id };
+      room.exited.delete(profile.id); // (re)joining puts you back in the round
       socket.join(`room:${room.code}`);
 
       ack({
@@ -282,6 +295,14 @@ function attach(io) {
       game.pausedBy = on ? (p ? p.name : 'someone') : null;
     });
 
+    // player backed out to the lobby; the round keeps running for the rest
+    // of the crew, but if NOBODY is left playing it wraps up immediately
+    socket.on('exit_round', () => {
+      if (!joined) return;
+      joined.room.exited.add(joined.playerId);
+      endIfAbandoned(io, joined.room);
+    });
+
     socket.on('leave', () => {
       detach();
     });
@@ -299,6 +320,7 @@ function attach(io) {
         room.players.get(playerId).connected = false;
       }
       roomBroadcast(io, room, 'lobby', lobbyState(room));
+      endIfAbandoned(io, room);
       // tear down empty idle rooms
       const anyConnected = [...room.players.values()].some((p) => p.connected);
       if (!anyConnected) {

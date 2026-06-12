@@ -55,7 +55,7 @@
     tap()    { tone({ freq: 660, dur: 0.05, vol: 0.08, type: 'triangle' }); },
     pickup() { tone({ freq: 520, dur: 0.08, vol: 0.12, type: 'triangle', slide: 240 }); },
     place()  { tone({ freq: 380, dur: 0.07, vol: 0.12, type: 'triangle', slide: -120 }); },
-    chop()   { noise({ dur: 0.05, vol: 0.14 }); tone({ freq: 220, dur: 0.04, vol: 0.1, type: 'square' }); },
+    chop()   { tone({ freq: 240, dur: 0.045, vol: 0.05, type: 'sine', slide: -60 }); },
     chopped(){ tone({ freq: 740, dur: 0.1, vol: 0.12, type: 'triangle', slide: 200 }); },
     plate()  { tone({ freq: 600, dur: 0.07, vol: 0.1 }); tone({ freq: 900, dur: 0.08, vol: 0.1, delay: 0.06 }); },
     sizzle() { noise({ dur: 0.3, vol: 0.06 }); },
@@ -66,7 +66,7 @@
     expire() { tone({ freq: 330, dur: 0.18, vol: 0.14, type: 'square', slide: -160 }); tone({ freq: 220, dur: 0.25, vol: 0.12, type: 'square', slide: -100, delay: 0.15 }); },
     order()  { tone({ freq: 880, dur: 0.09, vol: 0.1 }); tone({ freq: 1108, dur: 0.12, vol: 0.1, delay: 0.09 }); },
     trash()  { noise({ dur: 0.12, vol: 0.12 }); },
-    washed() { noise({ dur: 0.15, vol: 0.08 }); tone({ freq: 880, dur: 0.12, vol: 0.1, type: 'triangle', slide: 320 }); },
+    washed() { tone({ freq: 520, dur: 0.09, vol: 0.05, type: 'sine' }); tone({ freq: 780, dur: 0.12, vol: 0.04, type: 'sine', delay: 0.07 }); },
     star(i)  { tone({ freq: 784 + i * 196, dur: 0.35, vol: 0.16, type: 'triangle' }); },
     over()   { [784, 659, 523, 392].forEach((f, i) => tone({ freq: f, dur: 0.2, vol: 0.12, type: 'triangle', delay: i * 0.12 })); },
   };

@@ -566,6 +566,7 @@
   $('btn-exit-lobby').onclick = () => {
     exitedRound = true;
     socket.emit('pause', false);          // don't leave others stuck paused
+    socket.emit('exit_round');            // if nobody's left playing, the round ends
     if (renderer) { renderer.destroy(); renderer = null; }
     clearInterval(hintTimer);
     $('pause-overlay').hidden = true;
