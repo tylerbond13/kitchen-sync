@@ -461,7 +461,7 @@ input[type="text"]:focus {
 
 /* ============ Game HUD ============ */
 #screen-game { padding: calc(var(--sat) + 8px) 8px calc(var(--sab) + 8px); gap: 8px; }
-.game-top { display: flex; gap: 8px; align-items: center; }
+.game-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .hud-pill {
   background: var(--card);
   border-radius: 16px;
@@ -474,6 +474,8 @@ input[type="text"]:focus {
 .hud-timer.low { color: var(--sherbet); animation: pulse .8s infinite; }
 @keyframes pulse { 50% { transform: scale(1.07); } }
 .hud-combo { color: var(--bubblegum); }
+.hud-plates { color: var(--ink); padding-left: 12px; padding-right: 12px; }
+.hud-plates.empty { color: var(--sherbet); animation: pulse .8s infinite; }
 .hud-buttons { margin-left: auto; display: flex; gap: 8px; }
 
 .orders-strip {
@@ -944,6 +946,7 @@ input[type="text"]:focus {
     <div class="game-top">
       <div class="hud-pill hud-timer" id="hud-timer">⏱ 0:00</div>
       <div class="hud-pill hud-score" id="hud-score">🪙 0</div>
+      <div class="hud-pill hud-plates" id="hud-plates" title="Clean plates">🍽️ ∞</div>
       <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
       <div class="hud-buttons">
         <button class="btn-icon" id="btn-autochop" title="Auto-chop" hidden>🔪</button>

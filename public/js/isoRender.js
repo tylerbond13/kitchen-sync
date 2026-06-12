@@ -681,10 +681,18 @@
       }
       if (c==='P' && this.cur.plates!==undefined) {
         const supply=this.cur.plates;
-        ctx.font='800 11px ui-rounded,system-ui';
+        const label=supply===null?'∞':String(supply);
+        const empty=supply===0;
+        const bw=Math.max(18, 12 + label.length*7), bh=17;
+        const bx=sx+20-bw/2, by=topY-28;
+        ctx.fillStyle=empty?'#FF4070':'rgba(255,255,255,0.94)';
+        this.rrC(ctx,bx,by,bw,bh,bh/2); ctx.fill();
+        ctx.strokeStyle=empty?'rgba(130,20,55,0.45)':'rgba(45,22,52,0.22)';
+        ctx.lineWidth=1.3; this.rrC(ctx,bx,by,bw,bh,bh/2); ctx.stroke();
+        ctx.font='900 11px ui-rounded,system-ui';
         ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillStyle=supply===0?'#FF4070':'rgba(45,22,52,0.85)';
-        ctx.fillText(String(supply),sx+17,topY-17);
+        ctx.fillStyle=empty?'#fff':'rgba(45,22,52,0.9)';
+        ctx.fillText(label,sx+20,by+bh/2+0.5);
       }
     }
 

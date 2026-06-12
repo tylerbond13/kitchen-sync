@@ -466,6 +466,13 @@
     timerEl.textContent = `⏱ ${m}:${String(s).padStart(2, '0')}`;
     timerEl.classList.toggle('low', state.t <= 20 && state.phase === 'playing');
     $('hud-score').textContent = `🪙 ${state.score}`;
+    const platesEl = $('hud-plates');
+    const cleanPlates = state.plates === null || state.plates === undefined ? '∞' : state.plates;
+    platesEl.textContent = `🍽️ ${cleanPlates}`;
+    platesEl.classList.toggle('empty', state.plates === 0);
+    platesEl.title = state.incomingDirty
+      ? `${cleanPlates} clean plates · ${state.incomingDirty} dirty returning`
+      : `${cleanPlates} clean plates`;
     const comboEl = $('hud-combo');
     comboEl.hidden = state.combo < 2;
     comboEl.textContent = `🔥 x${state.combo}`;
