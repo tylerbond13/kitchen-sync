@@ -532,12 +532,43 @@ input[type="text"]:focus {
 .ticket-body {
   min-width: 0;
 }
+.ticket-headline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin-bottom: 4px;
+}
+.ticket-customer {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(45, 22, 52, 0.14);
+  box-shadow: 0 1px 3px rgba(80, 30, 60, 0.12);
+}
+.ticket-customer-img {
+  width: 26px;
+  height: 30px;
+  object-fit: contain;
+  object-position: center top;
+  transform: translateY(1px);
+}
+.ticket-customer svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
 .ticket-name {
   font-weight: 800;
   font-size: 11px;
   line-height: 1.1;
   color: var(--ink);
-  margin-bottom: 4px;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -598,15 +629,15 @@ input[type="text"]:focus {
 
 /* ============ Rush banner & star progress ============ */
 .rush-banner {
-  background: linear-gradient(90deg, var(--bubblegum) 0%, var(--gold) 100%);
+  background: linear-gradient(90deg, var(--sherbet) 0%, var(--bubblegum) 45%, var(--gold) 100%);
   color: #fff;
-  font-weight: 800; font-size: 14px;
+  font-weight: 900; font-size: 15px;
   text-align: center; padding: 9px 12px; border-radius: 14px;
-  animation: rush-pulse .65s infinite;
-  box-shadow: 0 4px 18px rgba(255, 111, 174, .4);
+  animation: rush-pulse .45s infinite;
+  box-shadow: 0 4px 18px rgba(255, 111, 174, .55);
   text-shadow: 0 1px 4px rgba(160, 30, 80, 0.4);
 }
-@keyframes rush-pulse { 50% { transform: scale(1.02); filter: brightness(1.08); } }
+@keyframes rush-pulse { 50% { transform: scale(1.035); filter: brightness(1.14); } }
 
 .star-progress {
   position: relative; height: 11px;
@@ -914,7 +945,7 @@ input[type="text"]:focus {
       </div>
       <div class="card tut-step">
         <div class="tut-emoji">📦🔪</div>
-        <div><b>Grab &amp; chop.</b><p>Tap a crate to grab an ingredient, then tap a cutting board. Stand next to the board while the green bar fills. Chopped food wears a little 🔪 badge — and stays chopped forever. (Crews that buy the 🤖 Auto-Chopper can flip a switch in-game and boards chop themselves, slowly.)</p></div>
+        <div><b>Grab &amp; chop.</b><p>Tap a crate to grab an ingredient, then tap a cutting board. The board keeps chopping while you move on to the next job. Chopped food wears a little 🔪 badge — and stays chopped forever. (Crews that buy the 🤖 Auto-Chopper can flip a switch in-game for faster chopping.)</p></div>
       </div>
       <div class="card tut-step">
         <div class="tut-emoji">🍳🔥</div>

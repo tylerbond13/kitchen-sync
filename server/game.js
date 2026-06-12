@@ -4,14 +4,16 @@
 const { ING, DISHES, RECIPES, COOK_COMBOS, CHOPPABLE } = require('./levels');
 
 const SPEED = 4.08;       // tiles per second
-const CHOP_TIME = 2.2;    // seconds of standing at a board
-const AUTO_CHOP_RATE = 0.45; // unmanned boards chop at this fraction of full speed
+const CHOP_TIME = 2.2;    // seconds for a board to finish chopping
+const AUTO_CHOP_RATE = 1.35; // upgrade toggle: hands-free boards chop faster
 const CHOP_SOUND_EVERY = 0.55;
 const WASH_TIME = 2.5;    // seconds of standing at the sink, per plate
 const DISH_BOT_RATE = WASH_TIME / 9; // upgrade: ~1 plate every 9s, unmanned
 const DIRTY_RETURN_DELAY = 7; // seconds after serving until the dirty plate hits the sink
 const EXPIRE_PENALTY = 20;
 const RUSH_DURATION = 18; // seconds of lunch rush
+const BURN_WARNING_WINDOW = 3;
+const BURN_WARNING_EVERY = 1;
 const VIP_CHANCE = 0.15;
 const MAX_ACTION_QUEUE = 8;
 
@@ -127,7 +129,7 @@ class Game {
         } else if (c === TILE.BOARD) {
           this.stations[key] = { type: 'board', item: null, soundAcc: 0 };
         } else if (TOOL_FOR[c]) {
-          this.stations[key] = { type: 'cook', tool: TOOL_FOR[c], contents: [], combo: null, progress: 0, state: 'idle' };
+          this.stations[key] = { type: 'cook', tool: TOOL_FOR[c], contents: [], combo: null, progress: 0, state: 'idle', warnAcc: 0, warned: false };
         } else if (c === TILE.PLATES) {
           this.stations[key] = { type: 'plates' };
         } else if (c === TILE.SERVE) {
@@ -226,9 +228,8 @@ class Game {
     if (p.path.length) return false;
     const px = Math.floor(p.x), py = Math.floor(p.y);
     return Object.entries(this.stations).some(([key, s]) => {
-      const busyBoard = s.type === 'board' && s.item && s.item.state === 'raw' && CHOPPABLE.has(s.item.id);
       const busySink = s.type === 'sink' && s.dirty > 0;
-      if (!busyBoard && !busySink) return false;
+      if (!busySink) return false;
       const [sx, sy] = key.split(',').map(Number);
       return Math.abs(px - sx) + Math.abs(py - sy) === 1;
     });
@@ -419,6 +420,10 @@ class Game {
           s.item = p.carry; p.carry = null;
           this.emit('place', at);
         } else if (!p.carry && s.item) {
+          if (s.item.state === 'raw' && CHOPPABLE.has(s.item.id)) {
+            this.emit('go', at);
+            break;
+          }
           p.carry = s.item; s.item = null;
           this.emit('pickup', at);
         } else if (p.carry && s.item) {
@@ -514,7 +519,9 @@ class Game {
         s.combo = full;
         s.state = 'cooking';
         s.progress = 0;
-        this.emit('sizzle', at);
+        s.warnAcc = 0;
+        s.warned = false;
+        this.emit('sizzle', { ...at, tool: s.tool });
       }
     } else if (!p.carry && s.contents.length && s.state !== 'cooking') {
       // take back the last ingredient before cooking starts
@@ -524,7 +531,20 @@ class Game {
   }
 
   resetCooker(s) {
-    s.contents = []; s.combo = null; s.progress = 0; s.state = 'idle';
+    s.contents = []; s.combo = null; s.progress = 0; s.state = 'idle'; s.warnAcc = 0; s.warned = false;
+  }
+
+  autoPickupFinishedBoard(stationKey, s) {
+    if (!s.item || s.item.state !== 'chopped') return false;
+    const [sx, sy] = stationKey.split(',').map(Number);
+    const picker = Object.values(this.players).find((p) =>
+      !p.carry && !p.path.length && (!p.queue || p.queue.length === 0)
+      && Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1);
+    if (!picker) return false;
+    picker.carry = s.item;
+    s.item = null;
+    this.emit('pickup', { x: sx, y: sy, playerId: picker.id });
+    return true;
   }
 
   tryServe(p, at) {
@@ -598,35 +618,29 @@ class Game {
       }
     }
 
-    // chopping: a chef standing at the board works at full speed;
-    // with the Auto-Chopper enabled, unmanned boards work slowly by themselves
+    // chopping: boards work hands-free once food is placed, so chefs can keep
+    // following their action queue instead of babysitting the board.
     for (const [key, s] of Object.entries(this.stations)) {
       if (s.type !== 'board') continue;
       if (!s.item || s.item.state !== 'raw' || !CHOPPABLE.has(s.item.id)) continue;
       const [sx, sy] = key.split(',').map(Number);
       const worker = Object.values(this.players).find((p) =>
         !p.path.length && Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1);
-      let rate = 0;
-      if (worker) {
-        worker.working = true;
-        rate = 1;
-      } else if (this.autoChop) {
-        rate = AUTO_CHOP_RATE;
+      if (worker) worker.working = true;
+      const rate = this.autoChop ? AUTO_CHOP_RATE : 1;
+      s.item.prog = (s.item.prog || 0) + (dt * rate) / CHOP_TIME;
+      s.soundAcc = (s.soundAcc || 0) + dt * rate;
+      if (s.soundAcc >= CHOP_SOUND_EVERY) {
+        s.soundAcc = 0;
+        this.emit('chop', { x: sx, y: sy });
       }
-      if (rate > 0) {
-        s.item.prog = (s.item.prog || 0) + (dt * rate) / CHOP_TIME;
-        s.soundAcc = (s.soundAcc || 0) + dt * rate;
-        if (s.soundAcc >= CHOP_SOUND_EVERY) {
-          s.soundAcc = 0;
-          this.emit('chop', { x: sx, y: sy });
-        }
-        if (s.item.prog >= 1) {
-          s.item.state = 'chopped';
-          delete s.item.prog;
-          s.soundAcc = 0;
-          if (worker) worker.chops++;
-          this.emit('chopped', { x: sx, y: sy });
-        }
+      if (s.item.prog >= 1) {
+        s.item.state = 'chopped';
+        delete s.item.prog;
+        s.soundAcc = 0;
+        if (worker) worker.chops++;
+        this.emit('chopped', { x: sx, y: sy });
+        this.autoPickupFinishedBoard(key, s);
       }
     }
 
@@ -695,14 +709,29 @@ class Game {
           s.contents = [out];
           s.state = 'done';
           s.progress = 0;
+          s.warnAcc = 0;
+          s.warned = false;
           const [sx, sy] = key.split(',').map(Number);
-          this.emit('ding', { x: sx, y: sy });
+          this.emit('ding', { x: sx, y: sy, tool: s.tool });
         }
       } else if (s.state === 'done') {
         s.progress += dt;
-        if (s.progress >= s.combo.burnAfter + this.burnBonus) {
+        const burnAfter = s.combo.burnAfter + this.burnBonus;
+        const remaining = burnAfter - s.progress;
+        if (remaining <= BURN_WARNING_WINDOW) {
+          s.warnAcc = (s.warnAcc || 0) + dt;
+          if (!s.warned || s.warnAcc >= BURN_WARNING_EVERY) {
+            s.warned = true;
+            s.warnAcc = 0;
+            const [sx, sy] = key.split(',').map(Number);
+            this.emit('burn_warning', { x: sx, y: sy, tool: s.tool, remaining: Math.max(0, Math.ceil(remaining)) });
+          }
+        }
+        if (s.progress >= burnAfter) {
           s.contents = [{ kind: 'dish', id: 'burned' }];
           s.state = 'burned';
+          s.warnAcc = 0;
+          s.warned = false;
           const [sx, sy] = key.split(',').map(Number);
           this.emit('burn', { x: sx, y: sy });
         }

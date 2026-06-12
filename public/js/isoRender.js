@@ -218,6 +218,12 @@
     return assetImgHtml(id, ING_EMOJI[id] || '❓', 'ticket-mini-img');
   }
 
+  function customerKeyForOrder(order, cast) {
+    if (!order || !cast || !cast.length) return null;
+    const preset = ((order.id - 1) % cast.length + cast.length) % cast.length;
+    return cast[preset];
+  }
+
   function cellForToken(token) {
     const [id,state]=token.split('.');
     if (state === 'dish') return null;
@@ -235,12 +241,18 @@
     </div>`;
   }
 
-  function ticketRecipeHtml(order) {
+  function ticketRecipeHtml(order, customerKey) {
     const cells = DISH_TICKET_CELLS[order.recipe] || order.needs.map(cellForToken).filter(Boolean);
     const dish = assetImgHtml(`dish_${order.recipe}`, order.emoji || '🍽️', 'ticket-dish-img');
+    const customer = customerKey
+      ? assetImgHtml(customerKey, customerFace(order.id), 'ticket-customer-img')
+      : customerFace(order.id);
     return `<div class="ticket-dish">${dish}</div>
       <div class="ticket-body">
-        <div class="ticket-name">${order.vip ? '👑 ' : ''}${order.name}</div>
+        <div class="ticket-headline">
+          <span class="ticket-customer">${customer}</span>
+          <div class="ticket-name">${order.vip ? '👑 ' : ''}${order.name}</div>
+        </div>
         <div class="ticket-ingredients">${cells.map(ticketIngredientHtml).join('')}</div>
       </div>`;
   }
@@ -316,6 +328,10 @@
       bx = Math.min(w-1, Math.max(0, bx));
       const dir = bx > (w-1)/2 ? -1 : 1;
       return { x: bx + i*dir, y: h + 1.2 };
+    }
+
+    customerKeyForOrder(order) {
+      return customerKeyForOrder(order, this.cast);
     }
 
     resize() {
@@ -805,10 +821,8 @@
       const {ctx}=this;
       const CH=CUSTOMER_H;
       const bob=Math.sin(now/320+q.i*2.1);
-      const n=this.cast.length;
-      const preset=((q.order.id-1)%n+n)%n;
 
-      GFX.draw(ctx, this.cast[preset], sx, sy+bob-CH*0.5, CH*0.92, CH);
+      GFX.draw(ctx, this.customerKeyForOrder(q.order), sx, sy+bob-CH*0.5, CH*0.92, CH);
     }
 
     // ── Particle effects (world space, after the queue = always on top) ──────
@@ -926,5 +940,5 @@
     }
   }
 
-  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml, ticketRecipeHtml, customerFace };
+  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml, ticketRecipeHtml, customerFace, customerKeyForOrder };
 })();

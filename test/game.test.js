@@ -89,7 +89,7 @@ test('crate pickup and trash', () => {
   assert.equal(p.carry, null);
 });
 
-test('chopping requires standing at the board', () => {
+test('chopping continues after the chef walks away', () => {
   const game = makeGame();
   const p = game.players.p1;
   const board = stationKey(game, 'board');
@@ -99,18 +99,23 @@ test('chopping requires standing at the board', () => {
   assert.equal(p.carry, null);
   assert.equal(game.stations[board].item.state, 'raw');
 
-  // walk away — no chopping happens
   p.x = 100.5; p.y = 100.5;
   for (let i = 0; i < 30; i++) game.tick(0.1);
-  assert.equal(game.stations[board].item.state, 'raw');
-
-  // stand next to it — chops in ~2.2s
-  standAt(game, p, board);
-  for (let i = 0; i < 30; i++) game.tick(0.1);
   assert.equal(game.stations[board].item.state, 'chopped');
+  assert.equal(p.carry, null, 'chef can keep doing other things');
+});
 
+test('idle chef auto-picks up a board when chopping finishes', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const board = stationKey(game, 'board');
+  p.carry = { id: 'lettuce', state: 'raw' };
+  standAt(game, p, board);
   game.interact(p, board);
+
+  for (let i = 0; i < 30 && !p.carry; i++) game.tick(0.1);
   assert.deepEqual(p.carry, { id: 'lettuce', state: 'chopped' });
+  assert.equal(game.stations[board].item, null);
 });
 
 test('pan rejects raw patty, cooks a chopped one, then burns it', () => {
@@ -137,6 +142,28 @@ test('pan rejects raw patty, cooks a chopped one, then burns it', () => {
   game.interact(p, pan);
   assert.deepEqual(p.carry, { kind: 'dish', id: 'burned' });
   assert.equal(game.stations[pan].state, 'idle');
+});
+
+test('cookers emit tool-specific start, completion, and burn-warning events', () => {
+  const game = makeGame('burger-bay');
+  const p = game.players.p1;
+  const pan = stationKey(game, 'cook', (s) => s.tool === 'pan');
+
+  p.carry = { id: 'patty', state: 'chopped' };
+  game.interact(p, pan);
+  let events = game.tick(0);
+  assert.ok(events.some((e) => e.type === 'sizzle' && e.tool === 'pan'));
+
+  events = [];
+  for (let i = 0; i < 70; i++) events.push(...game.tick(0.1));
+  assert.ok(events.some((e) => e.type === 'ding' && e.tool === 'pan'));
+
+  events = [];
+  for (let i = 0; i < 55; i++) events.push(...game.tick(0.1));
+  const warning = events.find((e) => e.type === 'burn_warning');
+  assert.ok(warning, 'warning starts before the burn');
+  assert.equal(warning.tool, 'pan');
+  assert.ok(warning.remaining <= 3);
 });
 
 test('pot rejects wrong ingredients, accepts soup combo', () => {
@@ -214,9 +241,11 @@ test('chop progress lives on the item and survives pickup/replace', () => {
   const half = game.stations[board].item.prog;
   assert.ok(half > 0.3 && half < 0.7, `mid-chop progress ${half}`);
 
-  game.interact(p, board); // pick up mid-chop
+  p.carry = game.stations[board].item;
+  game.stations[board].item = null;
   assert.ok(p.carry.prog > 0.3, 'progress travels with the item');
   game.interact(p, board); // put it back
+  p.x = 100.5; p.y = 100.5;
   for (let i = 0; i < 14; i++) game.tick(0.1); // only the REMAINING time
   assert.equal(game.stations[board].item.state, 'chopped', 'finished without restarting');
 });
@@ -293,7 +322,7 @@ test('plating is order-independent: any ingredient can start or finish a plate',
   assert.equal(game.stations[counter].item, null);
 });
 
-test('tapping a busy board queues pickup until chopping finishes', () => {
+test('tapping a busy board does not interrupt chopping', () => {
   const game = makeGame();
   const p = game.players.p1;
   const board = stationKey(game, 'board');
@@ -302,13 +331,12 @@ test('tapping a busy board queues pickup until chopping finishes', () => {
   standAt(game, p, board);
   game.interact(p, board); // place
   for (let i = 0; i < 11; i++) game.tick(0.1); // ~50% chopped
-  game.tap('p1', bx, by); // queue pickup
-  assert.equal(p.carry, null, 'keeps chopping instead of interrupting');
-  assert.equal(p.queue.length, 1);
+  game.tap('p1', bx, by);
+  assert.equal(p.carry, null, 'keeps chopping instead of picking up raw food');
+  assert.equal(p.queue.length, 0);
   for (let i = 0; i < 30 && !p.carry; i++) game.tick(0.1);
   assert.deepEqual(p.carry, { id: 'lettuce', state: 'chopped' });
   assert.equal(game.stations[board].item, null);
-  assert.equal(p.queue.length, 0);
 });
 
 test('merging plates pours contents onto the seated plate, empty stays in hand', () => {
@@ -345,7 +373,7 @@ test('non-handheld combos swap instead of stacking', () => {
   assert.deepEqual(game.stations[counter].item, { id: 'lettuce', state: 'chopped' });
 });
 
-test('auto-chopper upgrade chops unmanned boards, slowly', () => {
+test('boards chop unmanned by default', () => {
   const level = LEVELS.find((l) => l.id === 'salad-days');
   const off = new Game(level, ROSTER, { rng: () => 0 });
   const on = new Game(level, ROSTER, { rng: () => 0, upgrades: { auto_chopper: true }, autoChop: true });
@@ -353,10 +381,10 @@ test('auto-chopper upgrade chops unmanned boards, slowly', () => {
     const board = stationKey(game, 'board');
     game.stations[board].item = { id: 'lettuce', state: 'raw' };
     game.players.p1.x = 100.5; game.players.p1.y = 100.5; // nobody nearby
-    for (let i = 0; i < 60; i++) game.tick(0.1); // 6s > 2.2/0.45
+    for (let i = 0; i < 30; i++) game.tick(0.1);
   }
-  assert.equal(off.stations[stationKey(off, 'board')].item.state, 'raw', 'no upgrade: nothing happens');
-  assert.equal(on.stations[stationKey(on, 'board')].item.state, 'chopped', 'auto-chopper works alone');
+  assert.equal(off.stations[stationKey(off, 'board')].item.state, 'chopped', 'base boards work alone');
+  assert.equal(on.stations[stationKey(on, 'board')].item.state, 'chopped', 'legacy auto-chop toggle is still harmless');
 });
 
 test('kitchen upgrades apply: shoes, extra plate, non-stick', () => {
@@ -522,7 +550,7 @@ test('tap pathfinds to a station and interacts on arrival', () => {
   assert.deepEqual(p.carry, { id: 'tomato', state: 'raw' });
 });
 
-test('taps queue while chopping and execute after work finishes', () => {
+test('queued taps continue while the board chops autonomously', () => {
   const game = makeGame();
   const p = game.players.p1;
   const lettuce = stationKey(game, 'crate', (s) => s.ing === 'lettuce');
@@ -537,18 +565,17 @@ test('taps queue while chopping and execute after work finishes', () => {
   game.tap('p1', tx, ty);
 
   assert.equal(p.queue.length, 2);
-  let sawQueuedTomatoWhileChopping = false;
+  let carriedTomatoWhileChopping = false;
   for (let i = 0; i < 300; i++) {
     game.tick(0.1);
     const item = game.stations[board].item;
     if (item && item.id === 'lettuce' && item.state === 'raw') {
-      sawQueuedTomatoWhileChopping ||= p.queue.some((a) => a.x === tx && a.y === ty);
-      assert.notDeepEqual(p.carry, { id: 'tomato', state: 'raw' });
+      carriedTomatoWhileChopping ||= p.carry && p.carry.id === 'tomato';
     }
     if (item && item.id === 'lettuce' && item.state === 'chopped' && p.carry && p.carry.id === 'tomato') break;
   }
 
-  assert.ok(sawQueuedTomatoWhileChopping, 'tomato stayed queued while lettuce was chopping');
+  assert.ok(carriedTomatoWhileChopping, 'tomato action ran while lettuce was still chopping');
   assert.equal(game.stations[board].item.state, 'chopped');
   assert.deepEqual(p.carry, { id: 'tomato', state: 'raw' });
   assert.equal(p.queue.length, 0);

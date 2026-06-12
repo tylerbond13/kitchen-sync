@@ -89,7 +89,7 @@ const CHOPPABLE = new Set([
 
 // Kitchen Shop upgrades — persist per crew, bought with banked score coins.
 const UPGRADES = {
-  auto_chopper: { name: 'Auto-Chopper',    emoji: '🤖', desc: 'Boards chop on their own (toggle in game, slower than a chef)', cost: 800 },
+  auto_chopper: { name: 'Auto-Chopper',    emoji: '🤖', desc: 'Boards chop 35% faster when toggled on in-game', cost: 800 },
   fast_shoes:   { name: 'Speedy Sneakers', emoji: '👟', desc: 'All chefs move 12% faster', cost: 1000 },
   nonstick:     { name: 'Non-Stick Pans',  emoji: '🍳', desc: '+3 seconds before food burns', cost: 1200 },
   extra_plate:  { name: 'Bonus Plate',     emoji: '🍽️', desc: '+1 plate in the stack', cost: 1500 },

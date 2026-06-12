@@ -404,7 +404,7 @@
   // ---------- game ----------
   const HINTS = [
     'Tap a crate to grab an ingredient',
-    'Tap a cutting board to chop — stay close while you work!',
+    'Tap a cutting board to start chopping — boards finish on their own',
     'Tap the stove to cook. Don’t let it burn! 🔥',
     'Grab a plate, tap counters to combine, then tap the green window to serve',
     'Dirty dishes pile up at the sink 🫧 — stand there to scrub them clean',
@@ -450,11 +450,22 @@
 
   const SOUND_FOR = {
     pickup: 'pickup', place: 'place', plate: 'plate', chopped: 'chopped',
-    sizzle: 'sizzle', ding: 'ding', serve: 'serve', reject: 'reject',
+    ding: 'ding', serve: 'serve', reject: 'reject',
     burn: 'burn', expire: 'expire', order: 'order', trash: 'trash',
     washed: 'washed', chop: 'chop',
-    rush_start: 'serve', rush_end: 'place',
+    burn_warning: 'burnWarning',
+    rush_start: 'rushStart', rush_end: 'rushEnd',
   };
+
+  function playEventSound(ev) {
+    const fn = ev.type === 'sizzle'
+      ? (ev.tool === 'pot' ? 'boil' : 'sizzle')
+      : SOUND_FOR[ev.type];
+    if (!fn || !SFX[fn]) return;
+    const personal = ['pickup', 'place', 'plate', 'reject', 'trash'];
+    if (personal.includes(ev.type) && ev.playerId !== profile.id) return;
+    SFX[fn]();
+  }
 
   socket.on('state', (state) => {
     if (!renderer) return;
@@ -486,7 +497,7 @@
     // lunch rush banner
     const banner = $('rush-banner');
     banner.hidden = !state.rush;
-    if (state.rush) banner.textContent = `🔥 LUNCH RUSH! Double tips — ${state.rush}s`;
+    if (state.rush) banner.textContent = `🔥 BONUS TIME! Double tips — ${state.rush}s`;
 
     // auto-chop toggle state (locked button keeps its 🔒)
     if (curStatic && curStatic.autoChopAllowed) {
@@ -517,13 +528,7 @@
     renderOrders(state.orders);
 
     for (const ev of state.events) {
-      const fn = SOUND_FOR[ev.type];
-      if (fn && SFX[fn]) {
-        // only play personal feedback sounds for my own actions
-        const personal = ['pickup', 'place', 'plate', 'reject', 'trash'];
-        if (personal.includes(ev.type) && ev.playerId !== profile.id) continue;
-        SFX[fn]();
-      }
+      playEventSound(ev);
       if (ev.type === 'reject' && ev.playerId === profile.id) {
         if (navigator.vibrate) navigator.vibrate(60);
       }
@@ -544,7 +549,7 @@
         el = document.createElement('div');
         el.className = 'ticket' + (o.vip ? ' vip' : '');
         el.innerHTML = `
-          ${KSRender.ticketRecipeHtml(o)}
+          ${KSRender.ticketRecipeHtml(o, renderer && renderer.customerKeyForOrder(o))}
           <div class="ticket-bar"><i></i></div>`;
         strip.appendChild(el);
         ticketEls.set(o.id, el);
