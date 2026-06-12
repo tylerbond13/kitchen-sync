@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs><filter id="ds" x="-30%" y="-30%" width="160%" height="160%">
     <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.22"/></filter>
     <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#D8C088"/><stop offset="1" stop-color="#a08850"/></linearGradient></defs><rect x="26" y="34" rx="34" ry="34" width="204" height="188" fill="url(#g)"
-        stroke="#6d551d" stroke-width="7" filter="url(#ds)"/>
-        <rect x="40" y="48" rx="22" width="176" height="40" fill="#ffffff" opacity="0.18"/>
-        <text x="128" y="122" font-size="118" text-anchor="middle" dominant-baseline="central"
-       font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">🔪</text><text x="128" y="232" font-size="26" font-weight="800" text-anchor="middle"
-         fill="#fff" stroke="#725a22" stroke-width="0.6" paint-order="stroke"
-         font-family="ui-rounded,system-ui,sans-serif">Chop</text></svg>
+      <stop offset="0" stop-color="#D8C088"/><stop offset="1" stop-color="#a08850"/></linearGradient></defs>
+        <polygon points="0,96 128,160 128,256 0,192"   fill="#bfa76f"  stroke="#594109" stroke-width="5" stroke-linejoin="round"/>
+        <polygon points="128,160 256,96 256,192 128,256" fill="#967e46" stroke="#594109" stroke-width="5" stroke-linejoin="round"/>
+        <polygon points="128,32 256,96 128,160 0,96"   fill="#ffeeb6"   stroke="#594109" stroke-width="6" stroke-linejoin="round"/>
+        <polygon points="128,46 238,98 128,150 18,98"  fill="#ffffff" opacity="0.15"/>
+        <text x="128" y="88" font-size="84" text-anchor="middle" dominant-baseline="central"
+          font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">🔪</text></svg>

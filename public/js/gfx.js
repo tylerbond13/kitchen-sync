@@ -79,7 +79,10 @@
     dish_burned:        'assets/images/dishes/burned.png',
 
     // ── Environment tiles ──────────────────────────────────────────────────
+    // floor/floor_alt are 2:1 isometric diamonds (256×128); counter and every
+    // station are 256×256 iso blocks (base diamond center y=192, top y=96).
     floor:            'assets/images/env/floor.png',
+    floor_alt:        'assets/images/env/floor_alt.png',
     wall:             'assets/images/env/wall.png',
 
     // ── UI props rendered on the canvas ────────────────────────────────────

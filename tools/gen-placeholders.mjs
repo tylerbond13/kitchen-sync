@@ -75,6 +75,7 @@ const M = {
   burned:           A('dishes/burned.png',              '🪨',  '',            '#555555'),
   // env
   floor:            A('env/floor.png',                  '',    '',            '#E8C8A8', 'floor'),
+  floor_alt:        A('env/floor_alt.png',              '',    '',            '#DDB890', 'floor'),
   wall:             A('env/wall.png',                   '',    '',            '#FF9EC8', 'wall'),
   // ui
   speech_bubble:    A('ui/speech_bubble.png',           '',    '',            '#FFFFFF', 'bubble'),
@@ -85,7 +86,7 @@ const M = {
 const esc = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
 function svgFor({ e, l, accent, kind }) {
-  const W = 256, H = 256, cx = 128, cy = 128;
+  const W = 256, H = kind === 'floor' ? 128 : 256, cx = 128, cy = 128;
   const shadow = `<defs><filter id="ds" x="-30%" y="-30%" width="160%" height="160%">
     <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.22"/></filter>
     <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
@@ -104,12 +105,21 @@ function svgFor({ e, l, accent, kind }) {
 
   let body;
   switch (kind) {
-    case 'station':
-      body = `${shadow}<rect x="26" y="34" rx="34" ry="34" width="204" height="188" fill="url(#g)"
-        stroke="${shade(accent,-0.42)}" stroke-width="7" filter="url(#ds)"/>
-        <rect x="40" y="48" rx="22" width="176" height="40" fill="#ffffff" opacity="0.18"/>
-        ${emoji(118,-6)}${label}`;
+    case 'station': {
+      // Isometric block, geometry shared with the engine:
+      // top diamond N(128,32) E(256,96) S(128,160) W(0,96), extruded 96px.
+      // Base diamond center = (128,192); top face center = (128,96).
+      const top = shade(accent, 0.18), left = shade(accent, -0.10), right = shade(accent, -0.26);
+      const oline = shade(accent, -0.5);
+      body = `${shadow}
+        <polygon points="0,96 128,160 128,256 0,192"   fill="${left}"  stroke="${oline}" stroke-width="5" stroke-linejoin="round"/>
+        <polygon points="128,160 256,96 256,192 128,256" fill="${right}" stroke="${oline}" stroke-width="5" stroke-linejoin="round"/>
+        <polygon points="128,32 256,96 128,160 0,96"   fill="${top}"   stroke="${oline}" stroke-width="6" stroke-linejoin="round"/>
+        <polygon points="128,46 238,98 128,150 18,98"  fill="#ffffff" opacity="0.15"/>
+        <text x="128" y="88" font-size="84" text-anchor="middle" dominant-baseline="central"
+          font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">${esc(e)}</text>`;
       break;
+    }
     case 'char':
       // No baked-in name text — the engine handles labels; customers stay nameless.
       body = `${shadow}<ellipse cx="${cx}" cy="236" rx="78" ry="15" fill="#000" opacity="0.18"/>
@@ -135,25 +145,31 @@ function svgFor({ e, l, accent, kind }) {
         <ellipse cx="${cx}" cy="150" rx="104" ry="50" fill="none" stroke="#d8d0dc" stroke-width="5"/>
         <ellipse cx="${cx}" cy="144" rx="66" ry="30" fill="#f1ecf4"/>`;
       break;
-    case 'counter':
-      body = `<rect x="0" y="86" width="256" height="120" fill="${accent}"/>
-        <rect x="0" y="86" width="256" height="22" fill="#fff" opacity="0.35"/>
-        <rect x="0" y="150" width="256" height="56" fill="${shade(accent,-0.18)}"/>
-        <rect x="0" y="200" width="256" height="6" fill="${shade(accent,-0.4)}"/>`;
+    case 'counter': {
+      // Plain countertop block — same iso geometry as stations, no emoji.
+      const top = shade(accent, 0.16), left = shade(accent, -0.08), right = shade(accent, -0.22);
+      const oline = shade(accent, -0.48);
+      body = `
+        <polygon points="0,96 128,160 128,256 0,192"   fill="${left}"  stroke="${oline}" stroke-width="5" stroke-linejoin="round"/>
+        <polygon points="128,160 256,96 256,192 128,256" fill="${right}" stroke="${oline}" stroke-width="5" stroke-linejoin="round"/>
+        <polygon points="128,32 256,96 128,160 0,96"   fill="${top}"   stroke="${oline}" stroke-width="6" stroke-linejoin="round"/>
+        <polygon points="128,44 240,97 128,150 16,97"  fill="#ffffff" opacity="0.22"/>`;
       break;
+    }
     case 'floor': {
-      const a = accent, b = shade(accent, -0.1);
-      body = `<rect width="256" height="256" fill="${a}"/>
-        <rect width="128" height="128" fill="${b}"/><rect x="128" y="128" width="128" height="128" fill="${b}"/>
-        <rect width="256" height="256" fill="none" stroke="${shade(accent,-0.22)}" stroke-width="2"/>`;
+      // 2:1 diamond floor tile: N(128,0) E(256,64) S(128,128) W(0,64).
+      body = `<polygon points="128,0 256,64 128,128 0,64" fill="${accent}"
+          stroke="${shade(accent,-0.18)}" stroke-width="3" stroke-linejoin="round"/>
+        <polygon points="128,10 236,64 128,118 20,64" fill="#ffffff" opacity="0.07"/>`;
       break;
     }
     case 'wall':
+      // Clean backdrop gradient — the iso island floats on this.
       body = `<defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="${accent}"/><stop offset="1" stop-color="${shade(accent,-0.16)}"/></linearGradient></defs>
-        <rect width="256" height="256" fill="url(#wg)"/>
-        <rect y="210" width="256" height="46" fill="${shade(accent,-0.3)}"/>
-        <rect y="206" width="256" height="6" fill="#fff" opacity="0.3"/>`;
+        <stop offset="0" stop-color="${shade(accent,0.06)}"/>
+        <stop offset="0.55" stop-color="${accent}"/>
+        <stop offset="1" stop-color="${shade(accent,-0.14)}"/></linearGradient></defs>
+        <rect width="256" height="256" fill="url(#wg)"/>`;
       break;
     case 'bubble':
       body = `${shadow}<rect x="14" y="14" rx="46" ry="46" width="228" height="150" fill="#fff"
