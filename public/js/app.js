@@ -516,6 +516,9 @@
       if (ev.type === 'reject' && ev.playerId === profile.id) {
         if (navigator.vibrate) navigator.vibrate(60);
       }
+      if (ev.type === 'serve') {
+        renderer.spawnServeJuice(ev.x, ev.y, ev.points, ev.vip);
+      }
     }
   });
 
@@ -530,8 +533,11 @@
         el = document.createElement('div');
         el.className = 'ticket' + (o.vip ? ' vip' : '');
         el.innerHTML = `
-          <div class="ticket-head"><span class="t-emoji">${o.emoji}</span><span>${o.vip ? '👑 ' : ''}${o.name}</span></div>
-          <div class="ticket-needs">${o.needs.map(KSRender.prepChainHtml).join('')}</div>
+          <div class="ticket-face">${KSRender.customerFace(o.id)}</div>
+          <div class="ticket-bubble">
+            <div class="ticket-name">${o.vip ? '👑 ' : ''}${o.name}</div>
+            <div class="ticket-needs">${o.needs.map(KSRender.prepChainHtml).join('')}</div>
+          </div>
           <div class="ticket-bar"><i></i></div>`;
         strip.appendChild(el);
         ticketEls.set(o.id, el);

@@ -182,8 +182,8 @@
       this.canvas.height = Math.round(h*this.dpr);
       this.bgCanvas.width  = this.canvas.width;
       this.bgCanvas.height = this.canvas.height;
-      // Reserve bottom 26% of canvas for customer queue; fit grid in remaining 74%
-      const custReserve = Math.floor(this.canvas.height * 0.26);
+      // Reserve bottom 34% of canvas for customer queue (hearts + bubble + figure)
+      const custReserve = Math.floor(this.canvas.height * 0.34);
       this.ts = Math.floor(Math.min(this.canvas.width/this.lvl.w, (this.canvas.height - custReserve)/this.lvl.h));
       this.ox = Math.floor((this.canvas.width  - this.ts*this.lvl.w)/2);
       this.oy = Math.floor(((this.canvas.height - custReserve) - this.ts*this.lvl.h)/2);
@@ -202,6 +202,27 @@
 
     addEmote(playerId, emoji) {
       this.emotes[playerId]={emoji,until:performance.now()+2500};
+    }
+
+    spawnServeJuice(gx, gy, points, vip) {
+      // Coin burst erupts from the serve window position
+      const px = this.ox + (gx + 0.5) * this.ts;
+      const py = this.oy + (gy + 0.5) * this.ts;
+      const n = vip ? 22 : 14;
+      for (let i = 0; i < n; i++) {
+        const ang = (i / n) * Math.PI * 2;
+        const spd = (2.5 + Math.random() * 3.5) * this.dpr;
+        this.fx.push({
+          kind: 'coin', x: px, y: py, t: 0,
+          vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd - 2 * this.dpr,
+          rot: Math.random() * Math.PI * 2, vrot: (Math.random() - 0.5) * 0.3,
+          size: (vip ? 9 : 7) * this.dpr,
+        });
+      }
+      // Big point pop
+      this.fx.push({ kind: 'points', x: px, y: py - this.ts * 0.4, text: `+${points}`, t: 0, color: vip ? '#FFD700' : '#3DC9A0' });
+      // Sparkle ring
+      this.fx.push({ kind: 'ring', x: px, y: py, t: 0, maxR: this.ts * 1.1, color: vip ? '#FFD700' : '#FF6FAE' });
     }
 
     addFx(ev) {
@@ -1197,6 +1218,38 @@
         } else if(f.kind==='pop'){
           const a=1-f.t/0.65; if(a<=0) return false;
           ctx.globalAlpha=a; this.glyph(f.text,f.x,f.y-f.t*ts,ts*0.54); ctx.globalAlpha=1;
+        } else if(f.kind==='coin'){
+          if(f.t>1.0) return false;
+          f.vy += 0.45 * this.dpr; f.x += f.vx; f.y += f.vy; f.rot += f.vrot;
+          const a = Math.max(0, 1 - f.t * 1.1);
+          ctx.save(); ctx.globalAlpha = a; ctx.translate(f.x, f.y); ctx.rotate(f.rot);
+          // Gold coin
+          const r = f.size * Math.abs(Math.cos(f.rot * 2 + 0.5)); // squish for spin illusion
+          const cg = ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.05,0,0,r+1);
+          cg.addColorStop(0,'#FFF0A0'); cg.addColorStop(0.5,'#FFD700'); cg.addColorStop(1,'#B8860B');
+          ctx.fillStyle=cg; ctx.beginPath(); ctx.ellipse(0,0,r,f.size,0,0,Math.PI*2); ctx.fill();
+          ctx.strokeStyle='#B8860B'; ctx.lineWidth=Math.max(1,f.size*0.1); ctx.stroke();
+          ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.ellipse(-r*0.2,-r*0.25,r*0.3,r*0.18,0.5,0,Math.PI*2); ctx.fill();
+          ctx.restore(); ctx.globalAlpha=1;
+        } else if(f.kind==='ring'){
+          if(f.t>0.55) return false;
+          const prog = f.t/0.55;
+          const a = Math.max(0, 1-prog*1.4);
+          const r = f.maxR * this.easeOut(prog);
+          // Draw 8 sparkle stars around the ring
+          for(let si=0;si<8;si++){
+            const sa=si/8*Math.PI*2+f.t*3;
+            const sx=f.x+Math.cos(sa)*r, sy=f.y+Math.sin(sa)*r;
+            ctx.save(); ctx.globalAlpha=a; ctx.translate(sx,sy); ctx.rotate(sa+f.t*5);
+            ctx.fillStyle=f.color;
+            const sr=this.ts*0.07;
+            ctx.beginPath();
+            for(let p=0;p<8;p++){
+              const pr=p%2===0?sr:sr*0.45, pa=p/8*Math.PI*2;
+              p===0?ctx.moveTo(Math.cos(pa)*pr,Math.sin(pa)*pr):ctx.lineTo(Math.cos(pa)*pr,Math.sin(pa)*pr);
+            }
+            ctx.closePath(); ctx.fill(); ctx.restore(); ctx.globalAlpha=1;
+          }
         } else if(f.kind==='confetti'){
           if(f.t>1.1) return false;
           f.vy+=0.28; f.x+=f.vx*this.dpr; f.y+=f.vy*this.dpr; f.rot=(f.rot||0)+0.16;
@@ -1304,7 +1357,11 @@
     }
 
     _drawCustomerFigure(ctx, cx, cy, h, order, urgency, now, idx) {
-      // 5 fixed Cake Mania-style illustrated presets assigned by order id
+      if (window.KSCustomers) {
+        window.KSCustomers.draw(ctx, cx, cy, h, order, urgency, now, idx);
+        return;
+      }
+      // Legacy fallback (removed — KSCustomers is always loaded)
       const preset = ((order.id - 1) % 5 + 5) % 5;
       const lw = Math.max(1.5, h * 0.028); // thick outline scale
       const ol = '#1A0A00'; // universal dark outline
@@ -1630,11 +1687,54 @@
         }
       }
 
-      // ── Speech bubble (shared across all presets) ─────────────────────────
+      // ── Archetype name tag ────────────────────────────────────────────────
+      const archetypes = ['The Regular','The Influencer','The Workhorse','The Socialite','The Kid'];
+      const archetypeColors = ['#C060C8','#FF6FAE','#5A6A7A','#B02880','#DD2020'];
+      const archName = archetypes[preset];
+      const archCol  = archetypeColors[preset];
+      const tagH = headR * 0.52;
+      const tagW = tagH * 4.2;
+      filledRR(cx - tagW/2, headY + headR*1.05, tagW, tagH, tagH/2, archCol, ol, lw*0.5);
+      ctx.font = `800 ${Math.round(tagH*0.58)}px ui-rounded,system-ui`;
+      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#fff';
+      ctx.fillText(archName, cx, headY + headR*1.05 + tagH*0.5);
+
+      // ── Heart meter above speech bubble ───────────────────────────────────
+      const totalHearts = 5;
+      const filledHearts = Math.ceil((1 - urgency) * totalHearts);
+      const hSize = headR * 0.38;
+      const hSpacing = hSize * 2.1;
+      const hRowX = cx - (totalHearts - 1) * hSpacing / 2;
+      const hRowY = headY - headR * 1.6;
+      for (let hi = 0; hi < totalHearts; hi++) {
+        const hx = hRowX + hi * hSpacing;
+        const filled = hi < filledHearts;
+        // Heart shape via bezier
+        ctx.save(); ctx.translate(hx, hRowY); ctx.scale(hSize, hSize);
+        ctx.beginPath();
+        ctx.moveTo(0, 0.35);
+        ctx.bezierCurveTo(0, 0.05, -0.5, -0.3, -0.5, -0.05);
+        ctx.bezierCurveTo(-0.5, -0.45, 0, -0.55, 0, -0.2);
+        ctx.bezierCurveTo(0, -0.55, 0.5, -0.45, 0.5, -0.05);
+        ctx.bezierCurveTo(0.5, -0.3, 0, 0.05, 0, 0.35);
+        ctx.closePath();
+        ctx.fillStyle = filled ? (urgency > 0.7 ? '#FF2020' : urgency > 0.4 ? '#FF8800' : '#FF5080') : 'rgba(0,0,0,0.2)';
+        ctx.fill();
+        ctx.strokeStyle = filled ? '#AA0030' : 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 0.08; ctx.stroke();
+        // Shine on filled hearts
+        if (filled) {
+          ctx.fillStyle='rgba(255,255,255,0.4)';
+          ctx.beginPath(); ctx.ellipse(-0.15,-0.25,0.12,0.07,-0.4,0,Math.PI*2); ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // ── Speech bubble ─────────────────────────────────────────────────────
       const bubbleW = Math.max(headR * 3.2, h * 0.44);
       const bubbleH = headR * 1.8;
       const bx = cx;
-      const by = headY - headR * 1.5 - bubbleH;
+      const by = hRowY - hSize * 1.4 - bubbleH;
       const urgColor = urgency > 0.7 ? '#FF4444' : urgency > 0.4 ? '#FFAA00' : '#FFFFFF';
       const urgBorder = urgency > 0.7 ? '#CC0000' : urgency > 0.4 ? '#CC6600' : ol;
 
@@ -1645,8 +1745,8 @@
       // Bubble body
       this.rrC(ctx, bx - bubbleW/2, by, bubbleW, bubbleH, bubbleH*0.44);
       fill(urgColor); ctx.fill(); stroke(urgBorder, lw); ctx.stroke();
-      // Bubble tail
-      const tailTip = headY - headR * 1.05;
+      // Bubble tail pointing down to hearts row
+      const tailTip = hRowY - hSize * 1.1;
       ctx.beginPath();
       ctx.moveTo(cx - headR*0.2, by + bubbleH);
       ctx.lineTo(cx + headR*0.2, by + bubbleH);
@@ -1657,15 +1757,6 @@
       ctx.beginPath(); ctx.moveTo(cx+headR*0.2, by+bubbleH); ctx.lineTo(cx, tailTip); ctx.stroke();
       // Dish emoji
       this.glyphC(ctx, order.emoji || '🍽️', bx, by + bubbleH*0.5, bubbleH*0.62);
-
-      // Timer bar under feet
-      const barW = bodyW * 1.3;
-      const barH2 = lw * 1.4;
-      const barX = cx - barW/2;
-      const barY2 = cy + h*0.5 - barH2;
-      const pct = Math.max(0, order.ttl / order.ttlMax);
-      filledRR(barX, barY2, barW, barH2, barH2/2, 'rgba(0,0,0,0.28)');
-      filledRR(barX, barY2, barW*pct, barH2, barH2/2, pct>0.5?'#44DD44':pct>0.25?'#FFCC00':'#FF3333');
     }
 
     // ── Canvas helpers ────────────────────────────────────────────────────────
