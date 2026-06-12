@@ -52,10 +52,10 @@
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
     pot:            { path: HD + 'ks-stockpot.png' },
     plate_stack:    { path: HD + 'ks-plate-stack.png', flat: true },
-    serve_window:   { path: FLAT + 'serve-window.svg', flat: true, scale: 1.05 },
+    serve_window:   { path: HD + 'ks-delivery-counter.png', flat: true, scale: 1.05 },
     trash:          { path: HD + 'ks-trash-can.png', flat: true, scale: 0.88 },
-    sink:           { path: FLAT + 'sink.svg', flat: true },
-    sink_dirty:     { path: FLAT + 'sink-dirty.svg', flat: true },
+    sink:           { path: HD + 'ks-sink.png', flat: true },
+    sink_dirty:     { path: HD + 'ks-sink-dirty.png', flat: true },
 
     // ── Ingredient crates ────────────────────────────────────────────────────
     // Front-facing HD crates where they exist; everything else gets the
