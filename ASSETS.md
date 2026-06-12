@@ -68,12 +68,12 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | ✅ | ks-pineapple.png |
 | ✅ | ks-strawberry.png |
 | ✅ | ks-banana.png |
-| ⬜ | ks-bun.png |
-| ⬜ | ks-rice.png (rice in a small bowl/sack) |
-| ⬜ | ks-seaweed.png (nori sheets) |
-| ⬜ | ks-dough.png (pizza dough ball) |
-| ⬜ | ks-milk.png (milk bottle) |
-| ⬜ | ks-tortilla.png |
+| ✅ | ks-bun.png |
+| ✅ | ks-rice.png (rice in a small bowl/sack) |
+| ✅ | ks-seaweed.png (nori sheets) |
+| ✅ | ks-dough.png (pizza dough ball) |
+| ✅ | ks-milk.png (milk bottle) |
+| ✅ | ks-tortilla.png |
 
 ## 5. Ingredients — chopped (13, matches CHOPPABLE set)
 
@@ -81,24 +81,24 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 |---|---|
 | ✅ | ks-lettuce-chopped.png |
 | ✅ | ks-tomato-chopped.png |
-| ⬜ | ks-cucumber-chopped.png (sliced rounds) |
-| ⬜ | ks-cheese-chopped.png (grated/sliced) |
-| ⬜ | ks-onion-chopped.png (diced) |
-| ⬜ | ks-fish-chopped.png (sashimi slices) |
-| ⬜ | ks-patty-chopped.png (ground/formed patty) |
-| ⬜ | ks-potato-chopped.png (cubed) |
-| ⬜ | ks-carrot-chopped.png (coins) |
-| ⬜ | ks-cocoa-chopped.png (chocolate shavings) |
-| ⬜ | ks-pineapple-chopped.png (chunks) |
-| ⬜ | ks-strawberry-chopped.png (halved) |
-| ⬜ | ks-banana-chopped.png (slices) |
+| ✅ | ks-cucumber-chopped.png (sliced rounds) |
+| ✅ | ks-cheese-chopped.png (grated/sliced) |
+| ✅ | ks-onion-chopped.png (diced) |
+| ✅ | ks-fish-chopped.png (sashimi slices) |
+| ✅ | ks-patty-chopped.png (ground/formed patty) |
+| ✅ | ks-potato-chopped.png (cubed) |
+| ✅ | ks-carrot-chopped.png (coins) |
+| ✅ | ks-cocoa-chopped.png (chocolate shavings) |
+| ✅ | ks-pineapple-chopped.png (chunks) |
+| ✅ | ks-strawberry-chopped.png (halved) |
+| ✅ | ks-banana-chopped.png (slices) |
 
 ## 6. Ingredients — cooked (2)
 
 | Status | File |
 |---|---|
-| ⬜ | ks-patty-cooked.png (grilled, char lines) |
-| ⬜ | ks-rice-cooked.png (steaming white mound) |
+| ✅ | ks-patty-cooked.png (grilled, char lines) |
+| ✅ | ks-rice-cooked.png (steaming white mound) |
 
 ## 7. Crates / baskets (one per ingredient that has a crate in any level — all 19)
 
@@ -106,23 +106,23 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 |---|---|
 | ✅ | ks-lettuce-crate.png |
 | ✅ | ks-tomato-crate.png |
-| ⬜ | ks-cucumber-crate.png |
-| ⬜ | ks-bun-crate.png (bread basket) |
-| ⬜ | ks-patty-crate.png (butcher box / cooler) |
-| ⬜ | ks-cheese-crate.png |
-| ⬜ | ks-onion-crate.png |
-| ⬜ | ks-rice-crate.png (rice sack) |
-| ⬜ | ks-fish-crate.png (ice crate) |
-| ⬜ | ks-seaweed-crate.png |
-| ⬜ | ks-dough-crate.png (flour sack + dough tray) |
-| ⬜ | ks-milk-crate.png (bottle crate) |
-| ⬜ | ks-cocoa-crate.png |
-| ⬜ | ks-potato-crate.png |
-| ⬜ | ks-carrot-crate.png |
-| ⬜ | ks-pineapple-crate.png |
-| ⬜ | ks-strawberry-crate.png |
-| ⬜ | ks-banana-crate.png |
-| ⬜ | ks-tortilla-crate.png |
+| ✅ | ks-cucumber-crate.png |
+| ✅ | ks-bun-crate.png (bread basket) |
+| ✅ | ks-patty-crate.png (butcher box / cooler) |
+| ✅ | ks-cheese-crate.png |
+| ✅ | ks-onion-crate.png |
+| ✅ | ks-rice-crate.png (rice sack) |
+| ✅ | ks-fish-crate.png (ice crate) |
+| ✅ | ks-seaweed-crate.png |
+| ✅ | ks-dough-crate.png (flour sack + dough tray) |
+| ✅ | ks-milk-crate.png (bottle crate) |
+| ✅ | ks-cocoa-crate.png |
+| ✅ | ks-potato-crate.png |
+| ✅ | ks-carrot-crate.png |
+| ✅ | ks-pineapple-crate.png |
+| ✅ | ks-strawberry-crate.png |
+| ✅ | ks-banana-crate.png |
+| ✅ | ks-tortilla-crate.png |
 
 ## 8. Plated dishes (order bubbles + servable plates — 14)
 
@@ -147,41 +147,41 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 | Status | File |
 |---|---|
-| ⬜ | ks-plate-clean.png (single empty plate) |
-| ⬜ | ks-plate-dirty.png (stained plate w/ scraps) |
+| ✅ | ks-plate-clean.png (single empty plate) |
+| ✅ | ks-plate-dirty.png (stained plate w/ scraps) |
 
 ## 10. Environment — Diner theme (levels 1–6)
 
 | Status | File |
 |---|---|
-| ✅ | ks-tile-checkered.png (floor) |
+| 🟡 | ks-tile-checkered.png (iso diamond — unused; need STRAIGHT-ON checker texture `ks-floor-straight.png`; flat SVG tiles fill in) |
 | ✅ | ks-window.png (street view) |
 | ✅ | (sheet crops) photos, clock, BAKERY sign |
 | ✅ | ks-flower-vase.png |
-| ⬜ | ks-wall-diner.png (interior wall texture/backdrop, full-bleed) |
-| ⬜ | ks-utensil-cup.png (optional — exists in sheet, can crop) |
+| ✅ | ks-wall-diner.png (interior wall texture/backdrop, full-bleed) |
+| ✅ | ks-utensil-cup.png (optional — exists in sheet, can crop) |
 
 ## 11. Environment — Winter theme (levels 7–10)
 
 | Status | File |
 |---|---|
-| ⬜ | ks-tile-winter.png (floor patch — cool tones / wood) |
-| ⬜ | ks-wall-winter.png (cozy lodge backdrop, full-bleed) |
-| ⬜ | ks-window-winter.png (snowy village view) |
-| ⬜ | ks-decor-wreath.png |
-| ⬜ | ks-decor-fireplace.png |
-| ⬜ | ks-decor-cocoa-sign.png ("Hot Cocoa" menu board) |
+| ✅ | ks-tile-winter.png (floor patch — cool tones / wood) |
+| ✅ | ks-wall-winter.png (cozy lodge backdrop, full-bleed) |
+| ✅ | ks-window-winter.png (snowy village view) |
+| ✅ | ks-decor-wreath.png |
+| ✅ | ks-decor-fireplace.png |
+| ✅ | ks-decor-cocoa-sign.png ("Hot Cocoa" menu board) |
 
 ## 12. Environment — Beach theme (levels 11–14)
 
 | Status | File |
 |---|---|
-| ⬜ | ks-tile-beach.png (floor patch — sandy / bamboo) |
-| ⬜ | ks-wall-beach.png (beach shack backdrop, full-bleed) |
-| ⬜ | ks-window-beach.png (ocean view) |
-| ⬜ | ks-decor-surfboard.png |
-| ⬜ | ks-decor-palm.png (potted palm) |
-| ⬜ | ks-decor-tiki-sign.png ("Smoothie Shack" board) |
+| ✅ | ks-tile-beach.png (floor patch — sandy / bamboo) |
+| ✅ | ks-wall-beach.png (beach shack backdrop, full-bleed) |
+| ✅ | ks-window-beach.png (ocean view) |
+| ✅ | ks-decor-surfboard.png |
+| ✅ | ks-decor-palm.png (potted palm) |
+| ✅ | ks-decor-tiki-sign.png ("Smoothie Shack" board) |
 
 ## 13. UI & feedback (placeholders work; HD versions optional)
 
@@ -189,8 +189,8 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 |---|---|
 | 🟡 | ks-ui-bubble.png (speech/thought bubble, empty) |
 | 🟡 | ks-ui-heart.png / ks-ui-heart-empty.png |
-| ⬜ | ks-ui-coin.png (gold coin for serve burst) |
-| ⬜ | ks-ui-crown.png (VIP order marker) |
+| ✅ | ks-ui-coin.png (gold coin for serve burst) |
+| ✅ | ks-ui-crown.png (VIP order marker) |
 
 ---
 

@@ -1,42 +1,43 @@
 // ============================================================================
 //  Kitchen Sync — isoRender.js
-//  Visual-only 2.5D isometric projection layer over a flat 2D kitchen grid.
+//  Straight-on orthographic ¾ renderer (PlateUp!-style) over a flat 2D grid.
 // ----------------------------------------------------------------------------
 //  ENGINEERING RULES (do not violate):
 //
 //  1. LEAVE THE MAP DATA ALONE.
 //     The server simulates a standard flat 2D grid. A player at (2,3) is at
-//     (2,3). Nothing in this file mutates, rotates, or re-indexes game state.
-//     Isometry exists ONLY inside drawing code, at the moment of drawing.
+//     (2,3). The projection exists ONLY inside drawing code.
 //
-//  2. VISUAL-ONLY PROJECTION FORMULA (2:1 ratio, locked):
-//       screenX = (gridX - gridY) * (TILE_WIDTH  / 2) + worldCenterX
-//       screenY = (gridX + gridY) * (TILE_HEIGHT / 2) + VERTICAL_OFFSET
-//     TILE_WIDTH = 64, TILE_HEIGHT = 32. All layout math is in this fixed
-//     "world space"; a single uniform scale transform fits world space to the
-//     device canvas (so 64×32 art stays crisp on any phone, retina included).
+//  2. ORTHOGRAPHIC PROJECTION — the grid aligns with the screen axes:
+//       screenX = gridX * TILE_WIDTH  + originX
+//       screenY = gridY * TILE_HEIGHT + originY
+//     +x is right, +y is down; movement is axis-aligned automatically.
+//     Tall assets (walls, counters, characters) are bottom-anchored on their
+//     tile and extend upward — that is the rendering Y-offset for height.
+//     A single uniform scale fits this fixed world space to any canvas.
 //
 //  3. Y-SORTED RENDER QUEUE.
-//     Each frame: clear the canvas, push EVERY visible element (floor tiles,
-//     counter blocks, stations, crates, chefs, customers) into one flat
-//     renderQueue, each entry carrying its calculated screenY. Sort the whole
-//     queue by screenY, then draw. Things lower on screen render on top.
+//     Every visible element (walls, floor, blocks, chefs, customers, decor)
+//     is pushed into one flat renderQueue with its screenY, sorted, drawn
+//     back-to-front. Boundary walls carry minimum depth: behind counters and
+//     characters, in front of the page background.
 //
 //  4. Every element draws via image assets from the GFX manifest (gfx.js).
 // ============================================================================
 (function () {
 
-  // ── Locked isometric constants ──────────────────────────────────────────────
-  const TILE_WIDTH  = 64;                 // diamond width  (world px)
-  const TILE_HEIGHT = 32;                 // diamond height (world px) — 2:1
-  const BLOCK_LIFT  = 24;                 // counter top sits this far above its
-                                          // floor diamond (96/256 of block art)
-  const VERTICAL_OFFSET = 128;            // headroom above the back corner for
-                                          // tall blocks, carried items, bubbles
+  // ── Locked grid constants ───────────────────────────────────────────────────
+  const TILE_WIDTH  = 64;                 // tile width  (world px)
+  const TILE_HEIGHT = 48;                 // tile height (world px) — slightly
+                                          // rectangular for the ¾ look
+  const BLOCK_LIFT  = 24;                 // counter work-surface sits this far
+                                          // above the tile's base line
+  const WALL_H      = 112;                // back wall height above floor line
+  const WALL_LW     = 20;                 // left wall strip width
   const CHEF_H     = 52;                  // chef sprite height (world px)
   const CUSTOMER_H = 64;                  // customer sprite height (world px)
   const CARRY_GAP  = 40;                  // held item floats exactly this many
-                                          // px above the chef's head (rule 4)
+                                          // px above the chef's head
   const SPRITE_FILL = 0.84;               // stations render at 84% of their
                                           // tile width — visual "air" between
                                           // counters; grid coords unchanged
@@ -60,7 +61,8 @@
   // Grid char → station image key. Digits 1-9 are ingredient crates and render
   // as a counter block with the ingredient sprite on top (via level.crates).
   const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink' };
-  const CUSTOMER_KEYS = ['grandma_rose','influencer','workhorse','socialite','kid'];
+  const CUSTOMER_KEYS = ['grandma_rose','influencer','workhorse','socialite','kid',
+    'barney','betty_white','camp_counselor','dolly','judy','sinatra','wadsworth'];
 
   const THEMES = {
     diner:  { wallTop:'#3DBBB8', bgA:'#FF7DB8', bgB:'#FFB0D8' },
@@ -241,21 +243,18 @@
       this.canvas.height = Math.round(wrap.clientHeight*this.dpr);
 
       const {w,h}=this.lvl;
-      // World bounds from the island corners AND the queue slots, so the
-      // hatch-anchored queue always fits no matter which wall it lines up on.
-      const pts=[[0,0],[w-1,0],[0,h-1],[w-1,h-1]];
-      for (let i=-1;i<5;i++){ const q=this.queueSlot(i); pts.push([q.x,q.y]); }
-      let minFx=1e9, maxFx=-1e9, maxFy=-1e9;
-      for (const [x,y] of pts){
-        const fx=x-y, fy=x+y;
-        if (fx<minFx) minFx=fx;
-        if (fx>maxFx) maxFx=fx;
-        if (fy>maxFy) maxFy=fy;
+      // World bounds from the room plus the hatch-anchored queue slots, so
+      // the queue always fits no matter which wall it lines up on.
+      let minGx=0, maxGx=w-1, maxGy=h-1;
+      for (let i=-1;i<5;i++){
+        const q=this.queueSlot(i);
+        minGx=Math.min(minGx,q.x); maxGx=Math.max(maxGx,q.x); maxGy=Math.max(maxGy,q.y);
       }
       const PAD=10;
-      this.worldW  = (maxFx-minFx)*(TILE_WIDTH/2) + TILE_WIDTH + PAD*2;
-      this.worldCX = PAD + TILE_WIDTH/2 - minFx*(TILE_WIDTH/2);
-      this.worldH  = VERTICAL_OFFSET + maxFy*(TILE_HEIGHT/2) + TILE_HEIGHT + 64;
+      this.ox = PAD + WALL_LW + Math.max(0,-minGx)*TILE_WIDTH;  // room origin
+      this.oy = PAD + WALL_H;                                   // below the wall
+      this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + PAD;
+      this.worldH = this.oy + (maxGy+1)*TILE_HEIGHT + 76 + PAD;
 
       this.scale = Math.min(this.canvas.width/this.worldW, this.canvas.height/this.worldH);
       this.txOff = (this.canvas.width  - this.worldW*this.scale)/2;
@@ -265,19 +264,22 @@
     toWorld(cx, cy) { return [(cx-this.txOff)/this.scale, (cy-this.tyOff)/this.scale]; }
 
     // ── THE PROJECTION (visual only — never touches game state) ─────────────
+    // Straight-on grid: returns the CENTER of tile (gridX, gridY).
+    //   screenX = gridX * TILE_WIDTH  + originX  (+ half tile)
+    //   screenY = gridY * TILE_HEIGHT + originY  (+ half tile)
     project(gridX, gridY) {
-      const screenX = (gridX - gridY) * (TILE_WIDTH  / 2) + this.worldCX;
-      const screenY = (gridX + gridY) * (TILE_HEIGHT / 2) + VERTICAL_OFFSET;
-      return [screenX, screenY];
+      return [
+        this.ox + (gridX + 0.5) * TILE_WIDTH,
+        this.oy + (gridY + 0.5) * TILE_HEIGHT,
+      ];
     }
     // Players are continuous grid coords with tile centers at +0.5.
     projectEntity(px, py) { return this.project(px - 0.5, py - 0.5); }
 
-    // Exact algebraic inverse of project().
+    // Screen → grid: the straight-on inverse is a simple division.
     unproject(wx, wy) {
-      const fx = (wx - this.worldCX)     / (TILE_WIDTH  / 2);
-      const fy = (wy - VERTICAL_OFFSET)  / (TILE_HEIGHT / 2);
-      return [(fx + fy) / 2, (fy - fx) / 2];
+      return [(wx - this.ox) / TILE_WIDTH  - 0.5,
+              (wy - this.oy) / TILE_HEIGHT - 0.5];
     }
 
     // ── CLICK DETECTION: reverse-depth sprite hit testing ────────────────────
@@ -296,8 +298,9 @@
         const u = (wx - hit.x) / hit.w, v = (wy - hit.y) / hit.h;
         if (GFX.alphaAt(hit.key, u, v)) return [hit.gx, hit.gy];
       }
-      const [ux, uy] = this.unproject(wx, wy);
-      const gx = Math.floor(ux), gy = Math.floor(uy);
+      // gridX = floor(mouseX / tileWidth), gridY = floor(mouseY / tileHeight)
+      const gx = Math.floor((wx - this.ox) / TILE_WIDTH);
+      const gy = Math.floor((wy - this.oy) / TILE_HEIGHT);
       if (gx>=0 && gy>=0 && gx<this.lvl.w && gy<this.lvl.h) return [gx, gy];
       return null;
     }
@@ -384,46 +387,50 @@
       const {ctx}=this;
       const now=performance.now();
 
-      // Clear + backdrop in raw device space.
+      // Clear in raw device space — the page gradient shows through outside
+      // the room; the room itself gets real structural walls below.
       ctx.setTransform(1,0,0,1,0,0);
       ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-      if(!GFX.tile(ctx,'wall',0,0,this.canvas.width,this.canvas.height)){
-        ctx.fillStyle=this.theme.wallTop;
-        ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
-      }
-      // Everything else draws in world space (fixed 64×32 units).
+      // Everything draws in world space (fixed 64×48 units).
       ctx.setTransform(this.scale,0,0,this.scale,this.txOff,this.tyOff);
 
       const renderQueue = [];
       this._hits = [];                 // precise sprite rects for click picking
       const {lvl}=this;
 
-      // 1. Floor. The HD checkered patch is itself an iso diamond whose
-      // corners are the island's corners — one draw covers the whole floor.
-      // Per-tile diamonds are the fallback while it loads.
-      if (GFX.img('floor_patch')) {
-        const [lx]  = this.project(0, lvl.h-1), [rx]  = this.project(lvl.w-1, 0);
-        const [,ty] = this.project(0, 0),       [,by] = this.project(lvl.w-1, lvl.h-1);
+      // 1. Floor: straight-on checkerboard, one square tile per cell.
+      for (let gy=0; gy<lvl.h; gy++) for (let gx=0; gx<lvl.w; gx++) {
+        const [sx, sy] = this.project(gx, gy);
+        const key = (gx+gy)%2 ? 'floor_tile_alt' : 'floor_tile';
         renderQueue.push({ screenY: -1e9, draw: () =>
-          GFX.tile(ctx, 'floor_patch', lx-TILE_WIDTH/2, ty-TILE_HEIGHT/2,
-                   (rx-lx)+TILE_WIDTH, (by-ty)+TILE_HEIGHT) });
-      } else {
-        for (let gy=0; gy<lvl.h; gy++) for (let gx=0; gx<lvl.w; gx++) {
-          const [sx, sy] = this.project(gx, gy);
-          const key = (gx+gy)%2 ? 'floor_alt' : 'floor';
-          renderQueue.push({ screenY: sy - TILE_HEIGHT, draw: () => {
-            if(!GFX.tile(ctx, key, sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT))
-              GFX.tile(ctx, 'floor', sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT);
-          }});
-        }
+          GFX.tile(ctx, key, sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT) });
       }
+
+      // 1b. BOUNDARY WALLS: structural back wall along gridY===0 and a left
+      // wall strip along gridX===0, sharing the top-left corner so they
+      // stitch seamlessly. Minimum depth: behind counters, appliances, and
+      // characters; in front of the page background.
+      {
+        const T = lvl.theme || 'diner';
+        const wallKey = GFX.has('wall_'+T) ? 'wall_'+T : 'wall_diner';
+        const left = this.ox - WALL_LW, top = this.oy - WALL_H;
+        const roomW = lvl.w*TILE_WIDTH, roomH = lvl.h*TILE_HEIGHT;
+        renderQueue.push({ screenY: -1e8, draw: () => {
+          const img = GFX.img(wallKey);
+          if (!img) return;
+          ctx.drawImage(img, this.ox, top, roomW, WALL_H);            // back wall
+          ctx.drawImage(img, 0, 0, Math.max(1, img.width*0.06), img.height,
+                        left, top, WALL_LW, WALL_H + roomH);          // left wall
+        }});
+      }
+
       // Queue-zone walkway tiles (faded) — the path ends at the serve hatch.
       for (let i=-1;i<5;i++) {
         const q = this.queueSlot(i);
         const [sx, sy] = this.project(q.x, q.y);
-        renderQueue.push({ screenY: sy - TILE_HEIGHT, draw: () => {
+        renderQueue.push({ screenY: -1e9 + 1, draw: () => {
           ctx.globalAlpha = 0.45;
-          GFX.tile(ctx, 'floor', sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT);
+          GFX.tile(ctx, 'floor_tile', sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT);
           ctx.globalAlpha = 1;
         }});
       }
@@ -475,44 +482,41 @@
     // back-perimeter tiles with screenY just behind their row, so the counters
     // overlap their bottom edge and chefs always pass in front; clutter
     // crates anchor outside the island (gy < 0), peeking over the back wall.
+    // ── Decor: wall-anchored items + desk clutter ────────────────────────────
+    // Wall items declare `wallAnchor` in the manifest:
+    //   { wall:'back'|'left', pos:<tiles along the wall>, height:<px from the
+    //     floor line up to the item's bottom>, width:<draw width px> }
+    // Their coordinates derive from the WALL SURFACE, never raw screen space,
+    // so they stay pinned when the room resizes or the theme changes.
     pushDecor(queue) {
       const {lvl}=this;
-      // Desk decor: the street window, clock, and photo frames STAND ON the
-      // back counters (easel-backed), drawn just after their block so they
-      // rest on its top face instead of floating in the backdrop.
-      const deskDecor = (key, gx, gy, w) => {
-        const [sx, sy] = this.project(gx, gy);
+      const T = lvl.theme || 'diner';
+      const DECOR = {
+        diner:  ['wall_window','wall_clock','wall_photos','wall_sign'],
+        winter: ['wall_window_winter','decor_wreath','decor_cocoa_sign','decor_fireplace'],
+        beach:  ['wall_window_beach','decor_surfboard','decor_tiki_sign','decor_palm'],
+      };
+      for (const key of (DECOR[T] || DECOR.diner)) {
+        const ent = (window.ASSETS||{})[key];
+        const a = ent && ent.wallAnchor;
+        if (!a) continue;
+        const cx = a.wall==='left'
+          ? this.ox - WALL_LW/2
+          : this.ox + a.pos*TILE_WIDTH;
+        const bottom = this.oy - (a.height||40);
+        queue.push({ screenY: -1e7, draw: () =>
+          GFX.drawAnchored(this.ctx, key, cx, bottom, a.width||60) });
+      }
+
+      // Desk clutter on the back-corner counter tops.
+      const desk = (key, gx, w) => {
+        if (!lvl.grid[0] || lvl.grid[0][gx] === '.') return;
+        const [sx, sy] = this.project(gx, 0);
         queue.push({ screenY: sy + 0.03, draw: () =>
           GFX.drawAnchored(this.ctx, key, sx, sy - BLOCK_LIFT + 2, w) });
       };
-      deskDecor('wall_window', Math.max(1, Math.round(lvl.w*0.30)), 0, 84);
-      deskDecor('wall_clock',  Math.max(2, Math.round(lvl.w*0.55)), 0, 18);
-      deskDecor('wall_photos', Math.max(3, Math.round(lvl.w*0.78)), 0, 50);
-
-      // INDUSTRIAL BAKERY board sheared onto the left wall's isometric plane
-      // (slope -0.5 = the 2:1 wall climbing toward the back corner) so it
-      // reads as mounted on the wall, not a flat sticker.
-      {
-        const gy = Math.max(1, Math.round(lvl.h*0.45));
-        const [sx, sy] = this.project(0, gy);
-        queue.push({ screenY: sy - 0.5, draw: () =>
-          this.drawSheared(this.ctx, 'wall_sign', sx, sy - BLOCK_LIFT - 4, 42, -0.5) });
-      }
-
-      // Flower vase with utensils on the back-corner counter top.
-      if (lvl.grid[0][0] !== '.') {
-        const [sx, sy] = this.project(0, 0);
-        queue.push({ screenY: sy + 0.02, draw: () =>
-          GFX.drawAnchored(this.ctx, 'decor_vase', sx, sy - BLOCK_LIFT + 2, 20) });
-      }
-      // Spare produce baskets stacked outside along the back wall.
-      const clutter = (key, gx, w) => {
-        const [sx, sy] = this.project(gx, -0.55);
-        queue.push({ screenY: sy, draw: () =>
-          GFX.drawAnchored(this.ctx, key, sx, sy + TILE_HEIGHT/2, w) });
-      };
-      clutter('crate_lettuce', Math.max(1, Math.round(lvl.w*0.12)), 44);
-      clutter('crate_tomato',  Math.max(1, Math.round(lvl.w*0.12)) + 1.15, 40);
+      desk('decor_vase', 0, 20);
+      desk('decor_utensils', lvl.w-1, 16);
     }
 
     // ── Blocks (counters, stations, crates) + whatever sits on them ──────────
@@ -624,7 +628,8 @@
       }
 
       this._labels.push({
-        text: isMe?'You':p.name, x: sx, y: sy+13,
+        // Centered right above the chef's head (multiplayer identification).
+        text: isMe?'You':p.name, x: sx, y: headTopY - 6,
         size: 9, color: isMe?col:'rgba(20,8,40,0.85)',
       });
     }
@@ -660,7 +665,8 @@
       const {ctx}=this;
       const CH=CUSTOMER_H;
       const bob=Math.sin(now/320+q.i*2.1);
-      const preset=((q.order.id-1)%5+5)%5;
+      const n=CUSTOMER_KEYS.length;
+      const preset=((q.order.id-1)%n+n)%n;
 
       GFX.draw(ctx, CUSTOMER_KEYS[preset], sx, sy+bob-CH*0.5, CH*0.92, CH);
 
@@ -682,7 +688,8 @@
       const dishKey='dish_'+q.order.recipe;
       if(!GFX.draw(ctx, GFX.has(dishKey)?dishKey:'__none__', sx, bubCY-2, bubW*0.62, bubH*0.62))
         this.glyph(q.order.emoji||'🍽️', sx, bubCY-2, 14);
-      if (q.order.vip) this.glyph('👑', sx+bubW*0.42, bubCY-bubH*0.42, 10);
+      if (q.order.vip && !GFX.draw(ctx,'ui_crown', sx+bubW*0.42, bubCY-bubH*0.42, 15, 15))
+        this.glyph('👑', sx+bubW*0.42, bubCY-bubH*0.42, 10);
     }
 
     // ── Particle effects (world space, after the queue = always on top) ──────
@@ -788,20 +795,6 @@
     }
 
     // ── Canvas helpers ────────────────────────────────────────────────────────
-    // Draw an asset sheared onto an isometric wall plane. slope = ±0.5 maps
-    // the sprite's horizontal axis onto the 2:1 iso wall direction (rise of
-    // 1 per 2 run — the 30° dimetric plane). Bottom-center anchored.
-    drawSheared(ctx, key, cx, baseY, w, slope) {
-      const img = GFX.img(key);
-      if (!img || !img.width) return false;
-      const h = w * img.height / img.width;
-      ctx.save();
-      ctx.translate(cx, baseY);
-      ctx.transform(1, slope, 0, 1, 0, 0);   // [x,y] → [x, y + slope·x]
-      ctx.drawImage(img, -w/2, -h, w, h);
-      ctx.restore();
-      return true;
-    }
     glyph(text,x,y,size,centered=true){
       const {ctx}=this;
       ctx.font=`${Math.round(size)}px "Apple Color Emoji","Segoe UI Emoji",system-ui`;

@@ -1,90 +1,116 @@
 // ============================================================================
-//  Kitchen Sync — ASSET MANIFEST
+//  Kitchen Sync — ASSET MANIFEST (single source of truth)
 //  ---------------------------------------------------------------------------
-//  Single source of truth mapping every game object to its image file.
-//
 //  Entry forms:
-//    key: 'path.png'                                — whole file is the sprite
-//    key: { path, width, height }                   — whole file + source dims
-//    key: { path, crop:[x,y,w,h] }                  — sprite is a region of a
-//                                                     larger sheet (master
-//                                                     asset sheet crops)
-//    key: { path, nokey:true }                      — never background-key
-//                                                     (full-bleed art)
+//    key: 'path'                         — file is the sprite
+//    key: { path, scale }                — scale multiplies engine draw width
+//    key: { path, crop:[x,y,w,h] }       — sprite is a region of a sheet
+//    key: { path, wallAnchor: {          — wall-mounted decor, positioned
+//             wall: 'back'|'left',         relative to the WALL SURFACE:
+//             pos: <tiles along wall>,     pos in tile units from the corner,
+//             height: <px floor→bottom>,   height up from the floor line,
+//             width: <draw width px> } }   draw width in world px
 //
-//  The loader (gfx.js) automatically removes the flat studio background from
-//  HD renders and trims each sprite to its content box, so draw calls always
-//  use the sprite's true pixel dimensions and proportions.
-//
-//  Placeholder .png paths fall back to bundled .svg files of the same name —
-//  drop a real .png at any path to override with zero code changes.
+//  The loader (gfx.js) keys out flat studio backgrounds and trims every
+//  sprite to content, so drawn proportions always match the art.
 // ============================================================================
 (function () {
-  const HD    = 'assets/images/hd/';
-  const SHEET = HD + 'ks-vibe-summary.png';      // 2816×1536 master asset sheet
+  const HD = 'assets/images/hd/';
 
   window.ASSETS = {
-    // ── Characters ──────────────────────────────────────────────────────────
+    // ── Player chefs ─────────────────────────────────────────────────────────
     chef:           { path: HD + 'ks-chef-idle-front.png' },
-    chef_back:      { path: HD + 'ks-chef-idle-back.png' },   // for walk anim later
+    chef_back:      { path: HD + 'ks-chef-idle-back.png' },     // for walk anim
 
-    // ── Customers ───────────────────────────────────────────────────────────
-    grandma_rose:   { path: HD + 'ks-char-grandma-rose.png', width: 1408, height: 768 },
-    workhorse:      { path: HD + 'ks-char-businessman.png',  width: 1408, height: 768 },
+    // ── Customers (queue rotates through all of them) ───────────────────────
+    grandma_rose:   { path: HD + 'ks-char-grandma-rose.png' },
+    workhorse:      { path: HD + 'ks-char-businessman.png' },
     influencer:     { path: HD + 'ks-char-influencer.png' },
     socialite:      { path: HD + 'ks-char-socialite.png' },
     kid:            { path: HD + 'ks-char-kid.png' },
+    barney:         { path: HD + 'ks-char-barney.png' },
+    betty_white:    { path: HD + 'ks-char-betty-white.png' },
+    camp_counselor: { path: HD + 'ks-char-camp-counselor.png' },
+    dolly:          { path: HD + 'ks-char-dolly.png' },
+    judy:           { path: HD + 'ks-char-judy.png' },
+    sinatra:        { path: HD + 'ks-char-sinatra.png' },
+    wadsworth:      { path: HD + 'ks-wadsworth.png' },
 
-    // ── Stations / appliances ───────────────────────────────────────────────
-    counter:        { path: HD + 'ks-countertop.png',             width: 1408, height: 768 },
-    chopping_board: { path: HD + 'ks-chopping-block.png',         width: 1408, height: 768 },
-    oven:           { path: HD + 'ks-industrial-baking-oven.png', width: 1408, height: 768 },
-    // `scale` multiplies the engine's draw width for that asset only —
-    // tune renders whose aspect runs tall/wide without touching code.
+    // ── Stations (grid chars) + live state variants ─────────────────────────
+    counter:        { path: HD + 'ks-countertop.png' },
+    chopping_board: { path: HD + 'ks-chopping-block.png' },
+    oven:           { path: HD + 'ks-industrial-baking-oven.png' },
     stove:          { path: HD + 'ks-stove-pan.png' },
-    stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },   // cooking/burning state
+    stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
     pot:            { path: HD + 'ks-stockpot.png' },
     plate_stack:    { path: HD + 'ks-plate-stack.png' },
     serve_window:   { path: HD + 'ks-serve-window.png', scale: 1.08 },
     trash:          { path: HD + 'ks-trash-can.png', scale: 0.88 },
     sink:           { path: HD + 'ks-sink.png' },
-    sink_dirty:     { path: HD + 'ks-sink-dirty.png' },       // plates piled up state
+    sink_dirty:     { path: HD + 'ks-sink-dirty.png' },
 
-    // Ingredient crates with dedicated art render as themselves (a market
-    // basket); other crates render as counter + ingredient icon.
-    crate_lettuce:  { path: HD + 'ks-lettuce-crate.png', width: 1408, height: 768 },
-    crate_tomato:   { path: HD + 'ks-tomato-crate.png',  width: 1408, height: 768 },
+    // ── Ingredient crates (every crate in every level) ──────────────────────
+    crate_lettuce:    { path: HD + 'ks-lettuce-crate.png' },
+    crate_tomato:     { path: HD + 'ks-tomato-crate.png' },
+    crate_cucumber:   { path: HD + 'ks-cucumber-crate.png' },
+    crate_bun:        { path: HD + 'ks-bun-crate.png' },
+    crate_patty:      { path: HD + 'ks-patty-crate.png' },
+    crate_cheese:     { path: HD + 'ks-cheese-crate.png' },
+    crate_onion:      { path: HD + 'ks-onion-crate.png' },
+    crate_rice:       { path: HD + 'ks-rice-crate.png' },
+    crate_fish:       { path: HD + 'ks-fish-crate.png' },
+    crate_seaweed:    { path: HD + 'ks-seaweed-crate.png' },
+    crate_dough:      { path: HD + 'ks-dough-crate.png' },
+    crate_milk:       { path: HD + 'ks-milk-crate.png' },
+    crate_cocoa:      { path: HD + 'ks-cocoa-crate.png' },
+    crate_potato:     { path: HD + 'ks-potato-crate.png' },
+    crate_carrot:     { path: HD + 'ks-carrot-crate.png' },
+    crate_pineapple:  { path: HD + 'ks-pineapple-crate.png' },
+    crate_strawberry: { path: HD + 'ks-strawberry-crate.png' },
+    crate_banana:     { path: HD + 'ks-banana-crate.png' },
+    crate_tortilla:   { path: HD + 'ks-tortilla-crate.png' },
 
-    // ── Ingredients ─────────────────────────────────────────────────────────
-    lettuce:          { path: HD + 'ks-lettuce.png',         width: 1408, height: 768 },
-    lettuce_chopped:  { path: HD + 'ks-lettuce-chopped.png', width: 1408, height: 768 },
-    tomato:           { path: HD + 'ks-tomato.png',          width: 1408, height: 768 },
-    tomato_chopped:   { path: HD + 'ks-tomato-chopped.png',  width: 1408, height: 768 },
-    cucumber:         { path: HD + 'ks-cucumber.png' },
-    cucumber_chopped: 'assets/images/ingredients/cucumber_chopped.png',
-    onion:            { path: HD + 'ks-onion.png' },
-    onion_chopped:    'assets/images/ingredients/onion_chopped.png',
-    cheese:           { path: HD + 'ks-cheese.png' },
-    cheese_chopped:   'assets/images/ingredients/cheese_chopped.png',
-    potato:           { path: HD + 'ks-potato.png' },
-    carrot:           { path: HD + 'ks-carrot.png' },
-    bun:              'assets/images/ingredients/bun.png',
-    patty:            { path: HD + 'ks-patty.png' },
-    patty_cooked:     'assets/images/ingredients/patty_cooked.png',
-    rice:             'assets/images/ingredients/rice.png',
-    fish:             { path: HD + 'ks-fish.png' },
-    fish_chopped:     'assets/images/ingredients/fish_sashimi.png',
-    seaweed:          'assets/images/ingredients/seaweed.png',
-    dough:            'assets/images/ingredients/dough.png',
-    milk:             'assets/images/ingredients/milk.png',
-    cocoa:            { path: HD + 'ks-cocoa.png' },
-    pineapple:        { path: HD + 'ks-pineapple.png' },
-    strawberry:       { path: HD + 'ks-strawberry.png' },
-    banana:           { path: HD + 'ks-banana.png' },
-    tortilla:         'assets/images/ingredients/tortilla.png',
-    plate:            'assets/images/ingredients/plate.png',
+    // ── Ingredients: raw ─────────────────────────────────────────────────────
+    lettuce:    { path: HD + 'ks-lettuce.png' },
+    tomato:     { path: HD + 'ks-tomato.png' },
+    cucumber:   { path: HD + 'ks-cucumber.png' },
+    cheese:     { path: HD + 'ks-cheese.png' },
+    onion:      { path: HD + 'ks-onion.png' },
+    fish:       { path: HD + 'ks-fish.png' },
+    patty:      { path: HD + 'ks-patty.png' },
+    potato:     { path: HD + 'ks-potato.png' },
+    carrot:     { path: HD + 'ks-carrot.png' },
+    cocoa:      { path: HD + 'ks-cocoa.png' },
+    pineapple:  { path: HD + 'ks-pineapple.png' },
+    strawberry: { path: HD + 'ks-strawberry.png' },
+    banana:     { path: HD + 'ks-banana.png' },
+    bun:        { path: HD + 'ks-bun.png' },
+    rice:       { path: HD + 'ks-rice.png' },
+    seaweed:    { path: HD + 'ks-seaweed.png' },
+    dough:      { path: HD + 'ks-dough.png' },
+    milk:       { path: HD + 'ks-milk.png' },
+    tortilla:   { path: HD + 'ks-tortilla.png' },
 
-    // ── Plated dishes ───────────────────────────────────────────────────────
+    // ── Ingredients: chopped / cooked ───────────────────────────────────────
+    lettuce_chopped:    { path: HD + 'ks-lettuce-chopped.png' },
+    tomato_chopped:     { path: HD + 'ks-tomato-chopped.png' },
+    cucumber_chopped:   { path: HD + 'ks-cucumber-chopped.png' },
+    cheese_chopped:     { path: HD + 'ks-cheese-chopped.png' },
+    onion_chopped:      { path: HD + 'ks-onion-chopped.png' },
+    fish_chopped:       { path: HD + 'ks-fish-chopped.png' },
+    patty_chopped:      { path: HD + 'ks-patty-chopped.png' },
+    potato_chopped:     { path: HD + 'ks-potato-chopped.png' },
+    carrot_chopped:     { path: HD + 'ks-carrot-chopped.png' },
+    cocoa_chopped:      { path: HD + 'ks-cocoa-chopped.png' },
+    pineapple_chopped:  { path: HD + 'ks-pineapple-chopped.png' },
+    strawberry_chopped: { path: HD + 'ks-strawberry-chopped.png' },
+    banana_chopped:     { path: HD + 'ks-banana-chopped.png' },
+    patty_cooked:       { path: HD + 'ks-patty-cooked.png' },
+    rice_cooked:        { path: HD + 'ks-rice-cooked.png' },
+
+    // ── Plates & dishes ─────────────────────────────────────────────────────
+    plate:        { path: HD + 'ks-plate-clean.png' },
+    plate_dirty:  { path: HD + 'ks-plate-dirty.png' },
     dish_salad:        { path: HD + 'ks-dish-salad.png' },
     dish_big_salad:    { path: HD + 'ks-dish-big-salad.png' },
     dish_burger:       { path: HD + 'ks-dish-burger.png' },
@@ -100,25 +126,48 @@
     dish_fish_taco:    { path: HD + 'ks-dish-fish-taco.png' },
     dish_burned:       { path: HD + 'ks-dish-burned.png' },
 
-    // ── Environment ─────────────────────────────────────────────────────────
-    // Checkered floor patch covers the whole island floor in one draw.
-    floor_patch:    { path: HD + 'ks-tile-checkered.png', width: 1408, height: 768 },
-    floor:          'assets/images/env/floor.png',
-    floor_alt:      'assets/images/env/floor_alt.png',
-    wall:           { path: 'assets/images/env/wall.png', nokey: true },
+    // ── Environment: walls + floors per theme ───────────────────────────────
+    wall_diner:   { path: HD + 'ks-wall-diner.png',  nokey: true },
+    wall_winter:  { path: HD + 'ks-wall-winter.png', nokey: true },
+    wall_beach:   { path: HD + 'ks-wall-beach.png',  nokey: true },
+    floor_tile:     'assets/images/env/floor_sq_a.svg',
+    floor_tile_alt: 'assets/images/env/floor_sq_b.svg',
 
-    // ── Back-wall decor (the "Background Layer") ────────────────────────────
-    wall_window:    { path: HD + 'ks-window.png', width: 1408, height: 768 },
-    wall_photos:    { path: SHEET, crop: [35,  590, 515, 410], width: 515, height: 410 },
-    wall_clock:     { path: SHEET, crop: [628, 685, 232, 245], width: 232, height: 245 },
-    wall_sign:      { path: SHEET, crop: [1215, 548, 300, 465], width: 300, height: 465 },
+    // ── Wall-anchored decor (coords relative to the wall surface) ──────────
+    wall_window:        { path: HD + 'ks-window.png',
+                          wallAnchor: { wall:'back', pos: 2.15, height: 14, width: 92 } },
+    wall_clock:         { path: HD + 'ks-vibe-summary.png', crop: [628, 685, 232, 245],
+                          wallAnchor: { wall:'back', pos: 4.55, height: 68, width: 26 } },
+    wall_photos:        { path: HD + 'ks-vibe-summary.png', crop: [35, 590, 515, 410],
+                          wallAnchor: { wall:'back', pos: 5.9, height: 42, width: 66 } },
+    wall_sign:          { path: HD + 'ks-vibe-summary.png', crop: [1215, 548, 300, 465],
+                          wallAnchor: { wall:'back', pos: 0.62, height: 16, width: 54 } },
+    wall_window_winter: { path: HD + 'ks-window-winter.png',
+                          wallAnchor: { wall:'back', pos: 2.15, height: 14, width: 92 } },
+    decor_wreath:       { path: HD + 'ks-decor-wreath.png',
+                          wallAnchor: { wall:'back', pos: 4.9, height: 52, width: 42 } },
+    decor_cocoa_sign:   { path: HD + 'ks-decor-cocoa-sign.png',
+                          wallAnchor: { wall:'back', pos: 0.65, height: 18, width: 50 } },
+    wall_window_beach:  { path: HD + 'ks-window-beach.png',
+                          wallAnchor: { wall:'back', pos: 2.15, height: 14, width: 92 } },
+    decor_surfboard:    { path: HD + 'ks-decor-surfboard.png',
+                          wallAnchor: { wall:'back', pos: 5.4, height: 8, width: 40 } },
+    decor_tiki_sign:    { path: HD + 'ks-decor-tiki-sign.png',
+                          wallAnchor: { wall:'back', pos: 0.65, height: 18, width: 52 } },
+    decor_fireplace:    { path: HD + 'ks-decor-fireplace.png',
+                          wallAnchor: { wall:'back', pos: 5.7, height: 0, width: 78 } },
+    decor_palm:         { path: HD + 'ks-decor-palm.png',
+                          wallAnchor: { wall:'back', pos: 6.4, height: 0, width: 52 } },
 
-    // ── Decorative clutter ("life") ─────────────────────────────────────────
-    decor_vase:     { path: HD + 'ks-flower-vase.png', width: 1408, height: 768 },
+    // ── Desk clutter ────────────────────────────────────────────────────────
+    decor_vase:     { path: HD + 'ks-flower-vase.png' },
+    decor_utensils: { path: HD + 'ks-utensil-cup.png' },
 
-    // ── UI props on the canvas ──────────────────────────────────────────────
-    speech_bubble:  'assets/images/ui/speech_bubble.png',
-    heart:          'assets/images/ui/heart.png',
-    heart_empty:    'assets/images/ui/heart_empty.png',
+    // ── UI on the canvas ────────────────────────────────────────────────────
+    speech_bubble: { path: HD + 'ks-ui-bubble.png' },
+    heart:         { path: HD + 'ks-ui-heart.png' },
+    heart_empty:   'assets/images/ui/heart_empty.png',
+    ui_crown:      { path: HD + 'ks-ui-crown.png' },
+    ui_coin:       { path: HD + 'ks-ui-coin.png' },
   };
 })();
