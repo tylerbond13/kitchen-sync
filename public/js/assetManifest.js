@@ -134,13 +134,18 @@
     floor_tile_alt: 'assets/images/env/floor_sq_b.svg',
 
     // ── Wall-anchored decor (coords relative to the wall surface) ──────────
+    // The diner window render is iso-tilted; flatten remaps it orthogonal
+    // (edge fractions of the trimmed sprite's height — see gfx.js).
     wall_window:        { path: HD + 'ks-window.png',
+                          flatten: { top: [0.20, 0], bot: [0.84, 1] },
                           wallAnchor: { wall:'back', pos: 2.15, height: 14, width: 92 } },
-    wall_clock:         { path: HD + 'ks-vibe-summary.png', crop: [628, 685, 232, 245],
+    // vibe-summary sheet ships at 50% (scripts/shrink-assets.sh) — crops are
+    // in the halved coordinate space.
+    wall_clock:         { path: HD + 'ks-vibe-summary.png', crop: [314, 342, 116, 123],
                           wallAnchor: { wall:'back', pos: 4.55, height: 68, width: 26 } },
-    wall_photos:        { path: HD + 'ks-vibe-summary.png', crop: [35, 590, 515, 410],
+    wall_photos:        { path: HD + 'ks-vibe-summary.png', crop: [17, 295, 258, 205],
                           wallAnchor: { wall:'back', pos: 5.9, height: 42, width: 66 } },
-    wall_sign:          { path: HD + 'ks-vibe-summary.png', crop: [1215, 548, 300, 465],
+    wall_sign:          { path: HD + 'ks-vibe-summary.png', crop: [607, 274, 150, 233],
                           wallAnchor: { wall:'back', pos: 0.62, height: 16, width: 54 } },
     wall_window_winter: { path: HD + 'ks-window-winter.png',
                           wallAnchor: { wall:'back', pos: 2.15, height: 14, width: 92 } },

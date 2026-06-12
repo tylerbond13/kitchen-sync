@@ -49,14 +49,14 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 | Status | File | Grid char |
 |---|---|---|
-| ✅ | ks-countertop.png | `#` counter |
+| 🟡 | ks-countertop.png | `#` legacy diagonal HD exists; regenerate same filename as a flat, front-facing rectangular wooden cabinet counter with clean front face and flat top surface |
 | ✅ | ks-chopping-block.png | `B` empty wooden end-grain chopping block with an idle chef's knife resting flat on it; no pre-rendered food, vegetables, garnish, scraps, or chopped ingredients |
 | ✅ | ks-industrial-baking-oven.png | `V` oven |
 | ✅ | ks-stove-pan.png | `S` — range with frying pan on top |
 | ✅ | ks-stockpot.png | `O` — big soup pot on a burner |
-| ✅ | ks-plate-stack.png | `P` — shelf/rack of clean plates |
+| 🟡 | ks-plate-stack.png | `P` legacy diagonal HD exists; regenerate same filename as a straight-on front-facing porcelain plate storage rack/stack |
 | ✅ | ks-serve-window.png | `W` — pass window with bell, green accent |
-| ✅ | ks-trash-can.png | `T` — kitchen trash can |
+| 🟡 | ks-trash-can.png | `T` legacy diagonal HD exists; regenerate same filename as a clean front-facing stainless steel step trash can |
 | ✅ | ks-sink.png | `K` — sink with faucet |
 | ✅ | ks-stove-pan-fire.png | Optional: cooking/burning state |
 | ✅ | ks-sink-dirty.png | Optional: sink piled with dirty plates |
@@ -114,9 +114,9 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 | Status | File |
 |---|---|
-| ✅ | ks-lettuce-crate.png |
-| ✅ | ks-tomato-crate.png |
-| ✅ | ks-cucumber-crate.png |
+| 🟡 | ks-lettuce-crate.png (legacy diagonal HD exists; regenerate same filename as a flat square/rectangular wooden crate or wicker basket filled with lettuce) |
+| 🟡 | ks-tomato-crate.png (legacy diagonal HD exists; regenerate same filename as a flat square/rectangular wooden crate or wicker basket filled with tomatoes) |
+| 🟡 | ks-cucumber-crate.png (legacy diagonal HD exists; regenerate same filename as a flat square/rectangular wooden crate or wicker basket filled with cucumbers) |
 | ✅ | ks-bun-crate.png (bread basket) |
 | ✅ | ks-patty-crate.png (butcher box / cooler) |
 | ✅ | ks-cheese-crate.png |
@@ -167,7 +167,7 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | ✅ | ks-tile-checkered.png (floor) |
 | ✅ | ks-flower-vase.png |
 | ✅ | ks-utensil-cup.png (optional — exists in HD) |
-| ⬜ | ks-wall-bakery-back.png (horizontal back wall segment — warm white brick with walnut wood wainscoting; flat straight-on grid alignment) |
+| ✅ | ks-wall-bakery-back.png (horizontal back wall segment — warm white brick with walnut wood wainscoting; flat straight-on grid alignment) |
 | ⬜ | ks-wall-bakery-side.png (vertical side wall segment — matching warm white brick and walnut wainscoting; flat straight-on grid alignment) |
 | ⬜ | ks-wall-bakery-corner.png (internal 90-degree corner joiner cap — clean walnut trim tying back and side walls together) |
 | ⬜ | ks-decor-bakery-window.png (flat front-facing bakery window decor variation) |
@@ -237,19 +237,19 @@ but excluded from Needed totals unless a replacement is still required.
 |---|---|---|---|
 | Chef | 3 (sheet crop + idle front/back) | 8 walk frames | 4 carry |
 | Customers | 12 | 0 | 10 emotions |
-| Stations | 9 core + 2 states | 0 | — |
+| Stations | 8 HD + 3 legacy placeholders | 3 flat replacements | — |
 | Ingredients raw | 19 | 0 | — |
 | Ingredients chopped | 13 | 0 | — |
 | Ingredients cooked | 2 | 0 | — |
-| Crates | 19 | 0 | — |
+| Crates | 16 HD + 3 legacy placeholders | 3 flat replacements | — |
 | Dishes | 14 | 0 | — |
 | Dishware | 2 | 0 | — |
-| Env: artisan bakery / diner | 3 active + 2 historical preserved | 5 | — |
+| Env: artisan bakery / diner | 4 active + 2 historical preserved | 4 | — |
 | Env: sage cafe | 0 | 5 | — |
 | Env: winter lodge | 3 active + 3 historical preserved | 4 | — |
 | Env: beach shack | 4 active + 2 historical preserved | 4 | — |
 | UI | 2 HD + 2 placeholders | 0 | 1 heart-empty variant |
-| **Total** | **108 active HD files + 1 sheet-crop placeholder + 8 historical/reference HD files** | **26** | **15** |
+| **Total** | **103 active HD files + 1 sheet-crop placeholder + 6 legacy gameplay placeholders + 8 historical/reference HD files** | **31** | **15** |
 
 ## Suggested generation order (gameplay impact first)
 

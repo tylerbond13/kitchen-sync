@@ -30,6 +30,8 @@
   function show(name) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
     $(`screen-${name}`).classList.add('active');
+    // Acrostics everywhere except live rounds; Caketown while cooking.
+    if (window.KSMusic) KSMusic.play(name === 'game' ? 'game' : 'menu');
   }
 
   let toastTimer = null;
@@ -611,13 +613,32 @@
     SFX.order();
   });
 
-  $('btn-mute').onclick = () => {
-    SFX.toggleMute();
-    updateMuteBtn();
-  };
+  // ---------- audio toggles (music & SFX are independent, home + game) ----------
   function updateMuteBtn() {
-    $('btn-mute').textContent = SFX.isMuted() ? '🔇' : '🔊';
+    const sfxOff = SFX.isMuted(), musOff = KSMusic.isMuted();
+    for (const id of ['btn-mute', 'btn-sfx-home']) {
+      $(id).textContent = sfxOff ? '🔇' : '🔊';
+      $(id).classList.toggle('off', sfxOff);
+    }
+    for (const id of ['btn-music-game', 'btn-music-home']) {
+      $(id).classList.toggle('off', musOff);
+    }
   }
+  for (const id of ['btn-mute', 'btn-sfx-home']) {
+    $(id).onclick = () => {
+      SFX.toggleMute();
+      SFX.unlock(); SFX.tap();
+      updateMuteBtn();
+    };
+  }
+  for (const id of ['btn-music-game', 'btn-music-home']) {
+    $(id).onclick = () => {
+      KSMusic.toggleMute();
+      SFX.tap();
+      updateMuteBtn();
+    };
+  }
+  updateMuteBtn();
 
   // ---------- results ----------
   socket.on('game_over', (results) => {
@@ -717,6 +738,11 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
+
+  // Warm the sprite cache while the player is still on the menus, so the
+  // first round doesn't watch assets pop in one by one. Slightly deferred
+  // to keep the home screen's first paint snappy.
+  setTimeout(() => { if (window.GFX) GFX.preload(); }, 600);
 
   document.addEventListener('touchstart', () => SFX.unlock(), { once: true });
 })();

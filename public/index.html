@@ -315,6 +315,13 @@ input[type="text"]:focus {
 .btn-icon:active { transform: scale(.92); }
 .btn-icon.locked { opacity: .55; }
 .btn-icon.active { outline: 2.5px solid var(--gold); background: #FFFBE8; }
+.btn-icon.off { opacity: .38; filter: grayscale(1); }
+.audio-toggles {
+  position: absolute;
+  top: calc(var(--sat) + 12px); right: 12px;
+  display: flex; gap: 8px;
+  z-index: 5;
+}
 
 /* ============ Tutorial ============ */
 .btn-link {
@@ -721,6 +728,11 @@ input[type="text"]:focus {
   <!-- ============ HOME ============ -->
   <section id="screen-home" class="screen active">
 
+    <div class="audio-toggles">
+      <button class="btn-icon" id="btn-music-home" title="Music">🎵</button>
+      <button class="btn-icon" id="btn-sfx-home" title="Sound effects">🔊</button>
+    </div>
+
     <!-- Floating food background -->
     <div class="home-floaties" aria-hidden="true">
       <span style="--x:5%;  --dur:16s; --delay:0s;   --sz:26px">🍓</span>
@@ -871,7 +883,8 @@ input[type="text"]:focus {
       <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
       <div class="hud-buttons">
         <button class="btn-icon" id="btn-autochop" title="Auto-chop" hidden>🔪</button>
-        <button class="btn-icon" id="btn-mute" title="Sound">🔊</button>
+        <button class="btn-icon" id="btn-music-game" title="Music">🎵</button>
+        <button class="btn-icon" id="btn-mute" title="Sound effects">🔊</button>
         <button class="btn-icon" id="btn-pause" title="Pause">⏸️</button>
       </div>
     </div>
@@ -923,6 +936,7 @@ input[type="text"]:focus {
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/sound.js"></script>
+  <script src="/js/music.js"></script>
   <script src="/js/art.js"></script>
   <script src="/js/assetManifest.js"></script>
   <script src="/js/gfx.js"></script>

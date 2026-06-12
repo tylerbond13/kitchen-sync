@@ -1,11 +1,14 @@
 // Kitchen Sync service worker: cache the static shell, never touch the socket.
-const CACHE = 'kitchen-sync-v4';
+const CACHE = 'kitchen-sync-v5';
 const SHELL = [
   '/',
   '/index.html',
   '/js/app.js',
   '/js/art.js',
-  '/js/render.js',
+  '/js/assetManifest.js',
+  '/js/gfx.js',
+  '/js/isoRender.js',
+  '/js/music.js',
   '/js/sound.js',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
@@ -30,6 +33,9 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
   if (url.pathname.startsWith('/socket.io')) return; // realtime traffic stays live
+  // Music streams with Range requests; cache.put() rejects partial (206)
+  // responses, so let the browser talk to the network directly.
+  if (e.request.headers.has('range') || url.pathname.startsWith('/assets/audio/')) return;
   // network-first for navigations (fresh app shell), cache fallback for offline
   if (e.request.mode === 'navigate') {
     e.respondWith(

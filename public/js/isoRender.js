@@ -33,7 +33,11 @@
   const BLOCK_LIFT  = 24;                 // counter work-surface sits this far
                                           // above the tile's base line
   const WALL_H      = 112;                // back wall height above floor line
-  const WALL_LW     = 20;                 // left wall strip width
+  const WALL_SIDE   = 20;                 // left/right side wall strip width
+  // TEMP iso-art correction: current station/crate renders are isometric
+  // diamonds. Squashing them toward the tile keeps their footprint inside
+  // the flat square until front-facing art is swapped in.
+  const ISO_FIX     = { squash: 0.88, dy: 3 };
   const CHEF_H     = 62;                  // chef sprite height (world px)
   const CUSTOMER_H = 80;                  // customer sprite height (world px)
   const CARRY_GAP  = 40;                  // held item floats exactly this many
@@ -214,18 +218,24 @@
     // ── World space ⇄ canvas ──────────────────────────────────────────────────
     // World space uses the locked 64×32 tile constants. One uniform scale +
     // translate maps world space onto the device canvas.
-    // Queue geometry: customers line up ALONG THE BOTTOM of the room (below
-    // the front wall) so the grid keeps the full canvas width on mobile.
-    // Slot 0 sits in the hatch's column; the line extends toward the roomier
-    // side. Queue space costs height (plentiful in portrait), never width.
+    // Queue geometry: the line hugs the serve hatch. If a hatch sits in the
+    // bottom (front) wall, customers stand on the tile row immediately below
+    // it, slot 0 at the hatch's column. If the hatch is in the right/left
+    // wall, they stand in the column immediately outside that wall, slot 0
+    // beside the front-most serve window, stretching toward the viewer.
     queueSlot(i) {
       const {w,h}=this.lvl;
-      let cx=(w-1)/2;
-      if (this.serveCells.length)
-        cx = this.serveCells.reduce((a,c)=>a+c[0],0)/this.serveCells.length;
-      const dir = cx > (w-1)/2 ? -1 : 1;
-      const x0 = Math.min(w-1.2, Math.max(0.2, cx));
-      return { x: x0 + i*1.0*dir, y: h + 0.55 };
+      const cells = this.serveCells;
+      if (!cells.length) return { x: (w-1)/2 + i, y: h + 0.05 };
+      const onBottom = cells.filter((c) => c[1] === h-1);
+      if (onBottom.length) {
+        const bx = onBottom[0][0];
+        const dir = bx > (w-1)/2 ? -1 : 1;
+        return { x: bx + i*dir, y: h + 0.05 };
+      }
+      const side = cells[0][0] >= w/2 ? 1 : -1;
+      const yFront = Math.max(...cells.map((c) => c[1]));
+      return { x: side > 0 ? w + 0.05 : -1.05, y: yFront + i };
     }
 
     resize() {
@@ -242,9 +252,9 @@
         minGx=Math.min(minGx,q.x); maxGx=Math.max(maxGx,q.x); maxGy=Math.max(maxGy,q.y);
       }
       const PAD=10;
-      this.ox = PAD + WALL_LW + Math.max(0,-minGx)*TILE_WIDTH;  // room origin
-      this.oy = PAD + WALL_H;                                   // below the wall
-      this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + PAD;
+      this.ox = PAD + WALL_SIDE + Math.max(0,-minGx)*TILE_WIDTH; // room origin
+      this.oy = PAD + WALL_H;                                    // below the wall
+      this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + WALL_SIDE + PAD;
       this.worldH = this.oy + (maxGy+1)*TILE_HEIGHT + 30 + PAD;
 
       this.scale = Math.min(this.canvas.width/this.worldW, this.canvas.height/this.worldH);
@@ -397,21 +407,26 @@
           GFX.tile(ctx, key, sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT) });
       }
 
-      // 1b. BOUNDARY WALLS: structural back wall along gridY===0 and a left
-      // wall strip along gridX===0, sharing the top-left corner so they
+      // 1b. BOUNDARY WALLS: structural back wall along gridY===0 plus
+      // vertical side walls down the leftmost and rightmost grid edges, so
+      // the room is fully enclosed and the floor/background seams are
+      // covered. All three share the wall texture's top corners so they
       // stitch seamlessly. Minimum depth: behind counters, appliances, and
       // characters; in front of the page background.
       {
         const T = lvl.theme || 'diner';
         const wallKey = GFX.has('wall_'+T) ? 'wall_'+T : 'wall_diner';
-        const left = this.ox - WALL_LW, top = this.oy - WALL_H;
+        const left = this.ox - WALL_SIDE, top = this.oy - WALL_H;
         const roomW = lvl.w*TILE_WIDTH, roomH = lvl.h*TILE_HEIGHT;
         renderQueue.push({ screenY: -1e8, draw: () => {
           const img = GFX.img(wallKey);
           if (!img) return;
+          const slice = Math.max(1, img.width*0.06);
           ctx.drawImage(img, this.ox, top, roomW, WALL_H);            // back wall
-          ctx.drawImage(img, 0, 0, Math.max(1, img.width*0.06), img.height,
-                        left, top, WALL_LW, WALL_H + roomH);          // left wall
+          ctx.drawImage(img, 0, 0, slice, img.height,
+                        left, top, WALL_SIDE, WALL_H + roomH);        // left wall
+          ctx.drawImage(img, img.width - slice, 0, slice, img.height,
+                        this.ox + roomW, top, WALL_SIDE, WALL_H + roomH); // right wall
         }});
       }
 
@@ -420,7 +435,7 @@
         const q = this.queueSlot(i);
         const [sx, sy] = this.project(q.x, q.y);
         renderQueue.push({ screenY: -1e9 + 1, draw: () => {
-          ctx.globalAlpha = 0.45;
+          ctx.globalAlpha = 0.7;
           GFX.tile(ctx, 'floor_tile', sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT);
           ctx.globalAlpha = 1;
         }});
@@ -519,7 +534,7 @@
 
       // Crates with dedicated art ARE the art (market basket on the floor).
       if (ing && GFX.img('crate_'+ing)) {
-        const rect = GFX.drawAnchored(ctx, 'crate_'+ing, sx, baseY - 1, TW*SPRITE_FILL);
+        const rect = GFX.drawAnchored(ctx, 'crate_'+ing, sx, baseY - 1, TW*SPRITE_FILL, ISO_FIX);
         if (rect) this._hits.push({ ...rect, gx, gy, key: 'crate_'+ing, d: sy });
         return;
       }
@@ -533,8 +548,8 @@
       let key = STATION_KEY[c] || 'counter';
       if (c==='S' && s && s.contents && (s.state==='cooking'||s.state==='burned')) key='stove_fire';
       if (c==='K' && s && s.dirty > 0) key='sink_dirty';
-      let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL);
-      if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL); }
+      let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, ISO_FIX);
+      if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL, ISO_FIX); }
       if (rect) this._hits.push({ ...rect, gx, gy, key, d: sy });
       const topY = sy - BLOCK_LIFT;
 
@@ -673,7 +688,11 @@
       // the line) and above head height, so it never covers the face of the
       // customer behind them in the queue.
       const bubW=48, bubH=40;
-      const side = (this.queueSlot(1).x - this.queueSlot(0).x) > 0 ? -1 : 1;
+      // Horizontal queues: bubble toward the back of the line. Vertical
+      // queues (hatch in a side wall): bubble toward the kitchen, so it
+      // never runs off the canvas edge.
+      const dx = this.queueSlot(1).x - this.queueSlot(0).x;
+      const side = dx > 0.01 ? -1 : dx < -0.01 ? 1 : (q.x > this.lvl.w/2 ? -1 : 1);
       const bubX = sx + side*CH*0.34;
       const bubCY = sy+bob-CH-12-bubH/2;
       GFX.draw(ctx,'speech_bubble',bubX,bubCY,bubW,bubH);

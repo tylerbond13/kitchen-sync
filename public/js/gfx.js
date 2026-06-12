@@ -60,15 +60,23 @@
   }
 
   // Background-key + trim. Returns a tight canvas of just the sprite.
+  // Sources are capped to working size FIRST: nothing draws bigger than
+  // ~150 device px, and the flood fill below is per-pixel, so keying a
+  // full-res studio render would burn 16x the CPU for zero visible gain.
+  const MAX_SPRITE = 512, MAX_BACKDROP = 1536;
   function prepare(img, ent) {
     const crop = ent.crop;
-    const sx = crop ? crop[0] : 0, sy = crop ? crop[1] : 0;
-    const sw = crop ? crop[2] : (img.naturalWidth  || img.width);
-    const sh = crop ? crop[3] : (img.naturalHeight || img.height);
+    const cx0 = crop ? crop[0] : 0, cy0 = crop ? crop[1] : 0;
+    const cw = crop ? crop[2] : (img.naturalWidth  || img.width);
+    const ch = crop ? crop[3] : (img.naturalHeight || img.height);
+    const cap = ent.nokey ? MAX_BACKDROP : MAX_SPRITE;
+    const k = Math.min(1, cap / Math.max(cw, ch));
+    const sw = Math.max(1, Math.round(cw * k));
+    const sh = Math.max(1, Math.round(ch * k));
     const c = document.createElement('canvas');
     c.width = sw; c.height = sh;
     const x = c.getContext('2d', { willReadFrequently: true });
-    x.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    x.drawImage(img, cx0, cy0, cw, ch, 0, 0, sw, sh);
     if (ent.nokey) return c;
 
     let d;
@@ -120,7 +128,67 @@
     const out = document.createElement('canvas');
     out.width = bw; out.height = bh;
     out.getContext('2d').drawImage(c, minX, minY, bw, bh, 0, 0, bw, bh);
+    return ent.flatten ? flattenStrips(out, ent.flatten) : out;
+  }
+
+  // Perspective-flattener for wall decor: the iso renders draw wall items as
+  // trapezoids (near edge taller than far edge), which looks broken on the
+  // straight-on wall. `flatten: { top:[fL,fR], bot:[fL,fR] }` gives the
+  // trapezoid's top/bottom edges at the left/right of the trimmed sprite as
+  // fractions of its height; vertical strips are re-stretched so both edges
+  // come out horizontal. Runs once at prepare time, never per frame.
+  function flattenStrips(src, f) {
+    const w = src.width, h = src.height;
+    const out = document.createElement('canvas');
+    out.width = w; out.height = h;
+    const ctx = out.getContext('2d');
+    const N = Math.min(w, 96);
+    for (let i = 0; i < N; i++) {
+      const x0 = Math.floor(i * w / N), x1 = Math.ceil((i + 1) * w / N);
+      const t = (i + 0.5) / N;
+      const top = (f.top[0] + (f.top[1] - f.top[0]) * t) * h;
+      const bot = (f.bot[0] + (f.bot[1] - f.bot[0]) * t) * h;
+      if (bot - top < 1) continue;
+      ctx.drawImage(src, x0, top, x1 - x0, bot - top, x0, 0, x1 - x0, h);
+    }
     return out;
+  }
+
+  // Keying + trimming is real CPU work, and image onloads tend to land in
+  // bursts — preparing each sprite the moment it arrives froze the first
+  // render for seconds. Instead loads feed a queue that a budgeted pump
+  // drains a few ms per frame, so sprites stream in without jank.
+  const prepQueue = [];
+  let pumping = false;
+  // rAF aligns the work to frames, but it stops entirely in background /
+  // headless tabs — the timeout keeps the queue draining there. Whichever
+  // fires first cancels the other.
+  function schedulePump() {
+    const raf = requestAnimationFrame(run);
+    const tmo = setTimeout(run, 40);
+    function run() {
+      cancelAnimationFrame(raf); clearTimeout(tmo);
+      pump();
+    }
+  }
+  function pump() {
+    const t0 = performance.now();
+    while (prepQueue.length && performance.now() - t0 < 10) {
+      const { key, image, ent } = prepQueue.shift();
+      try {
+        prepCache.set(key, prepare(image, ent));
+      } catch (e) {
+        // a bad asset must never stall the rest of the pipeline
+        console.warn('GFX prepare failed:', key, e);
+        prepCache.set(key, false);
+      }
+    }
+    if (prepQueue.length) schedulePump();
+    else pumping = false;
+  }
+  function enqueuePrepare(key, image, ent) {
+    prepQueue.push({ key, image, ent });
+    if (!pumping) { pumping = true; schedulePump(); }
   }
 
   const GFX = {
@@ -132,7 +200,7 @@
       const ent = norm(key);
       if (!ent) { prepCache.set(key, false); return null; }
       prepCache.set(key, false);                   // claimed; filled on load
-      loadImage(ent.path, (image) => { prepCache.set(key, prepare(image, ent)); });
+      loadImage(ent.path, (image) => enqueuePrepare(key, image, ent));
       return prepCache.get(key) || null;
     },
 
@@ -152,13 +220,15 @@
     // Bottom-center anchored at baseY, scaled to width w (aspect preserved),
     // times the asset's manifest `scale`. Returns the exact drawn rect (a
     // truthy object) so callers can register precise hit regions, or false.
-    drawAnchored(ctx, key, cx, baseY, w) {
+    // opts.squash compresses height, opts.dy shifts the base — used as a
+    // visual correction while the art is still isometric.
+    drawAnchored(ctx, key, cx, baseY, w, opts) {
       const img = this.img(key);
       if (!img || !img.width || !img.height) return false;
       const ent = ASSETS[key];
       if (ent && typeof ent === 'object' && ent.scale) w *= ent.scale;
-      const h = w * img.height / img.width;
-      const x = cx - w/2, y = baseY - h;
+      const h = w * (img.height / img.width) * ((opts && opts.squash) || 1);
+      const x = cx - w/2, y = baseY - h + ((opts && opts.dy) || 0);
       ctx.drawImage(img, x, y, w, h);
       return { x, y, w, h };
     },
