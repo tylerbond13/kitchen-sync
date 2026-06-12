@@ -49,25 +49,17 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 | Status | File | Grid char |
 |---|---|---|
-> **Stand-ins (2026-06-12):** the existing counter/board/sink/serve renders are
-> still isometric, so the GAME currently uses hand-built front-facing SVGs in
-> `public/assets/images/flat/` for those keys. When a regenerated straight-on
-> HD render lands, point the key in `assetManifest.js` back at the .png (and
-> drop its `flat: true`).
-
-| Status | File | Grid char |
-|---|---|---|
 | ✅ | ks-countertop.png | `#` front-facing cabinet counter (regenerated 2026-06-12, wired) |
-| 🟡 | ks-chopping-block.png | `B` REGEN NEEDED (isometric; game uses flat/board.svg): front-facing butcher block on a cabinet, idle knife, no food |
-| ✅ | ks-industrial-baking-oven.png | `V` oven |
-| ✅ | ks-stove-pan.png | `S` — range with frying pan on top |
-| ✅ | ks-stockpot.png | `O` — big soup pot on a burner |
+| ✅ | ks-chopping-block.png | `B` front-facing butcher-block counter with idle knife and no food (regenerated 2026-06-12) |
+| ✅ | ks-industrial-baking-oven.png | `V` front-facing industrial baking oven (regenerated 2026-06-12) |
+| ✅ | ks-stove-pan.png | `S` front-facing range with frying pan on top (regenerated 2026-06-12) |
+| ✅ | ks-stockpot.png | `O` front-facing burner with stockpot (regenerated 2026-06-12) |
 | ✅ | ks-plate-stack.png | `P` straight-on front-facing porcelain plate storage rack/stack |
-| 🟡 | ks-serve-window.png | `W` REGEN NEEDED (isometric; game uses flat/serve-window.svg): front-facing service stand, cream pillars, green tile front, gold bell |
+| ✅ | ks-serve-window.png | `W` front-facing service pass counter with cream pillars, green tile front, and gold bell (regenerated 2026-06-12) |
 | ✅ | ks-trash-can.png | `T` clean front-facing stainless steel step trash can |
-| 🟡 | ks-sink.png | `K` REGEN NEEDED (isometric; game uses flat/sink.svg): front-facing wooden cabinet with steel basin top and faucet |
-| ✅ | ks-stove-pan-fire.png | Optional: cooking/burning state |
-| 🟡 | ks-sink-dirty.png | Optional REGEN (isometric; game uses flat/sink-dirty.svg): sink piled with dirty plates |
+| ✅ | ks-sink.png | `K` front-facing wooden cabinet sink with steel basin and faucet (regenerated 2026-06-12) |
+| ✅ | ks-stove-pan-fire.png | Optional: front-facing cooking/burning stove-pan state (regenerated 2026-06-12) |
+| ✅ | ks-sink-dirty.png | Optional: front-facing dirty sink state with plates (regenerated 2026-06-12) |
 
 ## 4. Ingredients — raw/whole (19)
 
@@ -110,6 +102,28 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | ✅ | ks-pineapple-chopped.png (chunks) |
 | ✅ | ks-strawberry-chopped.png (halved) |
 | ✅ | ks-banana-chopped.png (slices) |
+
+## 5a. Ingredients — chopped loose / no plate (13, matches CHOPPABLE set)
+
+These are standalone chopped ingredient piles for prep/counter states. Keep the
+existing `ks-*-chopped.png` files for plated/legacy presentation, and use these
+`-no-plate` files when the ingredient should not appear on dishware.
+
+| Status | File |
+|---|---|
+| ✅ | ks-lettuce-chopped-no-plate.png (loose chopped lettuce; no plate) |
+| ✅ | ks-tomato-chopped-no-plate.png (loose diced tomato; no plate) |
+| ✅ | ks-cucumber-chopped-no-plate.png (loose cucumber slices; no plate) |
+| ✅ | ks-cheese-chopped-no-plate.png (loose shredded/sliced cheese; no plate) |
+| ✅ | ks-onion-chopped-no-plate.png (loose diced onion; no plate) |
+| ✅ | ks-fish-chopped-no-plate.png (loose raw fish pieces; no plate) |
+| ✅ | ks-patty-chopped-no-plate.png (loose chopped raw patty/ground beef; no plate) |
+| ✅ | ks-potato-chopped-no-plate.png (loose cubed potato; no plate) |
+| ✅ | ks-carrot-chopped-no-plate.png (loose carrot coins; no plate) |
+| ✅ | ks-cocoa-chopped-no-plate.png (loose chocolate chunks/shavings; no plate) |
+| ✅ | ks-pineapple-chopped-no-plate.png (loose pineapple chunks; no plate) |
+| ✅ | ks-strawberry-chopped-no-plate.png (loose strawberry halves/quarters; no plate) |
+| ✅ | ks-banana-chopped-no-plate.png (loose banana slices; no plate) |
 
 ## 6. Ingredients — cooked (2)
 
@@ -255,6 +269,7 @@ but excluded from Needed totals unless a replacement is still required.
 | Stations | 9 core + 2 states | 0 | — |
 | Ingredients raw | 19 | 0 | — |
 | Ingredients chopped | 13 | 0 | — |
+| Ingredients chopped no-plate | 13 | 0 | — |
 | Ingredients cooked | 2 | 0 | — |
 | Crates | 19 | 0 | — |
 | Dishes | 14 | 0 | — |
@@ -264,7 +279,7 @@ but excluded from Needed totals unless a replacement is still required.
 | Env: winter lodge | 3 active + 3 historical preserved | 4 | — |
 | Env: beach shack | 4 active + 2 historical preserved | 4 | — |
 | UI | 2 HD + 2 placeholders | 0 | 1 heart-empty variant |
-| **Total** | **109 active HD files + 1 sheet-crop placeholder + 8 historical/reference HD files** | **25** | **15** |
+| **Total** | **122 active HD files + 1 sheet-crop placeholder + 8 historical/reference HD files** | **25** | **15** |
 
 ## Suggested generation order (gameplay impact first)
 
