@@ -182,6 +182,7 @@ function attach(io) {
         lobby: lobbyState(room),
         crew,                                  // device backup of campaign progress
         player: store.getPlayer(profile.id),   // device backup of lifetime stats
+        radio: { radio: room.radio || null, now: Date.now() },
         // mid-game rejoin support
         game: room.game ? room.game.staticState() : null,
       });
@@ -217,6 +218,36 @@ function attach(io) {
       if (!crew.wallet.upgrades.auto_chopper) return; // shop upgrade required
       crew.settings.autoChop = !!on;
       if (joined.room.game) joined.room.game.autoChop = !!on;
+    });
+
+    // crew radio: one shared YouTube jukebox per kitchen — anyone can DJ
+    socket.on('radio', (cmd) => {
+      if (!joined || !cmd || typeof cmd !== 'object') return;
+      const room = joined.room;
+      const by = (room.players.get(joined.playerId) || {}).name || 'someone';
+      const r = room.radio;
+      if (cmd.action === 'play' && typeof cmd.videoId === 'string' && /^[\w-]{6,20}$/.test(cmd.videoId)) {
+        room.radio = {
+          videoId: cmd.videoId,
+          title: String(cmd.title || '').slice(0, 100),
+          startedAt: Date.now(),
+          paused: false,
+          by,
+        };
+      } else if (cmd.action === 'pause' && r && !r.paused) {
+        r.paused = true;
+        r.pausedAt = Date.now();
+        r.by = by;
+      } else if (cmd.action === 'resume' && r && r.paused) {
+        r.startedAt += Date.now() - r.pausedAt;
+        r.paused = false;
+        r.by = by;
+      } else if (cmd.action === 'stop' && r) {
+        room.radio = null;
+      } else {
+        return;
+      }
+      roomBroadcast(io, room, 'radio', { radio: room.radio, now: Date.now() });
     });
 
     socket.on('emote', (idx) => {
