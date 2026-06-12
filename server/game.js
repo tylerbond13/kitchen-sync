@@ -13,6 +13,7 @@ const DIRTY_RETURN_DELAY = 7; // seconds after serving until the dirty plate hit
 const EXPIRE_PENALTY = 20;
 const RUSH_DURATION = 18; // seconds of lunch rush
 const VIP_CHANCE = 0.15;
+const MAX_ACTION_QUEUE = 8;
 
 const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T', SINK: 'K' };
 const TOOL_FOR = { S: 'pan', O: 'pot', V: 'oven' };
@@ -73,7 +74,7 @@ class Game {
       this.players[p.id] = {
         id: p.id, name: p.name, avatar: p.avatar,
         x: spawn.x + 0.5, y: spawn.y + 0.5,
-        path: [], intent: null, carry: null, working: false,
+        path: [], intent: null, queue: [], carry: null, working: false,
         delivered: 0, chops: 0, washed: 0,
       };
       i++;
@@ -199,6 +200,53 @@ class Game {
     if (!p || this.phase !== 'playing' || this.paused) return;
     tx = Math.floor(tx); ty = Math.floor(ty);
     if (tx < 0 || ty < 0 || tx >= this.w || ty >= this.h) return;
+    if (!this.stations[`${tx},${ty}`] && !this.isFloor(tx, ty)) return;
+
+    const action = { x: tx, y: ty };
+    if (this.shouldQueueTap(p)) {
+      this.enqueueAction(p, action);
+      return;
+    }
+
+    this.startTapAction(p, action);
+  }
+
+  shouldQueueTap(p) {
+    return p.path.length > 0 || (p.queue && p.queue.length > 0) || this.isPlayerDoingStationWork(p);
+  }
+
+  enqueueAction(p, action) {
+    if (!p.queue) p.queue = [];
+    if (p.queue.length >= MAX_ACTION_QUEUE) return;
+    p.queue.push(action);
+    this.emit('queued', { playerId: p.id, x: action.x, y: action.y });
+  }
+
+  isPlayerDoingStationWork(p) {
+    if (p.path.length) return false;
+    const px = Math.floor(p.x), py = Math.floor(p.y);
+    return Object.entries(this.stations).some(([key, s]) => {
+      const busyBoard = s.type === 'board' && s.item && s.item.state === 'raw' && CHOPPABLE.has(s.item.id);
+      const busySink = s.type === 'sink' && s.dirty > 0;
+      if (!busyBoard && !busySink) return false;
+      const [sx, sy] = key.split(',').map(Number);
+      return Math.abs(px - sx) + Math.abs(py - sy) === 1;
+    });
+  }
+
+  advanceQueuedActions() {
+    for (const p of Object.values(this.players)) {
+      if (!p.queue || !p.queue.length || p.path.length || this.isPlayerDoingStationWork(p)) continue;
+      let guard = MAX_ACTION_QUEUE;
+      while (p.queue.length && guard-- > 0 && !p.path.length && !this.isPlayerDoingStationWork(p)) {
+        const action = p.queue.shift();
+        this.startTapAction(p, action);
+      }
+    }
+  }
+
+  startTapAction(p, action) {
+    const tx = Math.floor(action.x), ty = Math.floor(action.y);
 
     const px = Math.floor(p.x), py = Math.floor(p.y);
     const stationKey = `${tx},${ty}`;
@@ -218,7 +266,7 @@ class Game {
       if (best) {
         p.path = best;
         p.intent = stationKey;
-        this.emit('go', { playerId });
+        this.emit('go', { playerId: p.id });
       }
       return;
     }
@@ -241,9 +289,18 @@ class Game {
       if (path) {
         p.path = path;
         p.intent = null;
-        this.emit('go', { playerId });
+        this.emit('go', { playerId: p.id });
       }
     }
+  }
+
+  describeQueuedAction(action) {
+    const key = `${action.x},${action.y}`;
+    const s = this.stations[key];
+    if (!s) return { x: action.x, y: action.y, type: 'move' };
+    if (s.type === 'crate') return { x: action.x, y: action.y, type: s.type, ing: s.ing };
+    if (s.type === 'cook') return { x: action.x, y: action.y, type: s.type, tool: s.tool };
+    return { x: action.x, y: action.y, type: s.type };
   }
 
   // ---- combining helpers --------------------------------------------------
@@ -683,6 +740,8 @@ class Game {
       this.emit('over', {});
     }
 
+    if (this.phase === 'playing') this.advanceQueuedActions();
+
     const ev = this.events; this.events = [];
     return ev;
   }
@@ -746,6 +805,7 @@ class Game {
       players: Object.values(this.players).map((p) => ({
         id: p.id, name: p.name, avatar: p.avatar,
         x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100,
+        queue: (p.queue || []).map((action) => this.describeQueuedAction(action)),
         carry: p.carry, working: p.working, moving: p.path.length > 0,
         delivered: p.delivered,
       })),

@@ -656,6 +656,10 @@
         if (p.carry.kind==='plate') this.drawPlate(p.carry,sx,carryY,22);
         else this.drawItem(p.carry,sx,carryY,20);
       }
+      if (p.queue && p.queue.length) {
+        const y = headTopY - CARRY_GAP - (p.carry ? 28 : 8);
+        this.drawActionQueue(p.queue, sx, y);
+      }
 
       const em=this.emotes[p.id];
       if (em&&em.until>now) {
@@ -669,6 +673,42 @@
         text: isMe?'You':p.name, x: sx, y: headTopY - 6,
         size: 11, color: isMe?col:'rgba(20,8,40,0.85)',
       });
+    }
+
+    actionEmoji(action) {
+      if (!action) return '•';
+      if (action.type === 'crate') return itemEmoji({ id: action.ing, state: 'raw' });
+      if (action.type === 'board') return '🔪';
+      if (action.type === 'plates') return '🍽️';
+      if (action.type === 'sink') return '🫧';
+      if (action.type === 'serve') return '✅';
+      if (action.type === 'trash') return '🗑️';
+      if (action.type === 'cook') return action.tool === 'pot' ? '🥘' : action.tool === 'oven' ? '🔥' : '🍳';
+      return '›';
+    }
+
+    drawActionQueue(queue, sx, y) {
+      const {ctx}=this;
+      const shown=queue.slice(0,5);
+      const r=8, gap=4;
+      const total=shown.length*(r*2)+(shown.length-1)*gap;
+      let x=sx-total/2+r;
+      ctx.save();
+      for (const action of shown) {
+        ctx.fillStyle='rgba(255,255,255,0.92)';
+        ctx.strokeStyle='rgba(45,22,52,0.26)';
+        ctx.lineWidth=1.2;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.stroke();
+        this.glyph(this.actionEmoji(action),x,y,10);
+        x+=r*2+gap;
+      }
+      if (queue.length>shown.length) {
+        ctx.fillStyle='rgba(45,22,52,0.82)';
+        ctx.font='800 9px ui-rounded,system-ui';
+        ctx.textAlign='left'; ctx.textBaseline='middle';
+        ctx.fillText(`+${queue.length-shown.length}`,x-r+1,y);
+      }
+      ctx.restore();
     }
 
     // ── Customer waiting line ─────────────────────────────────────────────────

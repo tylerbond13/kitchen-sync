@@ -272,7 +272,7 @@ test('plating is order-independent: any ingredient can start or finish a plate',
   assert.equal(game.stations[counter].item, null);
 });
 
-test('half-chopped item returns to the SAME board (tap-driven, like a player)', () => {
+test('tapping a busy board queues pickup until chopping finishes', () => {
   const game = makeGame();
   const p = game.players.p1;
   const board = stationKey(game, 'board');
@@ -281,11 +281,13 @@ test('half-chopped item returns to the SAME board (tap-driven, like a player)', 
   standAt(game, p, board);
   game.interact(p, board); // place
   for (let i = 0; i < 11; i++) game.tick(0.1); // ~50% chopped
-  game.tap('p1', bx, by); // pick it up
-  assert.ok(p.carry && p.carry.prog > 0.3, 'holding the half-chopped item');
-  game.tap('p1', bx, by); // tap the SAME board again
-  assert.equal(p.carry, null, 'placed back on the same board');
-  assert.ok(game.stations[board].item.prog > 0.3, 'progress preserved');
+  game.tap('p1', bx, by); // queue pickup
+  assert.equal(p.carry, null, 'keeps chopping instead of interrupting');
+  assert.equal(p.queue.length, 1);
+  for (let i = 0; i < 30 && !p.carry; i++) game.tick(0.1);
+  assert.deepEqual(p.carry, { id: 'lettuce', state: 'chopped' });
+  assert.equal(game.stations[board].item, null);
+  assert.equal(p.queue.length, 0);
 });
 
 test('merging plates pours contents onto the seated plate, empty stays in hand', () => {
@@ -497,6 +499,38 @@ test('tap pathfinds to a station and interacts on arrival', () => {
   assert.ok(p.path.length > 0 || p.carry, 'moving or already interacted');
   for (let i = 0; i < 100 && !p.carry; i++) game.tick(0.1);
   assert.deepEqual(p.carry, { id: 'tomato', state: 'raw' });
+});
+
+test('taps queue while chopping and execute after work finishes', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const lettuce = stationKey(game, 'crate', (s) => s.ing === 'lettuce');
+  const tomato = stationKey(game, 'crate', (s) => s.ing === 'tomato');
+  const board = stationKey(game, 'board');
+  const [lx, ly] = lettuce.split(',').map(Number);
+  const [tx, ty] = tomato.split(',').map(Number);
+  const [bx, by] = board.split(',').map(Number);
+
+  game.tap('p1', lx, ly);
+  game.tap('p1', bx, by);
+  game.tap('p1', tx, ty);
+
+  assert.equal(p.queue.length, 2);
+  let sawQueuedTomatoWhileChopping = false;
+  for (let i = 0; i < 300; i++) {
+    game.tick(0.1);
+    const item = game.stations[board].item;
+    if (item && item.id === 'lettuce' && item.state === 'raw') {
+      sawQueuedTomatoWhileChopping ||= p.queue.some((a) => a.x === tx && a.y === ty);
+      assert.notDeepEqual(p.carry, { id: 'tomato', state: 'raw' });
+    }
+    if (item && item.id === 'lettuce' && item.state === 'chopped' && p.carry && p.carry.id === 'tomato') break;
+  }
+
+  assert.ok(sawQueuedTomatoWhileChopping, 'tomato stayed queued while lettuce was chopping');
+  assert.equal(game.stations[board].item.state, 'chopped');
+  assert.deepEqual(p.carry, { id: 'tomato', state: 'raw' });
+  assert.equal(p.queue.length, 0);
 });
 
 test('solo and duo games get gentler pacing and scaled star goals', () => {

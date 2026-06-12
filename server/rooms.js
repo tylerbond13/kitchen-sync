@@ -207,7 +207,7 @@ function attach(io) {
         room.game.players[profile.id] = {
           id: profile.id, name: profile.name, avatar: profile.avatar,
           x: spawn.x + 0.5, y: spawn.y + 0.5,
-          path: [], intent: null, carry: null, working: false, delivered: 0,
+          path: [], intent: null, queue: [], carry: null, working: false, delivered: 0,
         };
       }
     });
