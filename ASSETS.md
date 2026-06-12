@@ -128,17 +128,17 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 | Status | File | Recipe |
 |---|---|---|
-| ⬜ | ks-dish-salad.png | Garden Salad |
-| ⬜ | ks-dish-big-salad.png | Chef Salad |
-| ⬜ | ks-dish-burger.png | Burger |
-| ⬜ | ks-dish-cheeseburger.png | Cheeseburger |
-| ⬜ | ks-dish-soup-onion.png | Onion Soup |
-| ⬜ | ks-dish-soup-tomato.png | Tomato Soup |
-| ⬜ | ks-dish-sushi.png | Sushi |
-| ⬜ | ks-dish-pizza.png | Pizza |
-| ⬜ | ks-dish-stew.png | Hearty Stew |
-| ⬜ | ks-dish-cocoa.png | Hot Cocoa (mug) |
-| ⬜ | ks-dish-juice.png | Smoothie (glass) |
+| ✅ | ks-dish-salad.png | Garden Salad |
+| ✅ | ks-dish-big-salad.png | Chef Salad |
+| ✅ | ks-dish-burger.png | Burger |
+| ✅ | ks-dish-cheeseburger.png | Cheeseburger |
+| ✅ | ks-dish-soup-onion.png | Onion Soup |
+| ✅ | ks-dish-soup-tomato.png | Tomato Soup |
+| ✅ | ks-dish-sushi.png | Sushi |
+| ✅ | ks-dish-pizza.png | Pizza |
+| ✅ | ks-dish-stew.png | Hearty Stew |
+| ✅ | ks-dish-cocoa.png | Hot Cocoa (mug) |
+| ✅ | ks-dish-juice.png | Smoothie (glass) |
 | ⬜ | ks-dish-poke.png | Poke Bowl |
 | ⬜ | ks-dish-fish-taco.png | Fish Taco |
 | ⬜ | ks-dish-burned.png | Burned mess (charcoal lump on plate) |
@@ -205,7 +205,7 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | Ingredients chopped | 2 | 11 | — |
 | Ingredients cooked | 0 | 2 | — |
 | Crates | 2 | 17 | — |
-| Dishes | 0 | 14 | — |
+| Dishes | 11 | 3 | — |
 | Dishware | 0 | 2 | — |
 | Env: diner | 6 | 1 | 1 |
 | Env: winter | 0 | 6 | — |
