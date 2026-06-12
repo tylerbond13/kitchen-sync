@@ -34,7 +34,7 @@
     dolly:          { path: HD + 'ks-char-dolly.png' },
     judy:           { path: HD + 'ks-char-judy.png' },
     sinatra:        { path: HD + 'ks-char-sinatra.png' },
-    wadsworth:      { path: HD + 'ks-wadsworth.png' },
+    wadsworth:      { path: HD + 'ks-char-wadsworth.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     counter:        { path: HD + 'ks-countertop.png' },
@@ -171,7 +171,7 @@
     // ── UI on the canvas ────────────────────────────────────────────────────
     speech_bubble: { path: HD + 'ks-ui-bubble.png' },
     heart:         { path: HD + 'ks-ui-heart.png' },
-    heart_empty:   'assets/images/ui/heart_empty.png',
+    heart_empty:   'assets/images/ui/heart_empty.svg',
     ui_crown:      { path: HD + 'ks-ui-crown.png' },
     ui_coin:       { path: HD + 'ks-ui-coin.png' },
   };
