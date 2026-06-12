@@ -3,7 +3,7 @@
 // interactions, simulates chopping/cooking/orders, and broadcasts state.
 const { ING, DISHES, RECIPES, COOK_COMBOS, CHOPPABLE } = require('./levels');
 
-const SPEED = 3.4;        // tiles per second
+const SPEED = 4.08;       // tiles per second
 const CHOP_TIME = 2.2;    // seconds of standing at a board
 const AUTO_CHOP_RATE = 0.45; // unmanned boards chop at this fraction of full speed
 const CHOP_SOUND_EVERY = 0.55;
