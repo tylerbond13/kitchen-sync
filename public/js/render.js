@@ -1304,241 +1304,368 @@
     }
 
     _drawCustomerFigure(ctx, cx, cy, h, order, urgency, now, idx) {
-      // Deterministic appearance from order.id
-      const id = order.id;
-      const hv = [...String(id ?? 'x')].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+      // 5 fixed Cake Mania-style illustrated presets assigned by order id
+      const preset = ((order.id - 1) % 5 + 5) % 5;
+      const lw = Math.max(1.5, h * 0.028); // thick outline scale
+      const ol = '#1A0A00'; // universal dark outline
 
-      const skins   = ['#FDDBB5','#F5C489','#D4904A','#A06228','#784428','#FDE0B8'];
-      const hairs   = ['#180800','#8B4513','#DAA520','#E05858','#D44090','#607080','#F0F0DC'];
-      const shirts  = ['#FF6FAE','#5BADDE','#3DC9A0','#C09BFF','#FFD23F','#FF8251','#FF6060','#48D4C0'];
-      const pants   = ['#2D3A6A','#1A3020','#3A1A3A','#1A2838','#3A2A10','#202060'];
+      // Shared helpers
+      const stroke = (col, w) => { ctx.strokeStyle = col; ctx.lineWidth = w ?? lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; };
+      const fill   = (col) => { ctx.fillStyle = col; };
+      const filledCircle = (x, y, r, fc, sc, sw) => {
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+        fill(fc); ctx.fill();
+        if (sc) { stroke(sc, sw??lw); ctx.stroke(); }
+      };
+      const filledRR = (x, y, w2, h2, r, fc, sc, sw) => {
+        this.rrC(ctx, x, y, w2, h2, r); fill(fc); ctx.fill();
+        if (sc) { stroke(sc, sw??lw); ctx.stroke(); }
+      };
 
-      const skin  = skins[hv % skins.length];
-      const hair  = hairs[(hv >> 4) % hairs.length];
-      const shirt = shirts[(hv >> 8) % shirts.length];
-      const pant  = pants[(hv >> 12) % pants.length];
-
-      const headR = h * 0.18;
-      const bodyH = h * 0.26;
-      const bodyW = h * 0.22;
-      const legH  = h * 0.22;
-      const legW  = h * 0.09;
-      const footW = h * 0.12;
+      // Layout — BIG head (Cake Mania caricature style)
+      const headR = h * 0.24;
+      const bodyH = h * 0.24;
+      const bodyW = h * 0.20;
+      const legH  = h * 0.20;
+      const legW  = h * 0.085;
+      const footW = h * 0.13;
+      const neckH = h * 0.04;
 
       const headY = cy - h * 0.5 + headR;
-      const bodyY = headY + headR;
+      const neckY = headY + headR - neckH * 0.3;
+      const bodyY = neckY + neckH;
       const legY  = bodyY + bodyH;
+      const footY = legY + legH - legW * 0.4;
 
-      // Shadow
-      ctx.save();
-      ctx.globalAlpha = 0.18;
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.ellipse(cx, cy + h * 0.08, bodyW * 0.75, h * 0.04, 0, 0, Math.PI * 2);
-      ctx.fill();
+      const walk = Math.sin(now / 260 + idx * 2.3);
+      const ls = legH * 0.14 * walk; // leg swing
+
+      // Ground shadow
+      ctx.save(); ctx.globalAlpha = 0.18; fill('#000');
+      ctx.beginPath(); ctx.ellipse(cx, footY + legW * 0.8, bodyW * 0.7, h * 0.035, 0, 0, Math.PI*2); ctx.fill();
       ctx.restore();
 
-      // Legs with slight walk animation
-      const walkPhase = Math.sin(now / 250 + idx * 1.7);
-      const legSwing = legH * 0.15 * walkPhase;
-
-      // Left leg
-      ctx.fillStyle = pant;
-      this.rrC(ctx, cx - legW * 0.9 - legSwing * 0.3, legY, legW, legH, legW * 0.4);
-      ctx.fill();
-      // Left foot
-      ctx.fillStyle = '#442200';
-      this.rrC(ctx, cx - legW * 1.1 - legSwing * 0.5, legY + legH - legW * 0.5, footW, legW * 0.65, legW * 0.3);
-      ctx.fill();
-      // Right leg
-      ctx.fillStyle = pant;
-      this.rrC(ctx, cx + legW * 0.0 + legSwing * 0.3, legY, legW, legH, legW * 0.4);
-      ctx.fill();
-      // Right foot
-      ctx.fillStyle = '#442200';
-      this.rrC(ctx, cx + legW * 0.1 + legSwing * 0.5, legY + legH - legW * 0.5, footW, legW * 0.65, legW * 0.3);
-      ctx.fill();
-
-      // Body / torso
-      const bodyGrad = ctx.createLinearGradient(cx - bodyW, bodyY, cx + bodyW, bodyY + bodyH);
-      bodyGrad.addColorStop(0, this.shiftHex(shirt, 0.08));
-      bodyGrad.addColorStop(1, this.shiftHex(shirt, -0.1));
-      ctx.fillStyle = bodyGrad;
-      this.rrC(ctx, cx - bodyW / 2, bodyY, bodyW, bodyH, bodyW * 0.3);
-      ctx.fill();
-
-      // Arms swinging opposite to legs
-      const armSwing = -walkPhase * legH * 0.1;
-      ctx.fillStyle = shirt;
-      // Left arm
-      this.rrC(ctx, cx - bodyW / 2 - legW * 0.7 + armSwing, bodyY + bodyH * 0.1, legW, bodyH * 0.6, legW * 0.4);
-      ctx.fill();
-      // Right arm
-      this.rrC(ctx, cx + bodyW / 2 - armSwing, bodyY + bodyH * 0.1, legW, bodyH * 0.6, legW * 0.4);
-      ctx.fill();
-
-      // Head
-      const headGrad = ctx.createRadialGradient(cx - headR * 0.2, headY - headR * 0.2, headR * 0.1, cx, headY, headR);
-      headGrad.addColorStop(0, this.shiftHex(skin, 0.1));
-      headGrad.addColorStop(1, skin);
-      ctx.fillStyle = headGrad;
-      ctx.beginPath();
-      ctx.arc(cx, headY, headR, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Hair
-      ctx.fillStyle = hair;
-      const hairSty = (hv >> 2) % 4;
-      if (hairSty === 0) {
+      // ── PRESET 0: Grandma Rose ─────────────────────────────────────────────
+      // Purple floral dress, white bun, big round specs, rosy cheeks
+      if (preset === 0) {
+        const skin = '#F5C8A0', dress = '#C060C8', dressHi = '#D880E0', spec = '#88AACC';
+        // Legs (thick stockings)
+        filledRR(cx - legW - ls*0.4, legY, legW, legH, legW*0.4, '#E8D8F0', ol, lw*0.8);
+        filledRR(cx + ls*0.4, legY, legW, legH, legW*0.4, '#E8D8F0', ol, lw*0.8);
+        // Shoes (chunky mary-janes)
+        filledRR(cx - legW*1.1 - ls*0.6, footY, footW, legW*0.65, legW*0.3, '#3A1050', ol, lw*0.8);
+        filledRR(cx + legW*0.1 + ls*0.6, footY, footW, legW*0.65, legW*0.3, '#3A1050', ol, lw*0.8);
+        // Dress (trapezoid — wide at hem)
         ctx.beginPath();
-        ctx.ellipse(cx, headY - headR * 0.3, headR * 0.95, headR * 0.65, 0, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (hairSty === 1) {
-        ctx.beginPath();
-        ctx.arc(cx, headY - headR * 0.3, headR * 0.9, Math.PI, 0);
-        ctx.fill();
-        // Pigtails
-        ctx.beginPath(); ctx.ellipse(cx - headR * 0.85, headY + headR * 0.1, headR * 0.22, headR * 0.45, -0.3, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(cx + headR * 0.85, headY + headR * 0.1, headR * 0.22, headR * 0.45, 0.3, 0, Math.PI * 2); ctx.fill();
-      } else if (hairSty === 2) {
-        // Curly puffs
-        for (let a = 0; a < 7; a++) {
-          const ang = (a / 7) * Math.PI;
-          ctx.beginPath();
-          ctx.arc(cx + Math.cos(ang) * headR * 0.75, headY - Math.sin(ang) * headR * 0.75, headR * 0.35, 0, Math.PI * 2);
-          ctx.fill();
+        ctx.moveTo(cx - bodyW*0.45, bodyY);
+        ctx.lineTo(cx + bodyW*0.45, bodyY);
+        ctx.lineTo(cx + bodyW*0.7, bodyY + bodyH);
+        ctx.lineTo(cx - bodyW*0.7, bodyY + bodyH);
+        ctx.closePath(); fill(dress); ctx.fill(); stroke(ol); ctx.stroke();
+        // Dress hi stripe
+        ctx.beginPath(); ctx.moveTo(cx - bodyW*0.3, bodyY + bodyH*0.35); ctx.lineTo(cx + bodyW*0.3, bodyY + bodyH*0.35);
+        stroke(dressHi, lw*0.6); ctx.stroke();
+        // Floral dots on dress
+        for (let fi=0; fi<5; fi++) {
+          const fx = cx - bodyW*0.4 + (fi%3)*bodyW*0.4, fy = bodyY + bodyH*0.25 + Math.floor(fi/3)*bodyH*0.35;
+          filledCircle(fx, fy, lw*0.9, '#FFB8D8');
         }
-      } else {
-        // Flat top
-        ctx.beginPath();
-        ctx.ellipse(cx, headY - headR * 0.5, headR * 0.85, headR * 0.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillRect(cx - headR * 0.85, headY - headR * 1.0, headR * 1.7, headR * 0.5);
-      }
-
-      // Eyes
-      const eyeY = headY + headR * 0.05;
-      const eyeSpread = headR * 0.35;
-      if (urgency > 0.7) {
-        // Panicked wide eyes
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, headR * 0.18, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, headR * 0.18, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#222';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, headR * 0.09, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, headR * 0.09, 0, Math.PI * 2); ctx.fill();
-      } else {
-        // Normal eyes
-        ctx.fillStyle = '#222';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread, eyeY, headR * 0.13, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread, eyeY, headR * 0.13, 0, Math.PI * 2); ctx.fill();
-        // Eyelid shine
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(cx - eyeSpread + headR * 0.05, eyeY - headR * 0.05, headR * 0.04, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeSpread + headR * 0.05, eyeY - headR * 0.05, headR * 0.04, 0, Math.PI * 2); ctx.fill();
-      }
-
-      // Mouth
-      const mouthY = headY + headR * 0.45;
-      ctx.strokeStyle = '#442200';
-      ctx.lineWidth = headR * 0.1;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      if (urgency < 0.45) {
-        // Smile
-        ctx.arc(cx, mouthY - headR * 0.1, headR * 0.3, 0.2, Math.PI - 0.2);
-      } else if (urgency < 0.75) {
-        // Flat worried
-        ctx.moveTo(cx - headR * 0.25, mouthY);
-        ctx.lineTo(cx + headR * 0.25, mouthY);
-      } else {
-        // Frown open
-        ctx.arc(cx, mouthY + headR * 0.15, headR * 0.28, Math.PI + 0.3, -0.3);
-      }
-      ctx.stroke();
-
-      // Urgency blush (worried)
-      if (urgency > 0.45) {
-        ctx.globalAlpha = Math.min((urgency - 0.45) * 1.5, 0.45);
-        ctx.fillStyle = '#FF6080';
-        ctx.beginPath(); ctx.ellipse(cx - headR * 0.55, eyeY + headR * 0.25, headR * 0.22, headR * 0.12, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(cx + headR * 0.55, eyeY + headR * 0.25, headR * 0.22, headR * 0.12, 0, 0, Math.PI * 2); ctx.fill();
+        // Arms
+        filledRR(cx - bodyW*0.5 - legW*0.6 - walk*legH*0.08, bodyY+bodyH*0.1, legW, bodyH*0.55, legW*0.4, dress, ol, lw*0.7);
+        filledRR(cx + bodyW*0.5 + walk*legH*0.08, bodyY+bodyH*0.1, legW, bodyH*0.55, legW*0.4, dress, ol, lw*0.7);
+        // Head (wide oval)
+        ctx.beginPath(); ctx.ellipse(cx, headY, headR*1.05, headR, 0, 0, Math.PI*2);
+        fill(skin); ctx.fill(); stroke(ol); ctx.stroke();
+        // White bun hair
+        filledCircle(cx, headY - headR*0.62, headR*0.52, '#F0EEE8', ol, lw);
+        filledCircle(cx - headR*0.28, headY - headR*0.72, headR*0.28, '#F0EEE8', ol, lw*0.6);
+        filledCircle(cx + headR*0.28, headY - headR*0.72, headR*0.28, '#F0EEE8', ol, lw*0.6);
+        // Bun cross-lines
+        stroke('#CCCCB8', lw*0.4);
+        ctx.beginPath(); ctx.moveTo(cx - headR*0.2, headY-headR*0.9); ctx.lineTo(cx+headR*0.2, headY-headR*0.35); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+headR*0.2, headY-headR*0.9); ctx.lineTo(cx-headR*0.2, headY-headR*0.35); ctx.stroke();
+        // Specs frames
+        filledCircle(cx - headR*0.38, headY+headR*0.05, headR*0.19, '#EEF4FF', spec, lw*0.9);
+        filledCircle(cx + headR*0.38, headY+headR*0.05, headR*0.19, '#EEF4FF', spec, lw*0.9);
+        stroke(spec, lw*0.7); ctx.beginPath(); ctx.moveTo(cx-headR*0.19, headY+headR*0.05); ctx.lineTo(cx+headR*0.19, headY+headR*0.05); ctx.stroke();
+        // Pupils behind specs
+        filledCircle(cx - headR*0.38, headY+headR*0.05, headR*0.09, urgency>0.7?'#FF2020':'#3A1A6A');
+        filledCircle(cx + headR*0.38, headY+headR*0.05, headR*0.09, urgency>0.7?'#FF2020':'#3A1A6A');
+        // Rosy cheeks
+        ctx.globalAlpha = 0.45; fill('#FF8888');
+        ctx.beginPath(); ctx.ellipse(cx-headR*0.6, headY+headR*0.3, headR*0.21, headR*0.11, -0.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(cx+headR*0.6, headY+headR*0.3, headR*0.21, headR*0.11, 0.2, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha = 1;
-      }
-
-      // Eyebrows furrowed when urgent
-      if (urgency > 0.7) {
-        ctx.strokeStyle = hair;
-        ctx.lineWidth = headR * 0.1;
-        ctx.beginPath();
-        ctx.moveTo(cx - eyeSpread - headR * 0.18, eyeY - headR * 0.3);
-        ctx.lineTo(cx - eyeSpread + headR * 0.12, eyeY - headR * 0.2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(cx + eyeSpread + headR * 0.18, eyeY - headR * 0.3);
-        ctx.lineTo(cx + eyeSpread - headR * 0.12, eyeY - headR * 0.2);
+        // Mouth
+        const mY0 = headY + headR * 0.55;
+        stroke(ol, lw*0.8); ctx.beginPath();
+        if (urgency < 0.45) ctx.arc(cx, mY0 - headR*0.08, headR*0.22, 0.3, Math.PI-0.3);
+        else if (urgency < 0.75) { ctx.moveTo(cx-headR*0.2, mY0); ctx.lineTo(cx+headR*0.2, mY0); }
+        else ctx.arc(cx, mY0+headR*0.15, headR*0.22, Math.PI+0.35, -0.35);
         ctx.stroke();
       }
 
-      // ── Speech bubble above head ───────────────────────────────────────────
-      const bubbleW = Math.max(headR * 2.8, h * 0.42);
-      const bubbleH = headR * 1.6;
+      // ── PRESET 1: Cool Teen ────────────────────────────────────────────────
+      // Spiky cyan hair, green hoodie, white kicks, earbuds
+      else if (preset === 1) {
+        const skin = '#FDDBB5', hair = '#00D8E8', hoodie = '#3DC9A0', hoodieD = '#28A880';
+        // Legs (skinny jeans)
+        filledRR(cx - legW - ls*0.4, legY, legW, legH, legW*0.4, '#2A3050', ol, lw*0.8);
+        filledRR(cx + ls*0.4, legY, legW, legH, legW*0.4, '#2A3050', ol, lw*0.8);
+        // Sneakers (chunky white)
+        filledRR(cx - legW*1.2 - ls*0.6, footY, footW*1.1, legW*0.65, legW*0.35, '#F8F8F8', ol, lw*0.8);
+        stroke('#DDDDDD', lw*0.4); ctx.beginPath(); ctx.moveTo(cx-legW*1.2-ls*0.6+footW*0.25, footY+legW*0.35); ctx.lineTo(cx-legW*1.2-ls*0.6+footW*0.9, footY+legW*0.35); ctx.stroke();
+        filledRR(cx + legW*0.0 + ls*0.6, footY, footW*1.1, legW*0.65, legW*0.35, '#F8F8F8', ol, lw*0.8);
+        // Hoodie body
+        ctx.beginPath();
+        ctx.moveTo(cx - bodyW*0.45, bodyY); ctx.lineTo(cx + bodyW*0.45, bodyY);
+        ctx.lineTo(cx + bodyW*0.5, bodyY + bodyH); ctx.lineTo(cx - bodyW*0.5, bodyY + bodyH);
+        ctx.closePath(); fill(hoodie); ctx.fill(); stroke(ol); ctx.stroke();
+        // Kangaroo pocket
+        filledRR(cx - bodyW*0.28, bodyY+bodyH*0.55, bodyW*0.56, bodyH*0.35, bodyW*0.1, hoodieD, ol, lw*0.5);
+        // Hood on back (visible as arc)
+        ctx.beginPath(); ctx.arc(cx, bodyY - headR*0.1, bodyW*0.38, Math.PI, 0);
+        fill(hoodieD); ctx.fill(); stroke(ol, lw*0.7); ctx.stroke();
+        // Arms
+        filledRR(cx - bodyW*0.5 - legW*0.6 - walk*legH*0.1, bodyY+bodyH*0.08, legW*1.1, bodyH*0.6, legW*0.4, hoodie, ol, lw*0.8);
+        filledRR(cx + bodyW*0.5 + walk*legH*0.1, bodyY+bodyH*0.08, legW*1.1, bodyH*0.6, legW*0.4, hoodie, ol, lw*0.8);
+        // Head
+        ctx.beginPath(); ctx.ellipse(cx, headY, headR, headR*1.0, 0, 0, Math.PI*2);
+        fill(skin); ctx.fill(); stroke(ol); ctx.stroke();
+        // Spiky hair (cyan spikes radiating up)
+        fill(hair); stroke(ol, lw*0.7);
+        const spikes = [[-0.7,1.2],[-0.4,1.45],[0,1.55],[0.4,1.45],[0.7,1.2]];
+        spikes.forEach(([dx,dy]) => {
+          ctx.beginPath();
+          ctx.moveTo(cx + dx*headR*0.55 - headR*0.14, headY - headR*0.55);
+          ctx.lineTo(cx + dx*headR, headY - headR*dy);
+          ctx.lineTo(cx + dx*headR*0.55 + headR*0.14, headY - headR*0.55);
+          ctx.closePath(); fill(hair); ctx.fill(); stroke(ol, lw*0.7); ctx.stroke();
+        });
+        // Eyes (anime large)
+        filledCircle(cx-headR*0.35, headY+headR*0.05, headR*0.2, '#fff', ol, lw*0.8);
+        filledCircle(cx+headR*0.35, headY+headR*0.05, headR*0.2, '#fff', ol, lw*0.8);
+        filledCircle(cx-headR*0.35, headY+headR*0.08, headR*0.12, urgency>0.7?'#FF2020':'#1A8888');
+        filledCircle(cx+headR*0.35, headY+headR*0.08, headR*0.12, urgency>0.7?'#FF2020':'#1A8888');
+        filledCircle(cx-headR*0.3, headY+headR*0.01, headR*0.04, '#fff');
+        filledCircle(cx+headR*0.3, headY+headR*0.01, headR*0.04, '#fff');
+        // Earbud wire
+        stroke('#333', lw*0.5); ctx.beginPath(); ctx.moveTo(cx+headR*0.55, headY); ctx.quadraticCurveTo(cx+headR*0.8, headY+headR*0.5, cx+headR*0.5, headY+headR*0.6); ctx.stroke();
+        filledCircle(cx+headR*0.55, headY, headR*0.07, '#222');
+        // Mouth smirk
+        stroke(ol, lw*0.8); ctx.beginPath();
+        if (urgency < 0.5) { ctx.moveTo(cx-headR*0.05, headY+headR*0.52); ctx.quadraticCurveTo(cx+headR*0.15, headY+headR*0.65, cx+headR*0.28, headY+headR*0.50); }
+        else { ctx.moveTo(cx-headR*0.2, headY+headR*0.52); ctx.lineTo(cx+headR*0.2, headY+headR*0.52); }
+        ctx.stroke();
+      }
+
+      // ── PRESET 2: Business Guy ────────────────────────────────────────────
+      // Slicked brown hair, grey suit, red tie, briefcase silhouette in arm
+      else if (preset === 2) {
+        const skin = '#E8B888', suit = '#5A6A7A', suitHi = '#7A8A9A', tie = '#DD2233', trouser = '#3A4A5A';
+        // Trousers
+        filledRR(cx - legW - ls*0.4, legY, legW, legH, legW*0.3, trouser, ol, lw*0.8);
+        filledRR(cx + ls*0.4, legY, legW, legH, legW*0.3, trouser, ol, lw*0.8);
+        // Oxford shoes
+        filledRR(cx - legW*1.1 - ls*0.6, footY, footW, legW*0.6, legW*0.25, '#2A1A08', ol, lw*0.8);
+        filledRR(cx + legW*0.1 + ls*0.6, footY, footW, legW*0.6, legW*0.25, '#2A1A08', ol, lw*0.8);
+        // Suit jacket
+        ctx.beginPath();
+        ctx.moveTo(cx - bodyW*0.5, bodyY); ctx.lineTo(cx + bodyW*0.5, bodyY);
+        ctx.lineTo(cx + bodyW*0.48, bodyY+bodyH); ctx.lineTo(cx - bodyW*0.48, bodyY+bodyH);
+        ctx.closePath(); fill(suit); ctx.fill(); stroke(ol); ctx.stroke();
+        // Lapels
+        ctx.beginPath(); ctx.moveTo(cx, bodyY+bodyH*0.15); ctx.lineTo(cx-bodyW*0.3, bodyY); ctx.lineTo(cx-bodyW*0.1, bodyY+bodyH*0.4); ctx.closePath(); fill(suitHi); ctx.fill(); stroke(ol, lw*0.6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, bodyY+bodyH*0.15); ctx.lineTo(cx+bodyW*0.3, bodyY); ctx.lineTo(cx+bodyW*0.1, bodyY+bodyH*0.4); ctx.closePath(); fill(suitHi); ctx.fill(); stroke(ol, lw*0.6); ctx.stroke();
+        // Tie
+        ctx.beginPath(); ctx.moveTo(cx-lw*1.2, bodyY+bodyH*0.1); ctx.lineTo(cx+lw*1.2, bodyY+bodyH*0.1); ctx.lineTo(cx+lw*2, bodyY+bodyH*0.7); ctx.lineTo(cx, bodyY+bodyH*0.85); ctx.lineTo(cx-lw*2, bodyY+bodyH*0.7); ctx.closePath(); fill(tie); ctx.fill(); stroke(ol, lw*0.5); ctx.stroke();
+        // Arms + right arm holds mini briefcase
+        filledRR(cx - bodyW*0.5 - legW*0.65 - walk*legH*0.08, bodyY+bodyH*0.08, legW, bodyH*0.58, legW*0.4, suit, ol, lw*0.8);
+        filledRR(cx + bodyW*0.5 + walk*legH*0.08, bodyY+bodyH*0.08, legW, bodyH*0.58, legW*0.4, suit, ol, lw*0.8);
+        // Briefcase (right hand)
+        const bcX = cx + bodyW*0.5 + legW + walk*legH*0.08;
+        filledRR(bcX, bodyY+bodyH*0.45, legW*1.8, bodyH*0.42, lw, '#8B6020', ol, lw*0.7);
+        stroke(ol, lw*0.4); ctx.beginPath(); ctx.moveTo(bcX+legW*0.55, bodyY+bodyH*0.45); ctx.lineTo(bcX+legW*0.55, bodyY+bodyH*0.45-lw*1.5); ctx.lineTo(bcX+legW*1.25, bodyY+bodyH*0.45-lw*1.5); ctx.lineTo(bcX+legW*1.25, bodyY+bodyH*0.45); ctx.stroke();
+        // Head (squarish jaw)
+        ctx.beginPath(); ctx.ellipse(cx, headY, headR*0.92, headR, 0, 0, Math.PI*2); fill(skin); ctx.fill(); stroke(ol); ctx.stroke();
+        // Slicked hair
+        fill('#5C3010');
+        ctx.beginPath(); ctx.ellipse(cx - headR*0.1, headY - headR*0.55, headR*0.85, headR*0.5, -0.15, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx+headR*0.3, headY-headR*0.4); ctx.quadraticCurveTo(cx+headR*0.8, headY-headR*0.9, cx+headR*0.5, headY-headR*1.1); ctx.quadraticCurveTo(cx+headR*0.2, headY-headR*0.55, cx+headR*0.3, headY-headR*0.4); ctx.closePath(); ctx.fill();
+        stroke(ol, lw*0.7); ctx.beginPath(); ctx.moveTo(cx-headR*0.9, headY-headR*0.4); ctx.ellipse(cx-headR*0.1, headY-headR*0.55, headR*0.85, headR*0.5, -0.15, Math.PI, 0); ctx.stroke();
+        // Eyes (sharp brow)
+        filledCircle(cx-headR*0.34, headY+headR*0.05, headR*0.16, '#fff', ol, lw*0.7);
+        filledCircle(cx+headR*0.34, headY+headR*0.05, headR*0.16, '#fff', ol, lw*0.7);
+        filledCircle(cx-headR*0.34, headY+headR*0.07, headR*0.09, urgency>0.7?'#FF2020':'#2A3A50');
+        filledCircle(cx+headR*0.34, headY+headR*0.07, headR*0.09, urgency>0.7?'#FF2020':'#2A3A50');
+        // Brows (angular)
+        stroke('#3A2010', lw*0.9);
+        ctx.beginPath(); ctx.moveTo(cx-headR*0.52, headY-headR*0.2); ctx.lineTo(cx-headR*0.16, headY-headR*(urgency>0.6?0.28:0.15)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+headR*0.52, headY-headR*0.2); ctx.lineTo(cx+headR*0.16, headY-headR*(urgency>0.6?0.28:0.15)); ctx.stroke();
+        // Mouth (thin serious)
+        stroke(ol, lw*0.8); ctx.beginPath();
+        if (urgency<0.45) { ctx.moveTo(cx-headR*0.22, headY+headR*0.52); ctx.quadraticCurveTo(cx, headY+headR*0.65, cx+headR*0.22, headY+headR*0.52); }
+        else { ctx.moveTo(cx-headR*0.2, headY+headR*0.52); ctx.lineTo(cx+headR*0.2, headY+headR*0.52); }
+        ctx.stroke();
+      }
+
+      // ── PRESET 3: Fancy Lady ─────────────────────────────────────────────
+      // Giant purple hat, pearl necklace, red gown, long lashes
+      else if (preset === 3) {
+        const skin = '#F8D0A8', gown = '#B02880', gownHi = '#D050A8', hat = '#7020B0', hatBrim = '#9030C8';
+        // Gown (wide A-line)
+        ctx.beginPath();
+        ctx.moveTo(cx - bodyW*0.42, bodyY);
+        ctx.lineTo(cx + bodyW*0.42, bodyY);
+        ctx.lineTo(cx + bodyW*0.9, bodyY + bodyH + legH*0.6);
+        ctx.lineTo(cx - bodyW*0.9, bodyY + bodyH + legH*0.6);
+        ctx.closePath(); fill(gown); ctx.fill(); stroke(ol); ctx.stroke();
+        // Gown sheen
+        ctx.save(); ctx.clip();
+        const gwg = ctx.createLinearGradient(cx-bodyW*0.5, bodyY, cx+bodyW*0.1, bodyY+bodyH);
+        gwg.addColorStop(0, 'rgba(255,255,255,0.22)'); gwg.addColorStop(1, 'rgba(255,255,255,0)');
+        fill(gwg); ctx.fillRect(cx-bodyW, bodyY, bodyW, bodyH+legH); ctx.restore();
+        // Gown ruffle hem
+        for (let ri=0; ri<7; ri++) {
+          const rx = cx - bodyW*0.85 + ri*bodyW*0.28;
+          filledCircle(rx, bodyY+bodyH+legH*0.55, lw*1.5, gownHi, ol, lw*0.5);
+        }
+        // Legs (barely visible under gown)
+        // Arms (gloved white)
+        filledRR(cx - bodyW*0.45 - legW*0.6 - walk*legH*0.08, bodyY+bodyH*0.1, legW, bodyH*0.55, legW*0.4, '#F0EEE8', ol, lw*0.7);
+        filledRR(cx + bodyW*0.45 + walk*legH*0.08, bodyY+bodyH*0.1, legW, bodyH*0.55, legW*0.4, '#F0EEE8', ol, lw*0.7);
+        // Pearl necklace
+        for (let pi=0; pi<7; pi++) {
+          const pa = Math.PI - pi * (Math.PI/6);
+          filledCircle(cx + Math.cos(pa)*headR*0.55, headY+headR*0.72 + Math.sin(pa)*headR*0.08, headR*0.07, '#F8F4E8', ol, lw*0.4);
+        }
+        // Head (oval)
+        ctx.beginPath(); ctx.ellipse(cx, headY, headR*0.88, headR, 0, 0, Math.PI*2); fill(skin); ctx.fill(); stroke(ol); ctx.stroke();
+        // Hat brim (flat wide ellipse)
+        ctx.beginPath(); ctx.ellipse(cx, headY - headR*0.68, headR*1.5, headR*0.3, 0, 0, Math.PI*2); fill(hatBrim); ctx.fill(); stroke(ol, lw*0.8); ctx.stroke();
+        // Hat crown (tall rounded rect)
+        filledRR(cx - headR*0.7, headY - headR*0.68 - headR*1.1, headR*1.4, headR*1.1, headR*0.3, hat, ol, lw);
+        // Hat ribbon
+        filledRR(cx - headR*0.7, headY - headR*0.68 - headR*0.28, headR*1.4, headR*0.22, 0, '#FF80C0', ol, lw*0.5);
+        // Hat flower
+        for (let pf=0; pf<5; pf++) {
+          const pfA = (pf/5)*Math.PI*2;
+          filledCircle(cx + headR*0.35 + Math.cos(pfA)*headR*0.14, headY-headR*0.7+Math.sin(pfA)*headR*0.14, headR*0.1, '#FFD0E8');
+        }
+        filledCircle(cx+headR*0.35, headY-headR*0.7, headR*0.09, '#FFB0C0');
+        // Eyes (big lashes)
+        filledCircle(cx-headR*0.34, headY+headR*0.12, headR*0.19, '#fff', ol, lw*0.8);
+        filledCircle(cx+headR*0.34, headY+headR*0.12, headR*0.19, '#fff', ol, lw*0.8);
+        filledCircle(cx-headR*0.34, headY+headR*0.15, headR*0.11, urgency>0.7?'#FF2020':'#6020A0');
+        filledCircle(cx+headR*0.34, headY+headR*0.15, headR*0.11, urgency>0.7?'#FF2020':'#6020A0');
+        // Lashes (5 lines upper lid)
+        stroke(ol, lw*0.6);
+        [-0.18,-0.1,0,0.1,0.18].forEach(lx => {
+          ctx.beginPath();
+          ctx.moveTo(cx-headR*0.34+lx*headR, headY+headR*0.12-headR*0.19);
+          ctx.lineTo(cx-headR*0.34+lx*headR*1.3, headY+headR*0.12-headR*0.28);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(cx+headR*0.34+lx*headR, headY+headR*0.12-headR*0.19);
+          ctx.lineTo(cx+headR*0.34+lx*headR*1.3, headY+headR*0.12-headR*0.28);
+          ctx.stroke();
+        });
+        // Glossy lips
+        stroke('#8B1040', lw*0.7); fill('#EE3060');
+        ctx.beginPath(); ctx.ellipse(cx, headY+headR*0.62, headR*0.22, headR*0.1, 0, 0, Math.PI*2); ctx.fill();
+        if (urgency > 0.65) { stroke(ol, lw*0.8); ctx.beginPath(); ctx.arc(cx, headY+headR*0.72, headR*0.18, Math.PI+0.4, -0.4); ctx.stroke(); }
+      }
+
+      // ── PRESET 4: Little Kid ─────────────────────────────────────────────
+      // Tiny proportions, red cap, overalls, freckles, gap-tooth grin
+      else {
+        const skin = '#FDDBB5', overall = '#4478C8', cap = '#DD2020', shirt = '#F8F0D0';
+        // Shorter legs (kid proportion)
+        const kidLegH = legH * 0.75;
+        filledRR(cx - legW - ls*0.5, legY, legW, kidLegH, legW*0.4, overall, ol, lw*0.8);
+        filledRR(cx + ls*0.5, legY, legW, kidLegH, legW*0.4, overall, ol, lw*0.8);
+        // Sneakers (rounded, colourful)
+        filledRR(cx - legW*1.15 - ls*0.7, legY+kidLegH-lw, footW*0.95, legW*0.65, legW*0.35, '#EEEEEE', ol, lw*0.8);
+        filledRR(cx + legW*0.05 + ls*0.7, legY+kidLegH-lw, footW*0.95, legW*0.65, legW*0.35, '#EEEEEE', ol, lw*0.8);
+        // Overalls bib
+        ctx.beginPath(); ctx.moveTo(cx-bodyW*0.42, bodyY); ctx.lineTo(cx+bodyW*0.42, bodyY); ctx.lineTo(cx+bodyW*0.45, bodyY+bodyH); ctx.lineTo(cx-bodyW*0.45, bodyY+bodyH); ctx.closePath(); fill(overall); ctx.fill(); stroke(ol); ctx.stroke();
+        // Shirt collar showing under bib
+        ctx.beginPath(); ctx.moveTo(cx-bodyW*0.3, bodyY); ctx.lineTo(cx-bodyW*0.12, bodyY+bodyH*0.25); ctx.lineTo(cx+bodyW*0.12, bodyY+bodyH*0.25); ctx.lineTo(cx+bodyW*0.3, bodyY); ctx.closePath(); fill(shirt); ctx.fill();
+        // Overall straps
+        stroke(overall, lw*0.9);
+        ctx.beginPath(); ctx.moveTo(cx-bodyW*0.2, bodyY); ctx.lineTo(cx-bodyW*0.3, bodyY-headR*0.3); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+bodyW*0.2, bodyY); ctx.lineTo(cx+bodyW*0.3, bodyY-headR*0.3); ctx.stroke();
+        // Pocket
+        filledRR(cx-bodyW*0.22, bodyY+bodyH*0.3, bodyW*0.44, bodyH*0.3, lw, overall, ol, lw*0.5);
+        // Arms (chubby)
+        filledRR(cx-bodyW*0.5-legW*0.65-walk*legH*0.1, bodyY+bodyH*0.08, legW*1.1, bodyH*0.55, legW*0.5, shirt, ol, lw*0.8);
+        filledRR(cx+bodyW*0.5+walk*legH*0.1, bodyY+bodyH*0.08, legW*1.1, bodyH*0.55, legW*0.5, shirt, ol, lw*0.8);
+        // BIG round head
+        ctx.beginPath(); ctx.ellipse(cx, headY, headR*1.08, headR*1.05, 0, 0, Math.PI*2); fill(skin); ctx.fill(); stroke(ol); ctx.stroke();
+        // Red baseball cap
+        filledRR(cx - headR*0.85, headY - headR*0.42, headR*1.7, headR*0.72, headR*0.3, cap, ol, lw);
+        ctx.beginPath(); ctx.ellipse(cx-headR*0.05, headY-headR*0.42, headR*1.0, headR*0.2, -0.08, Math.PI, 0); fill(cap); ctx.fill(); stroke(ol, lw*0.7); ctx.stroke();
+        // Cap brim
+        ctx.beginPath(); ctx.ellipse(cx+headR*0.5, headY-headR*0.3, headR*0.65, headR*0.16, 0.2, 0, Math.PI*2); fill('#BB1818'); ctx.fill(); stroke(ol, lw*0.7); ctx.stroke();
+        // Eyes (big cute circles)
+        filledCircle(cx-headR*0.35, headY+headR*0.12, headR*0.22, '#fff', ol, lw*0.9);
+        filledCircle(cx+headR*0.35, headY+headR*0.12, headR*0.22, '#fff', ol, lw*0.9);
+        filledCircle(cx-headR*0.35, headY+headR*0.15, headR*0.14, urgency>0.7?'#FF2020':'#3A1A6A');
+        filledCircle(cx+headR*0.35, headY+headR*0.15, headR*0.14, urgency>0.7?'#FF2020':'#3A1A6A');
+        filledCircle(cx-headR*0.3, headY+headR*0.09, headR*0.05, '#fff');
+        filledCircle(cx+headR*0.3, headY+headR*0.09, headR*0.05, '#fff');
+        // Freckles
+        ctx.globalAlpha = 0.55; fill('#D07040');
+        [[-0.58,0.35],[-0.48,0.44],[-0.62,0.46],[0.58,0.35],[0.48,0.44],[0.62,0.46]].forEach(([fx,fy])=>{
+          ctx.beginPath(); ctx.arc(cx+fx*headR, headY+fy*headR, headR*0.04, 0, Math.PI*2); ctx.fill();
+        }); ctx.globalAlpha=1;
+        // Gap-tooth grin
+        fill('#fff'); stroke(ol, lw*0.7);
+        ctx.beginPath(); ctx.arc(cx, headY+headR*0.62, headR*0.24, 0.1, Math.PI-0.1); ctx.fill(); ctx.stroke();
+        if (urgency < 0.5) {
+          // gap tooth
+          fill('#E8C0A0'); ctx.beginPath(); ctx.rect(cx-lw*0.4, headY+headR*0.62, lw*0.8, headR*0.15); ctx.fill();
+        } else {
+          fill('#222'); ctx.beginPath(); ctx.arc(cx, headY+headR*0.68, headR*0.14, 0, Math.PI); ctx.fill();
+        }
+      }
+
+      // ── Speech bubble (shared across all presets) ─────────────────────────
+      const bubbleW = Math.max(headR * 3.2, h * 0.44);
+      const bubbleH = headR * 1.8;
       const bx = cx;
-      const by = headY - headR * 1.35 - bubbleH;
-
+      const by = headY - headR * 1.5 - bubbleH;
       const urgColor = urgency > 0.7 ? '#FF4444' : urgency > 0.4 ? '#FFAA00' : '#FFFFFF';
+      const urgBorder = urgency > 0.7 ? '#CC0000' : urgency > 0.4 ? '#CC6600' : ol;
 
-      // Bubble shadow
-      ctx.save();
-      ctx.globalAlpha = 0.15;
-      ctx.fillStyle = '#000';
-      this.rrC(ctx, bx - bubbleW / 2 + 2, by + 2, bubbleW, bubbleH, bubbleH * 0.45);
-      ctx.fill();
+      // Bubble drop shadow
+      ctx.save(); ctx.globalAlpha=0.18; fill('#000');
+      this.rrC(ctx, bx - bubbleW/2 + lw, by + lw, bubbleW, bubbleH, bubbleH*0.44); ctx.fill();
       ctx.restore();
-
       // Bubble body
-      ctx.fillStyle = urgColor;
-      ctx.strokeStyle = urgency > 0.7 ? '#CC0000' : urgency > 0.4 ? '#CC7700' : '#DDDDDD';
-      ctx.lineWidth = headR * 0.12;
-      this.rrC(ctx, bx - bubbleW / 2, by, bubbleW, bubbleH, bubbleH * 0.45);
-      ctx.fill();
-      ctx.stroke();
-
-      // Bubble tail (triangle pointing down to head)
-      const tailX = cx;
-      const tailTipY = headY - headR * 1.1;
-      ctx.fillStyle = urgColor;
+      this.rrC(ctx, bx - bubbleW/2, by, bubbleW, bubbleH, bubbleH*0.44);
+      fill(urgColor); ctx.fill(); stroke(urgBorder, lw); ctx.stroke();
+      // Bubble tail
+      const tailTip = headY - headR * 1.05;
       ctx.beginPath();
-      ctx.moveTo(tailX - headR * 0.22, by + bubbleH - 1);
-      ctx.lineTo(tailX + headR * 0.22, by + bubbleH - 1);
-      ctx.lineTo(tailX, tailTipY);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = urgency > 0.7 ? '#CC0000' : urgency > 0.4 ? '#CC7700' : '#DDDDDD';
-      ctx.lineWidth = headR * 0.12;
-      ctx.beginPath();
-      ctx.moveTo(tailX - headR * 0.22, by + bubbleH);
-      ctx.lineTo(tailX, tailTipY);
-      ctx.moveTo(tailX + headR * 0.22, by + bubbleH);
-      ctx.lineTo(tailX, tailTipY);
-      ctx.stroke();
+      ctx.moveTo(cx - headR*0.2, by + bubbleH);
+      ctx.lineTo(cx + headR*0.2, by + bubbleH);
+      ctx.lineTo(cx, tailTip);
+      ctx.closePath(); fill(urgColor); ctx.fill();
+      stroke(urgBorder, lw*0.7);
+      ctx.beginPath(); ctx.moveTo(cx-headR*0.2, by+bubbleH); ctx.lineTo(cx, tailTip); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+headR*0.2, by+bubbleH); ctx.lineTo(cx, tailTip); ctx.stroke();
+      // Dish emoji
+      this.glyphC(ctx, order.emoji || '🍽️', bx, by + bubbleH*0.5, bubbleH*0.62);
 
-      // Order emoji in bubble
-      const textColor = (urgency > 0.4 && urgency <= 0.7) ? '#fff' : urgency > 0.7 ? '#fff' : '#333';
-      const emojiSz = bubbleH * 0.55;
-      this.glyphC(ctx, order.emoji || '🍽️', bx, by + bubbleH * 0.5, emojiSz);
-
-      // Timer bar at feet
-      const barW = bodyW * 1.2;
-      const barH = headR * 0.22;
-      const barX = cx - barW / 2;
-      const barY = legY + legH + headR * 0.1;
+      // Timer bar under feet
+      const barW = bodyW * 1.3;
+      const barH2 = lw * 1.4;
+      const barX = cx - barW/2;
+      const barY2 = cy + h*0.5 - barH2;
       const pct = Math.max(0, order.ttl / order.ttlMax);
-      const barColor = pct > 0.5 ? '#44DD44' : pct > 0.25 ? '#FFCC00' : '#FF3333';
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      this.rrC(ctx, barX, barY, barW, barH, barH / 2); ctx.fill();
-      ctx.fillStyle = barColor;
-      this.rrC(ctx, barX, barY, barW * pct, barH, barH / 2); ctx.fill();
+      filledRR(barX, barY2, barW, barH2, barH2/2, 'rgba(0,0,0,0.28)');
+      filledRR(barX, barY2, barW*pct, barH2, barH2/2, pct>0.5?'#44DD44':pct>0.25?'#FFCC00':'#FF3333');
     }
 
     // ── Canvas helpers ────────────────────────────────────────────────────────
