@@ -6,9 +6,12 @@ cook combos, crates, and themes in `server/levels.js`).
 **Generation spec (applies to every image):**
 - One object per image, centered, on a flat solid background (white or
   beige — the loader auto-removes it and trims).
-- Isometric ¾ view matching the master vibe sheet (`ks-vibe-summary.png`).
+- Straight-on 3/4 top-down orthographic perspective with flat grid alignment,
+  non-isometric, matching the PlateUp-style room layout.
 - ~1408×768 or larger. PNG.
 - Name the file exactly as listed, drop it in `public/assets/images/hd/`.
+- Preserved style reference: ✅ `ks-vibe-summary.png` (historical master vibe
+  sheet; current generation should follow the flat-grid perspective above).
 
 Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ missing
 
@@ -32,6 +35,13 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | ✅ | ks-char-influencer.png | The Influencer — trendy young woman, phone in hand |
 | ✅ | ks-char-socialite.png | The Socialite — big hat, gown, gloves |
 | ✅ | ks-char-kid.png | The Kid — small, overalls, pigtails or cap |
+| ✅ | ks-char-betty-white.png | Additional HD customer portrait |
+| ✅ | ks-char-wadsworth.png | Additional HD customer portrait |
+| ✅ | ks-char-sinatra.png | Additional HD customer portrait |
+| ✅ | ks-char-barney.png | Additional HD customer portrait |
+| ✅ | ks-char-camp-counselor.png | Additional HD customer portrait |
+| ✅ | ks-char-judy.png | Additional HD customer portrait |
+| ✅ | ks-char-dolly.png | Additional HD customer portrait |
 | ⬜ | ks-char-*-worried.png ×5 | Optional: worried expression variants |
 | ⬜ | ks-char-*-angry.png ×5 | Optional: about-to-leave variants |
 
@@ -40,7 +50,7 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | Status | File | Grid char |
 |---|---|---|
 | ✅ | ks-countertop.png | `#` counter |
-| ✅ | ks-chopping-block.png | `B` cutting board |
+| ✅ | ks-chopping-block.png | `B` empty wooden end-grain chopping block with an idle chef's knife resting flat on it; no pre-rendered food, vegetables, garnish, scraps, or chopped ingredients |
 | ✅ | ks-industrial-baking-oven.png | `V` oven |
 | ✅ | ks-stove-pan.png | `S` — range with frying pan on top |
 | ✅ | ks-stockpot.png | `O` — big soup pot on a burner |
@@ -150,45 +160,68 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 | ✅ | ks-plate-clean.png (single empty plate) |
 | ✅ | ks-plate-dirty.png (stained plate w/ scraps) |
 
-## 10. Environment — Diner theme (levels 1–6)
+## 10. Environment — Artisan Bakery / Diner theme (levels 1–6)
 
 | Status | File |
 |---|---|
-| 🟡 | ks-tile-checkered.png (iso diamond — unused; need STRAIGHT-ON checker texture `ks-floor-straight.png`; flat SVG tiles fill in) |
-| ✅ | ks-window.png (street view) |
-| ✅ | (sheet crops) photos, clock, BAKERY sign |
+| ✅ | ks-tile-checkered.png (floor) |
 | ✅ | ks-flower-vase.png |
-| ✅ | ks-wall-diner.png (interior wall texture/backdrop, full-bleed) |
-| ✅ | ks-utensil-cup.png (optional — exists in sheet, can crop) |
+| ✅ | ks-utensil-cup.png (optional — exists in HD) |
+| ⬜ | ks-wall-bakery-back.png (horizontal back wall segment — warm white brick with walnut wood wainscoting; flat straight-on grid alignment) |
+| ⬜ | ks-wall-bakery-side.png (vertical side wall segment — matching warm white brick and walnut wainscoting; flat straight-on grid alignment) |
+| ⬜ | ks-wall-bakery-corner.png (internal 90-degree corner joiner cap — clean walnut trim tying back and side walls together) |
+| ⬜ | ks-decor-bakery-window.png (flat front-facing bakery window decor variation) |
+| ⬜ | ks-decor-bakery-menu-board.png (flat wall menu board decor variation) |
+| ✅ | ks-window.png (historical street-view window; superseded by flat-grid `ks-decor-bakery-window.png`) |
+| ✅ | ks-wall-diner.png (historical full-bleed interior wall backdrop; superseded by modular `-back`, `-side`, and `-corner` wall pieces) |
+| ✅ | (sheet crops) photos, clock, BAKERY sign (historical decor crops; keep preserved, but regenerate flat wall decor as needed) |
 
-## 11. Environment — Winter theme (levels 7–10)
+## 11. Environment — Sage & Shiplap Cafe theme
+
+| Status | File |
+|---|---|
+| ⬜ | ks-wall-sage-back.png (horizontal back wall segment — sage green and white vertical shiplap; flat straight-on grid alignment) |
+| ⬜ | ks-wall-sage-side.png (vertical side wall segment — matching sage green and white vertical shiplap; flat straight-on grid alignment) |
+| ⬜ | ks-wall-sage-corner.png (internal 90-degree corner joiner cap — crisp shiplap corner trim) |
+| ⬜ | ks-decor-sage-patio-window.png (flat front-facing arched patio window decor variation) |
+| ⬜ | ks-decor-sage-ivy-shelf.png (flat front-facing floating ivy shelf decor variation) |
+
+## 12. Environment — Alpine Winter Lodge theme (levels 7–10)
 
 | Status | File |
 |---|---|
 | ✅ | ks-tile-winter.png (floor patch — cool tones / wood) |
-| ✅ | ks-wall-winter.png (cozy lodge backdrop, full-bleed) |
-| ✅ | ks-window-winter.png (snowy village view) |
+| ⬜ | ks-wall-winter-back.png (horizontal back wall segment — honey log cabin wall with stone base; flat straight-on grid alignment) |
+| ⬜ | ks-wall-winter-side.png (vertical side wall segment — matching honey logs and stone base; flat straight-on grid alignment) |
+| ⬜ | ks-wall-winter-corner.png (internal 90-degree corner cap — stone fireplace element joining back and side walls) |
+| ⬜ | ks-decor-winter-window.png (flat front-facing frosted timber window decor variation) |
 | ✅ | ks-decor-wreath.png |
-| ✅ | ks-decor-fireplace.png |
 | ✅ | ks-decor-cocoa-sign.png ("Hot Cocoa" menu board) |
+| ✅ | ks-wall-winter.png (historical cozy lodge full-bleed backdrop; superseded by modular `-back`, `-side`, and `-corner` wall pieces) |
+| ✅ | ks-window-winter.png (historical snowy village window target; superseded by flat-grid `ks-decor-winter-window.png`) |
+| ✅ | ks-decor-fireplace.png (historical standalone fireplace target; superseded by `ks-wall-winter-corner.png`) |
 
-## 12. Environment — Beach theme (levels 11–14)
+## 13. Environment — Tropical Beach Shack theme (levels 11–14)
 
 | Status | File |
 |---|---|
 | ✅ | ks-tile-beach.png (floor patch — sandy / bamboo) |
-| ✅ | ks-wall-beach.png (beach shack backdrop, full-bleed) |
-| ✅ | ks-window-beach.png (ocean view) |
+| ⬜ | ks-wall-beach-back.png (horizontal back wall segment — woven bamboo poles with teal trim; flat straight-on grid alignment) |
+| ⬜ | ks-wall-beach-side.png (vertical side wall segment — matching woven bamboo poles and teal trim; flat straight-on grid alignment) |
+| ⬜ | ks-wall-beach-corner.png (internal 90-degree corner joiner cap — teal post and bamboo trim tying walls together) |
+| ⬜ | ks-decor-beach-window.png (flat front-facing open-shutter ocean window decor variation) |
 | ✅ | ks-decor-surfboard.png |
 | ✅ | ks-decor-palm.png (potted palm) |
 | ✅ | ks-decor-tiki-sign.png ("Smoothie Shack" board) |
+| ✅ | ks-wall-beach.png (historical beach shack full-bleed backdrop; superseded by modular `-back`, `-side`, and `-corner` wall pieces) |
+| ✅ | ks-window-beach.png (historical ocean-view window target; superseded by flat-grid `ks-decor-beach-window.png`) |
 
-## 13. UI & feedback (placeholders work; HD versions optional)
+## 14. UI & feedback (placeholders work; HD versions optional)
 
 | Status | File |
 |---|---|
-| 🟡 | ks-ui-bubble.png (speech/thought bubble, empty) |
-| 🟡 | ks-ui-heart.png / ks-ui-heart-empty.png |
+| 🟡 | ks-ui-bubble.png (speech/thought bubble, empty placeholder) |
+| 🟡 | ks-ui-heart.png / ks-ui-heart-empty.png (heart exists in HD; empty-heart variant still optional) |
 | ✅ | ks-ui-coin.png (gold coin for serve burst) |
 | ✅ | ks-ui-crown.png (VIP order marker) |
 
@@ -196,22 +229,27 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 ## Counts
 
+Counts below track active flat-grid assets for the current pipeline. Historical
+or superseded full-bleed/diagonal room assets are preserved in the theme tables,
+but excluded from Needed totals unless a replacement is still required.
+
 | Category | Have | Needed | Optional extra |
 |---|---|---|---|
-| Chef | idle front+back | 8 walk frames | 4 carry |
-| Customers | 5 | 0 | 10 emotions |
-| Stations | 9 (+2 states) | 0 | — |
-| Ingredients raw | 13 | 6 | — |
-| Ingredients chopped | 2 | 11 | — |
-| Ingredients cooked | 0 | 2 | — |
-| Crates | 2 | 17 | — |
+| Chef | 3 (sheet crop + idle front/back) | 8 walk frames | 4 carry |
+| Customers | 12 | 0 | 10 emotions |
+| Stations | 9 core + 2 states | 0 | — |
+| Ingredients raw | 19 | 0 | — |
+| Ingredients chopped | 13 | 0 | — |
+| Ingredients cooked | 2 | 0 | — |
+| Crates | 19 | 0 | — |
 | Dishes | 14 | 0 | — |
-| Dishware | 0 | 2 | — |
-| Env: diner | 6 | 1 | 1 |
-| Env: winter | 0 | 6 | — |
-| Env: beach | 0 | 6 | — |
-| UI | 2 (placeholder) | 0 | 4 |
-| **Total** | **~18** | **~95** | **~21** |
+| Dishware | 2 | 0 | — |
+| Env: artisan bakery / diner | 3 active + 2 historical preserved | 5 | — |
+| Env: sage cafe | 0 | 5 | — |
+| Env: winter lodge | 3 active + 3 historical preserved | 4 | — |
+| Env: beach shack | 4 active + 2 historical preserved | 4 | — |
+| UI | 2 HD + 2 placeholders | 0 | 1 heart-empty variant |
+| **Total** | **108 active HD files + 1 sheet-crop placeholder + 8 historical/reference HD files** | **26** | **15** |
 
 ## Suggested generation order (gameplay impact first)
 
@@ -221,5 +259,5 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 4. **Level 1–2 ingredients + crates** (cucumber, bun, patty, cheese + their crates, patty-cooked).
 5. **Chef walk frames** (10) — brings the player to life.
 6. Remaining ingredients/crates by level order (onion→rice/fish/seaweed→dough→winter→beach).
-7. Winter env pack, then beach env pack.
-8. UI polish set.
+7. Flat-grid room packs: artisan bakery/diner, sage cafe, winter lodge, then beach shack.
+8. Chef walk frames and optional UI/heart polish.

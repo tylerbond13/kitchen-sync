@@ -114,6 +114,7 @@
   let myCode = sessionStorage.getItem('ks-code') || null;
   let lobby = null;
   let renderer = null;
+  let exitedRound = false; // player bailed to the lobby mid-round
   let iAmHost = false;
   let curStatic = null; // current round's static state (theme, star goals, ...)
 
@@ -415,6 +416,7 @@
 
   function startRound(staticState) {
     if (renderer) renderer.destroy();
+    exitedRound = false;
     curStatic = staticState;
     show('game');
     $('pause-overlay').hidden = true;
@@ -557,6 +559,16 @@
 
   $('btn-pause').onclick = () => socket.emit('pause', true);
   $('btn-resume').onclick = () => socket.emit('pause', false);
+  // Exit to the lobby without leaving the crew. The round keeps running on
+  // the server (other chefs are unaffected); results are recorded silently.
+  $('btn-exit-lobby').onclick = () => {
+    exitedRound = true;
+    socket.emit('pause', false);          // don't leave others stuck paused
+    if (renderer) { renderer.destroy(); renderer = null; }
+    clearInterval(hintTimer);
+    $('pause-overlay').hidden = true;
+    show('lobby');
+  };
   $('btn-autochop').onclick = () => {
     SFX.tap();
     if (curStatic && !curStatic.autoChopAllowed) {
@@ -611,6 +623,7 @@
   socket.on('game_over', (results) => {
     saveCrewBackup(results.crew);
     clearInterval(hintTimer);
+    if (exitedRound) { exitedRound = false; return; }  // stayed in the lobby
     if (renderer) { renderer.destroy(); renderer = null; }
     ticketEls.clear();
     show('results');

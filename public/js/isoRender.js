@@ -34,8 +34,8 @@
                                           // above the tile's base line
   const WALL_H      = 112;                // back wall height above floor line
   const WALL_LW     = 20;                 // left wall strip width
-  const CHEF_H     = 52;                  // chef sprite height (world px)
-  const CUSTOMER_H = 64;                  // customer sprite height (world px)
+  const CHEF_H     = 62;                  // chef sprite height (world px)
+  const CUSTOMER_H = 80;                  // customer sprite height (world px)
   const CARRY_GAP  = 40;                  // held item floats exactly this many
                                           // px above the chef's head
   const SPRITE_FILL = 0.84;               // stations render at 84% of their
@@ -214,27 +214,18 @@
     // ── World space ⇄ canvas ──────────────────────────────────────────────────
     // World space uses the locked 64×32 tile constants. One uniform scale +
     // translate maps world space onto the device canvas.
-    // Queue geometry: slot i sits OUTSIDE the island wall nearest the serve
-    // hatch, with slot 0 aligned to the hatch and the line extending along
-    // that wall — the pink path always ends at the hatch, on every level.
+    // Queue geometry: customers line up ALONG THE BOTTOM of the room (below
+    // the front wall) so the grid keeps the full canvas width on mobile.
+    // Slot 0 sits in the hatch's column; the line extends toward the roomier
+    // side. Queue space costs height (plentiful in portrait), never width.
     queueSlot(i) {
       const {w,h}=this.lvl;
-      let cx=(w-1)/2, cy=(h-1)/2;
-      if (this.serveCells.length) {
+      let cx=(w-1)/2;
+      if (this.serveCells.length)
         cx = this.serveCells.reduce((a,c)=>a+c[0],0)/this.serveCells.length;
-        cy = this.serveCells.reduce((a,c)=>a+c[1],0)/this.serveCells.length;
-      }
-      const dx = cx-(w-1)/2, dy = cy-(h-1)/2;
-      if (Math.abs(dx) >= Math.abs(dy)) {
-        // Hatch on a side wall → line forms outside that column.
-        const gx  = dx>0 ? w+0.45 : -1.45;
-        const dir = cy > h/2 ? -1 : 1;
-        return { x: gx, y: Math.min(h-1.2, Math.max(1.2, cy)) + i*0.95*dir };
-      }
-      // Hatch on the front/back wall → line forms outside that row.
-      const gy  = dy>0 ? h+0.45 : -1.45;
-      const dir = cx > w/2 ? -1 : 1;
-      return { x: Math.min(w-1.2, Math.max(1.2, cx)) + i*0.95*dir, y: gy };
+      const dir = cx > (w-1)/2 ? -1 : 1;
+      const x0 = Math.min(w-1.2, Math.max(0.2, cx));
+      return { x: x0 + i*1.0*dir, y: h + 0.55 };
     }
 
     resize() {
@@ -254,7 +245,7 @@
       this.ox = PAD + WALL_LW + Math.max(0,-minGx)*TILE_WIDTH;  // room origin
       this.oy = PAD + WALL_H;                                   // below the wall
       this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + PAD;
-      this.worldH = this.oy + (maxGy+1)*TILE_HEIGHT + 76 + PAD;
+      this.worldH = this.oy + (maxGy+1)*TILE_HEIGHT + 30 + PAD;
 
       this.scale = Math.min(this.canvas.width/this.worldW, this.canvas.height/this.worldH);
       this.txOff = (this.canvas.width  - this.worldW*this.scale)/2;
@@ -548,12 +539,12 @@
       const topY = sy - BLOCK_LIFT;
 
       // Crates without dedicated art: counter + ingredient sprite on top.
-      if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 14);
+      if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 17);
 
       if (!s) return;
 
       if (s.item) {
-        this.drawItem(s.item, sx, topY - 4, 19);
+        this.drawItem(s.item, sx, topY - 4, 23);
         if (c==='B' && s.item.state==='raw' && s.progress>0)
           this.bar(sx, topY - 28, s.progress, '#3DC9A0','#A8F0D8');
       }
@@ -561,7 +552,7 @@
         // The dirty-sink render already shows piled plates; don't double up.
         if (key !== 'sink_dirty') {
           const n=Math.min(s.dirty,3);
-          for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,26,26);
+          for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,30,30);
         }
         if (s.dirty>0) {
           this.glyph('🫧',sx+13,topY-14,12);
@@ -575,7 +566,7 @@
         const n=s.contents.length;
         s.contents.forEach((it,i)=>{
           const off=n>1?(i-(n-1)/2)*10:0;
-          this.drawItem(it,sx+off,topY-5,n>1?14:19,false);
+          this.drawItem(it,sx+off,topY-5,n>1?17:23,false);
         });
         if (s.state==='cooking') {
           this.bar(sx, topY - 28, s.progress, '#FFD23F','#FFF0A0');
@@ -607,7 +598,7 @@
       // the floating name tag (multiplayer requirement), not base clutter.
       ctx.save();
       ctx.globalAlpha=0.22; ctx.fillStyle='#000';
-      ctx.beginPath(); ctx.ellipse(sx,sy,15,5.5,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(sx,sy,17,6,0,0,Math.PI*2); ctx.fill();
       ctx.restore();
 
       const headTopY = sy - bounce - CHEF_H;
@@ -616,21 +607,21 @@
       // Held item floats EXACTLY CARRY_GAP px above the chef's head.
       if (p.carry) {
         const carryY = headTopY - CARRY_GAP;
-        if (p.carry.kind==='plate') this.drawPlate(p.carry,sx,carryY,19);
-        else this.drawItem(p.carry,sx,carryY,17);
+        if (p.carry.kind==='plate') this.drawPlate(p.carry,sx,carryY,22);
+        else this.drawItem(p.carry,sx,carryY,20);
       }
 
       const em=this.emotes[p.id];
       if (em&&em.until>now) {
         const by=headTopY-CARRY_GAP-26;
-        GFX.draw(ctx,'speech_bubble',sx,by,32,27);
-        this.glyph(em.emoji,sx,by-2,13);
+        GFX.draw(ctx,'speech_bubble',sx,by,38,32);
+        this.glyph(em.emoji,sx,by-2,15);
       }
 
       this._labels.push({
         // Centered right above the chef's head (multiplayer identification).
         text: isMe?'You':p.name, x: sx, y: headTopY - 6,
-        size: 9, color: isMe?col:'rgba(20,8,40,0.85)',
+        size: 11, color: isMe?col:'rgba(20,8,40,0.85)',
       });
     }
 
@@ -672,24 +663,25 @@
 
       // Hearts above the head.
       const hearts=5, lit=Math.ceil((1-q.urgency)*hearts);
-      const hSz=8.5, hGap=hSz*1.05, hy=sy+bob-CH-6;
+      const hSz=10.5, hGap=hSz*1.05, hy=sy+bob-CH-7;
       for(let h=0;h<hearts;h++){
         const hx=sx-(hearts-1)*hGap/2+h*hGap;
         GFX.draw(ctx, h<lit?'heart':'heart_empty', hx, hy, hSz, hSz);
       }
 
-      // Thought bubble. Staggered by line index in a high/low zigzag: the
-      // queue itself descends ~15px per slot, so a monotonic lift would line
-      // all bubbles up at the same screen height (an unreadable band). The
-      // zigzag keeps each bubble glued to its owner and clear of neighbours.
-      const bubW=38, bubH=32;
-      const bubCY=sy+bob-CH-14-bubH/2 - (q.i%2)*16;
-      GFX.draw(ctx,'speech_bubble',sx,bubCY,bubW,bubH);
+      // Order bubble: offset to the SIDE of the customer (toward the back of
+      // the line) and above head height, so it never covers the face of the
+      // customer behind them in the queue.
+      const bubW=48, bubH=40;
+      const side = (this.queueSlot(1).x - this.queueSlot(0).x) > 0 ? -1 : 1;
+      const bubX = sx + side*CH*0.34;
+      const bubCY = sy+bob-CH-12-bubH/2;
+      GFX.draw(ctx,'speech_bubble',bubX,bubCY,bubW,bubH);
       const dishKey='dish_'+q.order.recipe;
-      if(!GFX.draw(ctx, GFX.has(dishKey)?dishKey:'__none__', sx, bubCY-2, bubW*0.62, bubH*0.62))
-        this.glyph(q.order.emoji||'🍽️', sx, bubCY-2, 14);
-      if (q.order.vip && !GFX.draw(ctx,'ui_crown', sx+bubW*0.42, bubCY-bubH*0.42, 15, 15))
-        this.glyph('👑', sx+bubW*0.42, bubCY-bubH*0.42, 10);
+      if(!GFX.draw(ctx, GFX.has(dishKey)?dishKey:'__none__', bubX, bubCY-2, bubW*0.62, bubH*0.62))
+        this.glyph(q.order.emoji||'🍽️', bubX, bubCY-2, 17);
+      if (q.order.vip && !GFX.draw(ctx,'ui_crown', bubX+bubW*0.42, bubCY-bubH*0.42, 18, 18))
+        this.glyph('👑', bubX+bubW*0.42, bubCY-bubH*0.42, 12);
     }
 
     // ── Particle effects (world space, after the queue = always on top) ──────
@@ -784,7 +776,7 @@
     // Progress bar floating over a block top (gameplay affordance).
     bar(cx,topY,frac,colorA,colorB){
       const {ctx}=this;
-      const w=32, h=4.5, x0=cx-w/2, y0=topY;
+      const w=40, h=5.5, x0=cx-w/2, y0=topY;
       ctx.fillStyle='rgba(0,0,0,0.28)'; this.rrC(ctx,x0,y0,w,h,h/2); ctx.fill();
       const fw=Math.max(w*Math.min(frac,1),h*0.6);
       const bg=ctx.createLinearGradient(x0,y0,x0+fw,y0);
