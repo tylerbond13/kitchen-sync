@@ -718,6 +718,7 @@
       const bounce=p.moving?Math.abs(Math.sin(now/88))*3:0;
       const col=this.colorOf[p.id]||PLAYER_COLORS[0];
       const isMe=p.id===this.myId;
+      const chefKey = GFX.has(p.chef) ? p.chef : 'chef';
 
       // Clean base: a single soft ground shadow. Player identity lives in
       // the floating name tag (multiplayer requirement), not base clutter.
@@ -727,7 +728,7 @@
       ctx.restore();
 
       const headTopY = sy - bounce - CHEF_H;
-      GFX.draw(ctx,'chef',sx,sy-bounce-CHEF_H*0.52,CHEF_H*0.85,CHEF_H);
+      GFX.draw(ctx,chefKey,sx,sy-bounce-CHEF_H*0.52,CHEF_H*0.85,CHEF_H);
 
       // Held item floats EXACTLY CARRY_GAP px above the chef's head.
       if (p.carry) {

@@ -11,6 +11,7 @@ process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ks-itest-'));
 const { io: Client } = require('socket.io-client');
 const { server, io } = require('../server/index');
 const store = require('../server/store');
+const rooms = require('../server/rooms');
 
 function connect(port) {
   return new Promise((resolve, reject) => {
@@ -37,13 +38,14 @@ test('two players: create, join, play a round, progress persists', async () => {
 
   const tyler = await connect(port);
   const sib = await connect(port);
-  const pTyler = { id: 'u-tyler', name: 'Tyler', avatar: '🧑‍🍳' };
-  const pSib = { id: 'u-sib', name: 'Megan', avatar: '🦊' };
+  const pTyler = { id: 'u-tyler', name: 'Tyler', avatar: '🧑‍🍳', chef: 'dolly' };
+  const pSib = { id: 'u-sib', name: 'Megan', avatar: '🦊', chef: 'kid' };
 
   // profiles register
   const hello = await emitAck(tyler, 'hello', pTyler);
   assert.ok(hello.ok);
   assert.equal(hello.player.name, 'Tyler');
+  assert.equal(hello.player.chef, 'dolly');
 
   // host creates a crew
   const created = await emitAck(tyler, 'create_crew', pTyler);
@@ -60,8 +62,10 @@ test('two players: create, join, play a round, progress persists', async () => {
   const lobbyUpdate = waitFor(tyler, 'lobby');
   const j2 = await emitAck(sib, 'join', { code: code.toLowerCase(), profile: pSib });
   assert.ok(j2.ok, 'codes are case-insensitive');
-  const lob = await lobbyUpdate;
+  let lob = await lobbyUpdate;
+  if (lob.players.length !== 2) lob = await waitFor(tyler, 'lobby');
   assert.equal(lob.players.length, 2);
+  assert.equal(lob.players.find((p) => p.id === 'u-sib').chef, 'kid');
 
   // bad code is rejected
   const bad = await emitAck(sib, 'join', { code: 'ZZZZ', profile: pSib });
@@ -85,6 +89,7 @@ test('two players: create, join, play a round, progress persists', async () => {
 
   const state = await waitFor(sib, 'state');
   assert.equal(state.players.length, 2);
+  assert.equal(state.players.find((p) => p.id === 'u-tyler').chef, 'dolly');
   assert.ok(state.t > 0);
 
   // a tap moves the chef
@@ -107,10 +112,27 @@ test('two players: create, join, play a round, progress persists', async () => {
   for (let i = 0; i < 30 && st2.paused; i++) st2 = await waitFor(tyler, 'state');
   assert.ok(!st2.paused, 'anyone can resume');
 
+  // any chef can restart the active level from the pause menu
+  const room = rooms.getRoom(code);
+  room.game.score = 321;
+  sib.emit('pause', true);
+  let paused = await waitFor(sib, 'state');
+  for (let i = 0; i < 30 && !paused.paused; i++) paused = await waitFor(sib, 'state');
+  const restartTyler = waitFor(tyler, 'game_start');
+  const restartSib = waitFor(sib, 'game_start');
+  const restart = await emitAck(sib, 'restart_level');
+  assert.ok(restart.ok, JSON.stringify(restart));
+  const restarted = await restartTyler;
+  await restartSib;
+  assert.equal(restarted.levelId, 'salad-days');
+  let resetState = await waitFor(tyler, 'state');
+  for (let i = 0; i < 30 && resetState.score !== 0; i++) resetState = await waitFor(tyler, 'state');
+  assert.equal(resetState.score, 0, 'restart clears the old score');
+  assert.equal(resetState.paused, false, 'restart starts a fresh unpaused round');
+  assert.equal(store.getPlayer('u-tyler').stats.levelsPlayed, 0, 'restart does not record progress');
+
   // fast-forward to the end of the round (register listeners first —
   // game_over and the post-game lobby broadcast arrive back-to-back)
-  const rooms = require('../server/rooms');
-  const room = rooms.getRoom(code);
   const overP = waitFor(sib, 'game_over');
   const postLobbyP = waitFor(tyler, 'lobby');
   room.game.score = 999; // enough for 3 stars on level 1

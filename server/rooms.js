@@ -37,7 +37,7 @@ function ensureRoom(crew) {
       code: crew.code,
       crew,
       sockets: new Map(), // socket.id -> { socket, playerId }
-      players: new Map(), // playerId -> { id, name, avatar, connected }
+      players: new Map(), // playerId -> { id, name, avatar, chef, connected }
       game: null,
       loop: null,
       hostId: crew.hostId,
@@ -172,7 +172,7 @@ function attach(io) {
 
       store.upsertPlayer(profile);
       if (playerBackup) store.mergePlayerStats(profile.id, playerBackup);
-      store.touchCrewMember(crew, { id: profile.id, name: profile.name, avatar: profile.avatar });
+      store.touchCrewMember(crew, { id: profile.id, name: profile.name, avatar: profile.avatar, chef: profile.chef });
 
       // replace any stale socket for this player
       for (const [sid, entry] of room.sockets) {
@@ -183,7 +183,7 @@ function attach(io) {
       }
       room.sockets.set(socket.id, { socket, playerId: profile.id });
       room.players.set(profile.id, {
-        id: profile.id, name: profile.name, avatar: profile.avatar, connected: true,
+        id: profile.id, name: profile.name, avatar: profile.avatar, chef: profile.chef || 'chef', connected: true,
       });
       joined = { room, playerId: profile.id };
       room.exited.delete(profile.id); // (re)joining puts you back in the round
@@ -205,7 +205,7 @@ function attach(io) {
       if (room.game && room.game.phase === 'playing' && !room.game.players[profile.id]) {
         const spawn = room.game.spawnTiles[0];
         room.game.players[profile.id] = {
-          id: profile.id, name: profile.name, avatar: profile.avatar,
+          id: profile.id, name: profile.name, avatar: profile.avatar, chef: profile.chef || 'chef',
           x: spawn.x + 0.5, y: spawn.y + 0.5,
           path: [], intent: null, queue: [], carry: null, working: false, delivered: 0,
         };

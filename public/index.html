@@ -214,6 +214,8 @@ body {
   text-transform: uppercase;
   letter-spacing: 1.2px;
 }
+.profile-card .field-label { margin-top: 14px; }
+.profile-card .field-label:first-child { margin-top: 0; }
 .muted  { color: var(--ink-soft); }
 .small  { font-size: 13px; }
 .fineprint { text-align: center; color: var(--ink-soft); font-size: 12px; }
@@ -363,7 +365,48 @@ input[type="text"]:focus {
 }
 .quick-pick .qp-face { font-size: 20px; }
 
-/* ============ Avatar picker ============ */
+/* ============ Chef + avatar picker ============ */
+.chef-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.chef-cell {
+  font: inherit;
+  min-width: 0;
+  min-height: 86px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  padding: 7px 5px;
+  background: var(--cream);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform .1s, border-color .1s, background .1s, box-shadow .1s;
+}
+.chef-cell:active { transform: scale(.96); }
+.chef-cell.sel {
+  border-color: var(--bubblegum);
+  background: #FFF0F8;
+  box-shadow: 0 0 0 3px rgba(255, 111, 174, 0.15);
+}
+.chef-cell img {
+  width: 48px;
+  height: 54px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(45, 22, 52, 0.18));
+}
+.chef-cell span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1.1;
+}
 .avatar-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -415,6 +458,13 @@ input[type="text"]:focus {
   border-radius: 50%;
   border: 2px solid rgba(255, 111, 174, 0.18);
   position: relative;
+}
+.member-face img {
+  max-width: 44px;
+  max-height: 48px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(45, 22, 52, 0.16));
 }
 .member.offline { opacity: .35; }
 .member-face .host-badge {
@@ -683,7 +733,12 @@ input[type="text"]:focus {
   border: 1.5px solid rgba(255, 111, 174, 0.10);
 }
 .gp.me { outline: 2.5px solid var(--gold); background: #FFFCE8; }
-.gp-face { font-size: 15px; }
+.gp-face {
+  width: 20px; height: 20px;
+  display: inline-grid; place-items: center;
+  font-size: 15px;
+}
+.gp-face img { width: 22px; height: 22px; object-fit: contain; display: block; }
 
 /* ============ Kitchen shop ============ */
 .crew-stats { margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
@@ -775,7 +830,12 @@ input[type="text"]:focus {
 .results-stats { display: flex; justify-content: center; gap: 18px; font-weight: 700; color: var(--ink-soft); }
 .results-players { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 8px 0; }
 .rp { display: flex; flex-direction: column; align-items: center; font-size: 12px; font-weight: 700; }
-.rp .face { font-size: 28px; }
+.rp .face {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  font-size: 28px;
+}
+.rp .face img { width: 38px; height: 40px; object-fit: contain; display: block; }
 
 /* ============ Recap awards ============ */
 .results-awards { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -870,9 +930,12 @@ input[type="text"]:focus {
       <div class="card profile-card">
         <label class="field-label">Who's cooking?</label>
         <div class="quick-picks" id="quick-picks"></div>
-        <label class="field-label" for="name-input">Your chef</label>
-        <div class="avatar-grid" id="avatar-grid"></div>
+        <label class="field-label" for="name-input">Your name</label>
         <input id="name-input" type="text" maxlength="14" placeholder="Your name" autocomplete="nickname" enterkeyhint="done">
+        <label class="field-label">Choose your chef</label>
+        <div class="chef-grid" id="chef-grid"></div>
+        <label class="field-label">Badge</label>
+        <div class="avatar-grid" id="avatar-grid"></div>
         <div class="profile-stats" id="profile-stats"></div>
       </div>
 

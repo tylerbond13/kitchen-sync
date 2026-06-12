@@ -74,7 +74,7 @@ class Game {
     for (const p of roster) {
       const spawn = this.spawnTiles[i % this.spawnTiles.length];
       this.players[p.id] = {
-        id: p.id, name: p.name, avatar: p.avatar,
+        id: p.id, name: p.name, avatar: p.avatar, chef: p.chef || 'chef',
         x: spawn.x + 0.5, y: spawn.y + 0.5,
         path: [], intent: null, queue: [], carry: null, working: false,
         delivered: 0, chops: 0, washed: 0,
@@ -832,7 +832,7 @@ class Game {
       paused: this.paused,
       pausedBy: this.pausedBy,
       players: Object.values(this.players).map((p) => ({
-        id: p.id, name: p.name, avatar: p.avatar,
+        id: p.id, name: p.name, avatar: p.avatar, chef: p.chef || 'chef',
         x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100,
         queue: (p.queue || []).map((action) => this.describeQueuedAction(action)),
         carry: p.carry, working: p.working, moving: p.path.length > 0,
@@ -858,7 +858,7 @@ class Game {
       delivered: this.deliveredCount,
       missed: this.missedCount,
       players: Object.values(this.players).map((p) => ({
-        id: p.id, name: p.name, avatar: p.avatar,
+        id: p.id, name: p.name, avatar: p.avatar, chef: p.chef || 'chef',
         delivered: p.delivered, chops: p.chops, washed: p.washed,
       })),
     };

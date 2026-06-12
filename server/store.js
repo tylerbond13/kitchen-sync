@@ -46,6 +46,10 @@ const players = new Store('players.json');
 
 const CODE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I/O to avoid 1/0 confusion
 
+function profileChef(profile) {
+  return String((profile && profile.chef) || 'chef').slice(0, 64);
+}
+
 function newCrewCode() {
   for (let attempt = 0; attempt < 200; attempt++) {
     let code = '';
@@ -63,7 +67,7 @@ function createCrew(hostId) {
     code,
     createdAt: Date.now(),
     hostId,
-    members: {},          // playerId -> { name, avatar, joinedAt }
+    members: {},          // playerId -> { name, avatar, chef, joinedAt }
     progress: {},         // levelId -> { stars, bestScore, plays }
   };
   crews.save();
@@ -99,6 +103,7 @@ function touchCrewMember(crew, profile) {
     ...existing,
     name: profile.name,
     avatar: profile.avatar,
+    chef: profileChef(profile),
     lastSeen: Date.now(),
   };
   crews.save();
@@ -153,6 +158,7 @@ function upsertPlayer(profile) {
   };
   existing.name = String(profile.name || 'Chef').slice(0, 16);
   existing.avatar = String(profile.avatar || '🧑‍🍳').slice(0, 8);
+  existing.chef = profileChef(profile);
   existing.lastSeen = Date.now();
   if (!existing.stats) existing.stats = { levelsPlayed: 0, mealsDelivered: 0, starsEarned: 0 };
   players.data[profile.id] = existing;
@@ -199,6 +205,7 @@ function mergeCrew(crew, backup) {
       crew.members[id] = {
         name: String(m.name || 'Chef').slice(0, 16),
         avatar: String(m.avatar || '🧑‍🍳').slice(0, 8),
+        chef: profileChef(m),
         joinedAt: int(m.joinedAt) || Date.now(),
       };
     }

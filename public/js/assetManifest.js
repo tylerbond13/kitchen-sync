@@ -18,6 +18,24 @@
   const HD = 'assets/images/hd/';
   const FLAT = 'assets/images/flat/';
 
+  window.KS_CHEFS = [
+    { key: 'chef', name: 'Chef' },
+    { key: 'grandma_rose', name: 'Grandma Rose' },
+    { key: 'workhorse', name: 'Business Chef' },
+    { key: 'influencer', name: 'Influencer' },
+    { key: 'socialite', name: 'Socialite' },
+    { key: 'kid', name: 'Kid' },
+    { key: 'barney', name: 'Barney' },
+    { key: 'betty_white', name: 'Betty White' },
+    { key: 'camp_counselor', name: 'Counselor' },
+    { key: 'dolly', name: 'Dolly' },
+    { key: 'judy', name: 'Judy' },
+    { key: 'sinatra', name: 'Sinatra' },
+    { key: 'wadsworth', name: 'Wadsworth' },
+    { key: 'obama', name: 'Obama' },
+    { key: 'britney', name: 'Britney' },
+  ];
+
   window.ASSETS = {
     // ── Player chefs ─────────────────────────────────────────────────────────
     chef:           { path: HD + 'ks-chef-idle-front.png' },

@@ -2,6 +2,33 @@
 (function () {
   const AVATARS = ['🧑‍🍳', '👩‍🍳', '👨‍🍳', '🦊', '🐱', '🐼', '🐸', '🦁', '🐙', '🤖', '🦄', '🐻'];
   const $ = (id) => document.getElementById(id);
+  const CHEFS = (window.KS_CHEFS || []).filter((c) => c && c.key && hasAsset(c.key));
+  if (!CHEFS.length) CHEFS.push({ key: 'chef', name: 'Chef' });
+
+  function hasAsset(key) {
+    const ent = window.ASSETS && window.ASSETS[key];
+    return typeof ent === 'string' || !!(ent && ent.path);
+  }
+
+  function chefChoice(key) {
+    return CHEFS.find((c) => c.key === key) || CHEFS[0];
+  }
+
+  function chefPath(key) {
+    const ent = window.ASSETS && window.ASSETS[chefChoice(key).key];
+    return typeof ent === 'string' ? ent : ent && ent.path;
+  }
+
+  function chefImgHtml(key, cls = 'chef-face-img') {
+    const choice = chefChoice(key);
+    const path = chefPath(choice.key);
+    if (!path) return '';
+    return `<img class="${cls}" src="/${path}" alt="${escapeHtml(choice.name)}" draggable="false">`;
+  }
+
+  function playerFaceHtml(player, cls = 'chef-face-img') {
+    return chefImgHtml(player && player.chef, cls) || escapeHtml((player && player.avatar) || '🧑‍🍳');
+  }
 
   // ---------- profile (device identity) ----------
   // ?guest makes the identity per-tab instead of per-device, so you can test
@@ -16,11 +43,13 @@
         id: (crypto.randomUUID ? crypto.randomUUID() : 'p-' + Math.random().toString(36).slice(2) + Date.now()),
         name: '',
         avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
+        chef: 'chef',
       };
     }
     return p;
   }
   const profile = loadProfile();
+  profile.chef = chefChoice(profile.chef).key;
   function saveProfile() {
     profileStore.setItem('ks-profile', JSON.stringify(profile));
   }
@@ -69,11 +98,29 @@
     picksEl.appendChild(chip);
   });
 
-  // ---------- avatar picker ----------
+  // ---------- chef + avatar picker ----------
+  const chefGrid = $('chef-grid');
+  CHEFS.forEach((chef) => {
+    const cell = document.createElement('button');
+    cell.className = 'chef-cell';
+    cell.type = 'button';
+    cell.dataset.chef = chef.key;
+    cell.innerHTML = `${chefImgHtml(chef.key, 'chef-picker-img')}<span>${escapeHtml(chef.name)}</span>`;
+    cell.onclick = () => {
+      profile.chef = chef.key;
+      saveProfile();
+      refreshPicker();
+      SFX.unlock(); SFX.tap();
+      sendHello();
+    };
+    chefGrid.appendChild(cell);
+  });
+
   const grid = $('avatar-grid');
   AVATARS.forEach((a) => {
     const cell = document.createElement('button');
     cell.className = 'avatar-cell';
+    cell.type = 'button';
     cell.textContent = a;
     cell.onclick = () => {
       profile.avatar = a;
@@ -93,6 +140,9 @@
   });
 
   function refreshPicker() {
+    profile.chef = chefChoice(profile.chef).key;
+    chefGrid.querySelectorAll('.chef-cell').forEach((c) =>
+      c.classList.toggle('sel', c.dataset.chef === profile.chef));
     grid.querySelectorAll('.avatar-cell').forEach((c) =>
       c.classList.toggle('sel', c.textContent === profile.avatar));
     picksEl.querySelectorAll('.quick-pick').forEach((c, i) =>
@@ -296,7 +346,7 @@
     for (const p of state.players) {
       const el = document.createElement('div');
       el.className = 'member' + (p.connected ? '' : ' offline');
-      el.innerHTML = `<div class="member-face">${p.avatar}${p.id === state.hostId ? '<span class="host-badge">👑</span>' : ''}</div>
+      el.innerHTML = `<div class="member-face">${playerFaceHtml(p, 'member-face-img')}${p.id === state.hostId ? '<span class="host-badge">👑</span>' : ''}</div>
         <div class="member-name">${escapeHtml(p.id === profile.id ? 'You' : p.name)}</div>`;
       $('member-row').appendChild(el);
     }
@@ -602,7 +652,7 @@
         wrap.appendChild(el);
         gpEls.set(p.id, el);
       }
-      el.querySelector('.gp-face').textContent = p.avatar;
+      el.querySelector('.gp-face').innerHTML = playerFaceHtml(p, 'gp-face-img');
       el.querySelector('.gp-count').textContent = `${p.delivered}🍽`;
       el.classList.toggle('me', p.id === profile.id);
     }
@@ -686,7 +736,7 @@
     for (const p of results.players.sort((a, b) => b.delivered - a.delivered)) {
       const el = document.createElement('div');
       el.className = 'rp';
-      el.innerHTML = `<span class="face">${p.avatar}</span><span>${escapeHtml(p.name)}</span><span class="muted">${p.delivered} 🍽️</span>`;
+      el.innerHTML = `<span class="face">${playerFaceHtml(p, 'result-face-img')}</span><span>${escapeHtml(p.name)}</span><span class="muted">${p.delivered} 🍽️</span>`;
       rp.appendChild(el);
     }
 
