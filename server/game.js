@@ -105,6 +105,9 @@ class Game {
     this.phase = 'playing';
     this.paused = false;
     this.pausedBy = null;
+    // cosmetic seed: clients shuffle the customer cast with it, so every
+    // phone in the crew sees the same characters in the same order
+    this.seed = Math.floor(this.rng() * 0xFFFFFFFF) >>> 0;
     // two lunch-rush windows per round, at ~60% and ~28% time remaining
     this.rushMarks = [Math.round(level.duration * 0.6), Math.round(level.duration * 0.28)];
     this.rush = 0;
@@ -706,6 +709,7 @@ class Game {
       duration: this.level.duration,
       starThresholds: this.starGoals,
       autoChopAllowed: this.autoChopAllowed,
+      seed: this.seed,
     };
   }
 

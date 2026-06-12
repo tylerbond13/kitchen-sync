@@ -65,8 +65,28 @@
   // Grid char → station image key. Digits 1-9 are ingredient crates and render
   // as a counter block with the ingredient sprite on top (via level.crates).
   const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink' };
-  const CUSTOMER_KEYS = ['grandma_rose','influencer','workhorse','socialite','kid',
-    'barney','betty_white','camp_counselor','dolly','judy','sinatra','wadsworth'];
+  // Customer pool (grandma_rose benched for now). The order is shuffled per
+  // round from the server's seed so every kitchen sees the same random cast.
+  const CUSTOMER_KEYS = ['influencer','workhorse','socialite','kid',
+    'barney','betty_white','camp_counselor','dolly','judy','sinatra','wadsworth',
+    'obama','britney'];
+
+  // Tiny seeded PRNG (mulberry32) — deterministic across every client.
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  // ISO_FIX only applies to the remaining isometric renders — the flat SVG
+  // stand-ins (manifest `flat: true`) draw with no correction.
+  function isoFixFor(key) {
+    const e = (window.ASSETS || {})[key];
+    return e && e.flat ? null : ISO_FIX;
+  }
 
   const THEMES = {
     diner:  { wallTop:'#3DBBB8', bgA:'#FF7DB8', bgB:'#FFB0D8' },
@@ -189,6 +209,13 @@
       for (let y=0; y<staticState.h; y++) for (let x=0; x<staticState.w; x++)
         if (staticState.grid[y][x]==='W') this.serveCells.push([x,y]);
       this.theme   = THEMES[staticState.theme] || THEMES.diner;
+      // Per-round customer cast: Fisher-Yates with the server's seed.
+      const rand = mulberry32((staticState.seed ?? 1) >>> 0);
+      this.cast = [...CUSTOMER_KEYS];
+      for (let i = this.cast.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [this.cast[i], this.cast[j]] = [this.cast[j], this.cast[i]];
+      }
       this.running = true;
       this.dpr     = Math.min(window.devicePixelRatio||1, 3);
 
@@ -218,24 +245,22 @@
     // ── World space ⇄ canvas ──────────────────────────────────────────────────
     // World space uses the locked 64×32 tile constants. One uniform scale +
     // translate maps world space onto the device canvas.
-    // Queue geometry: the line hugs the serve hatch. If a hatch sits in the
-    // bottom (front) wall, customers stand on the tile row immediately below
-    // it, slot 0 at the hatch's column. If the hatch is in the right/left
-    // wall, they stand in the column immediately outside that wall, slot 0
-    // beside the front-most serve window, stretching toward the viewer.
+    // Queue geometry: customers always line the BOTTOM row, just outside the
+    // front of the room (consistent across every level). Slot 0 sits in the
+    // column nearest the serve hatch; the line extends toward the roomier
+    // side.
     queueSlot(i) {
       const {w,h}=this.lvl;
+      let bx = (w-1)/2;
       const cells = this.serveCells;
-      if (!cells.length) return { x: (w-1)/2 + i, y: h + 0.05 };
-      const onBottom = cells.filter((c) => c[1] === h-1);
-      if (onBottom.length) {
-        const bx = onBottom[0][0];
-        const dir = bx > (w-1)/2 ? -1 : 1;
-        return { x: bx + i*dir, y: h + 0.05 };
+      if (cells.length) {
+        const onBottom = cells.filter((c) => c[1] === h-1);
+        bx = onBottom.length ? onBottom[0][0]
+           : cells.reduce((a,c)=>a+c[0],0)/cells.length;
       }
-      const side = cells[0][0] >= w/2 ? 1 : -1;
-      const yFront = Math.max(...cells.map((c) => c[1]));
-      return { x: side > 0 ? w + 0.05 : -1.05, y: yFront + i };
+      bx = Math.min(w-1, Math.max(0, bx));
+      const dir = bx > (w-1)/2 ? -1 : 1;
+      return { x: bx + i*dir, y: h + 0.05 };
     }
 
     resize() {
@@ -532,11 +557,17 @@
       const baseY = sy + TH/2;            // tile's south corner — ground anchor
       const ing = this.lvl.crates && this.lvl.crates[c];
 
-      // Crates with dedicated art ARE the art (market basket on the floor).
-      if (ing && GFX.img('crate_'+ing)) {
-        const rect = GFX.drawAnchored(ctx, 'crate_'+ing, sx, baseY - 1, TW*SPRITE_FILL, ISO_FIX);
-        if (rect) this._hits.push({ ...rect, gx, gy, key: 'crate_'+ing, d: sy });
-        return;
+      // Crates: per-ingredient art if the manifest has it, otherwise the
+      // flat generic crate with the raw ingredient sprite in its open top.
+      if (ing) {
+        const cKey = GFX.has('crate_'+ing) ? 'crate_'+ing : 'crate';
+        const rect = GFX.drawAnchored(ctx, cKey, sx, baseY - 1, TW*SPRITE_FILL, isoFixFor(cKey));
+        if (rect) {
+          if (cKey === 'crate') this.drawBare({ id: ing, state: 'raw' }, sx, rect.y + rect.h*0.30, 16);
+          this._hits.push({ ...rect, gx, gy, key: cKey, d: sy });
+          return;
+        }
+        // crate art still loading — fall through to the counter path
       }
 
       const s = this.cur && this.cur.stations[`${gx},${gy}`];
@@ -548,8 +579,8 @@
       let key = STATION_KEY[c] || 'counter';
       if (c==='S' && s && s.contents && (s.state==='cooking'||s.state==='burned')) key='stove_fire';
       if (c==='K' && s && s.dirty > 0) key='sink_dirty';
-      let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, ISO_FIX);
-      if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL, ISO_FIX); }
+      let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, isoFixFor(key));
+      if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL, isoFixFor(key)); }
       if (rect) this._hits.push({ ...rect, gx, gy, key, d: sy });
       const topY = sy - BLOCK_LIFT;
 
@@ -671,10 +702,10 @@
       const {ctx}=this;
       const CH=CUSTOMER_H;
       const bob=Math.sin(now/320+q.i*2.1);
-      const n=CUSTOMER_KEYS.length;
+      const n=this.cast.length;
       const preset=((q.order.id-1)%n+n)%n;
 
-      GFX.draw(ctx, CUSTOMER_KEYS[preset], sx, sy+bob-CH*0.5, CH*0.92, CH);
+      GFX.draw(ctx, this.cast[preset], sx, sy+bob-CH*0.5, CH*0.92, CH);
 
       // Hearts above the head.
       const hearts=5, lit=Math.ceil((1-q.urgency)*hearts);

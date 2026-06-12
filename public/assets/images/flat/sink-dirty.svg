@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 120">
+  <defs>
+    <linearGradient id="bodyD" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#A96B3F"/><stop offset="1" stop-color="#8E5631"/>
+    </linearGradient>
+    <linearGradient id="steelD" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E8EDF3"/><stop offset="1" stop-color="#C3CBD6"/>
+    </linearGradient>
+  </defs>
+  <rect x="14" y="108" width="15" height="10" rx="3" fill="#6B3E1F" stroke="#4A2A12" stroke-width="2.5"/>
+  <rect x="99" y="108" width="15" height="10" rx="3" fill="#6B3E1F" stroke="#4A2A12" stroke-width="2.5"/>
+  <rect x="10" y="48" width="108" height="62" rx="7" fill="url(#bodyD)" stroke="#5A3318" stroke-width="3.5"/>
+  <rect x="20" y="57" width="41" height="44" rx="5" fill="#7C4A28" stroke="#5F3A1D" stroke-width="3"/>
+  <rect x="67" y="57" width="41" height="44" rx="5" fill="#7C4A28" stroke="#5F3A1D" stroke-width="3"/>
+  <rect x="54" y="68" width="5.5" height="15" rx="2.75" fill="#D7DCE4" stroke="#8E959F" stroke-width="1.5"/>
+  <rect x="68.5" y="68" width="5.5" height="15" rx="2.75" fill="#D7DCE4" stroke="#8E959F" stroke-width="1.5"/>
+  <rect x="96" y="12" width="8" height="26" rx="3.5" fill="#C9D0DA" stroke="#828A96" stroke-width="2.5"/>
+  <path d="M100 14 Q100 4 86 4 Q74 4 73 14" fill="none" stroke="#C9D0DA" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="88" cy="34" r="4.5" fill="#E25C5C" stroke="#9A3434" stroke-width="2"/>
+  <circle cx="112" cy="34" r="4.5" fill="#5C9BE2" stroke="#34619A" stroke-width="2"/>
+  <rect x="3" y="30" width="122" height="22" rx="6" fill="url(#steelD)" stroke="#5A3318" stroke-width="3.5"/>
+  <rect x="14" y="34" width="64" height="14" rx="5" fill="#8F99A6" stroke="#6E7884" stroke-width="2"/>
+  <rect x="17" y="37" width="58" height="9" rx="3.5" fill="#A6C8D8"/>
+  <!-- dirty plate stack leaning in the basin -->
+  <g stroke="#9AA1AB" stroke-width="2">
+    <ellipse cx="38" cy="30" rx="17" ry="5.5" fill="#EFF2F5"/>
+    <ellipse cx="40" cy="25" rx="17" ry="5.5" fill="#E6EAEE"/>
+    <ellipse cx="37" cy="20" rx="17" ry="5.5" fill="#EFF2F5"/>
+  </g>
+  <path d="M30 19 q4 -2 8 0 M44 18 q3 1 6 0" stroke="#B98A4A" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- suds -->
+  <g fill="#FFFFFF" stroke="#BFD9E8" stroke-width="1.6" opacity="0.95">
+    <circle cx="58" cy="14" r="4.5"/>
+    <circle cx="65" cy="9" r="3"/>
+    <circle cx="52" cy="8" r="2.5"/>
+  </g>
+</svg>

@@ -15,6 +15,7 @@ shopt -s nullglob
 for f in ks-*.png; do
   case "$f" in
     ks-vibe-summary.png) continue ;;
+    ks-char-sprite-*)    continue ;;   # pose sheets: exact 50% below
     ks-wall-*)           MAX=1280 ;;
     *)                   MAX=512 ;;
   esac
@@ -26,9 +27,15 @@ for f in ks-*.png; do
   fi
 done
 
-w=$(sips -g pixelWidth ks-vibe-summary.png | awk '/pixelWidth/{print $2}')
-if [ "$w" -gt 1408 ]; then
-  sips -z 768 1408 ks-vibe-summary.png >/dev/null
-fi
+# sheets (vibe-summary + character pose sheets): exact 50% so the manifest's
+# crop rects stay a clean half of the source coordinates
+for f in ks-vibe-summary.png ks-char-sprite-*.png; do
+  [ -f "$f" ] || continue
+  w=$(sips -g pixelWidth  "$f" | awk '/pixelWidth/{print $2}')
+  h=$(sips -g pixelHeight "$f" | awk '/pixelHeight/{print $2}')
+  if [ "$w" -gt 1408 ]; then
+    sips -z $((h / 2)) $((w / 2)) "$f" >/dev/null
+  fi
+done
 
 echo "hd/ now: $(du -sh . | cut -f1)"

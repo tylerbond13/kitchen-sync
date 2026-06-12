@@ -114,6 +114,35 @@
       }
     }
 
+    // Optional second pass (`deplate`): some food renders arrived sitting on
+    // a white china plate, which players read as "already plated". Spread
+    // from the border through transparent pixels and eat connected
+    // low-chroma pixels (white china, grey rim shading, its outline) —
+    // saturated food pixels stop the flood, so only the plate disappears.
+    if (ent.deplate) {
+      const seen2 = new Uint8Array(sw*sh);
+      const stack2 = [];
+      for (let ix=0; ix<sw; ix++) { stack2.push(ix, (sh-1)*sw + ix); }
+      for (let iy=0; iy<sh; iy++) { stack2.push(iy*sw, iy*sw + sw-1); }
+      while (stack2.length) {
+        const i = stack2.pop();
+        if (seen2[i]) continue;
+        seen2[i] = 1;
+        const o = i*4;
+        if (px[o+3] > 8) {
+          const r=px[o], g=px[o+1], b=px[o+2];
+          const mx = Math.max(r,g,b), mn = Math.min(r,g,b);
+          if (mx - mn >= Math.max(36, mx * 0.22)) continue; // saturated = food
+          px[o+3] = 0;
+        }
+        const ix = i % sw, iy = (i / sw) | 0;
+        if (ix > 0)    stack2.push(i-1);
+        if (ix < sw-1) stack2.push(i+1);
+        if (iy > 0)    stack2.push(i-sw);
+        if (iy < sh-1) stack2.push(i+sw);
+      }
+    }
+
     // Trim to alpha bounding box.
     let minX=sw, minY=sh, maxX=-1, maxY=-1;
     for (let iy=0; iy<sh; iy++) for (let ix=0; ix<sw; ix++) {

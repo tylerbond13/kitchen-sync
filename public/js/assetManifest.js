@@ -16,6 +16,7 @@
 // ============================================================================
 (function () {
   const HD = 'assets/images/hd/';
+  const FLAT = 'assets/images/flat/';
 
   window.ASSETS = {
     // ── Player chefs ─────────────────────────────────────────────────────────
@@ -35,40 +36,35 @@
     judy:           { path: HD + 'ks-char-judy.png' },
     sinatra:        { path: HD + 'ks-char-sinatra.png' },
     wadsworth:      { path: HD + 'ks-char-wadsworth.png' },
+    // pose sheets ship at 50% (shrink-assets.sh) — crops pick the front
+    // idle pose in halved coordinates (sheet cells are 176x384)
+    obama:          { path: HD + 'ks-char-sprite-barack-obama.png',   crop: [0, 0, 176, 384] },
+    britney:        { path: HD + 'ks-char-sprite-britney-spears.png', crop: [0, 0, 176, 384] },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
-    counter:        { path: HD + 'ks-countertop.png' },
-    chopping_board: { path: HD + 'ks-chopping-block.png' },
+    // `flat: true` = straight-on art, renderer skips its iso squash.
+    // Keys without a front-facing HD render yet use hand-built SVG stand-ins
+    // (assets/images/flat/) — swap each back to its .png as regens land.
+    counter:        { path: HD + 'ks-countertop.png', flat: true },
+    chopping_board: { path: FLAT + 'board.svg', flat: true },
     oven:           { path: HD + 'ks-industrial-baking-oven.png' },
     stove:          { path: HD + 'ks-stove-pan.png' },
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
     pot:            { path: HD + 'ks-stockpot.png' },
-    plate_stack:    { path: HD + 'ks-plate-stack.png' },
-    serve_window:   { path: HD + 'ks-serve-window.png', scale: 1.08 },
-    trash:          { path: HD + 'ks-trash-can.png', scale: 0.88 },
-    sink:           { path: HD + 'ks-sink.png' },
-    sink_dirty:     { path: HD + 'ks-sink-dirty.png' },
+    plate_stack:    { path: HD + 'ks-plate-stack.png', flat: true },
+    serve_window:   { path: FLAT + 'serve-window.svg', flat: true, scale: 1.05 },
+    trash:          { path: HD + 'ks-trash-can.png', flat: true, scale: 0.88 },
+    sink:           { path: FLAT + 'sink.svg', flat: true },
+    sink_dirty:     { path: FLAT + 'sink-dirty.svg', flat: true },
 
-    // ── Ingredient crates (every crate in every level) ──────────────────────
-    crate_lettuce:    { path: HD + 'ks-lettuce-crate.png' },
-    crate_tomato:     { path: HD + 'ks-tomato-crate.png' },
-    crate_cucumber:   { path: HD + 'ks-cucumber-crate.png' },
-    crate_bun:        { path: HD + 'ks-bun-crate.png' },
-    crate_patty:      { path: HD + 'ks-patty-crate.png' },
-    crate_cheese:     { path: HD + 'ks-cheese-crate.png' },
-    crate_onion:      { path: HD + 'ks-onion-crate.png' },
-    crate_rice:       { path: HD + 'ks-rice-crate.png' },
-    crate_fish:       { path: HD + 'ks-fish-crate.png' },
-    crate_seaweed:    { path: HD + 'ks-seaweed-crate.png' },
-    crate_dough:      { path: HD + 'ks-dough-crate.png' },
-    crate_milk:       { path: HD + 'ks-milk-crate.png' },
-    crate_cocoa:      { path: HD + 'ks-cocoa-crate.png' },
-    crate_potato:     { path: HD + 'ks-potato-crate.png' },
-    crate_carrot:     { path: HD + 'ks-carrot-crate.png' },
-    crate_pineapple:  { path: HD + 'ks-pineapple-crate.png' },
-    crate_strawberry: { path: HD + 'ks-strawberry-crate.png' },
-    crate_banana:     { path: HD + 'ks-banana-crate.png' },
-    crate_tortilla:   { path: HD + 'ks-tortilla-crate.png' },
+    // ── Ingredient crates ────────────────────────────────────────────────────
+    // Front-facing HD crates where they exist; everything else gets the
+    // generic flat crate and the renderer drops the raw ingredient sprite
+    // into its open top.
+    crate:            { path: FLAT + 'crate.svg', flat: true },
+    crate_lettuce:    { path: HD + 'ks-lettuce-crate.png', flat: true },
+    crate_tomato:     { path: HD + 'ks-tomato-crate.png', flat: true },
+    crate_cucumber:   { path: HD + 'ks-cucumber-crate.png', flat: true },
 
     // ── Ingredients: raw ─────────────────────────────────────────────────────
     lettuce:    { path: HD + 'ks-lettuce.png' },
@@ -92,8 +88,10 @@
     tortilla:   { path: HD + 'ks-tortilla.png' },
 
     // ── Ingredients: chopped / cooked ───────────────────────────────────────
-    lettuce_chopped:    { path: HD + 'ks-lettuce-chopped.png' },
-    tomato_chopped:     { path: HD + 'ks-tomato-chopped.png' },
+    // deplate: these two renders arrived ON a white plate — key it out so
+    // chopped food never reads as already plated.
+    lettuce_chopped:    { path: HD + 'ks-lettuce-chopped.png', deplate: true },
+    tomato_chopped:     { path: HD + 'ks-tomato-chopped.png', deplate: true },
     cucumber_chopped:   { path: HD + 'ks-cucumber-chopped.png' },
     cheese_chopped:     { path: HD + 'ks-cheese-chopped.png' },
     onion_chopped:      { path: HD + 'ks-onion-chopped.png' },

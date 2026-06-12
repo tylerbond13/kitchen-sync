@@ -49,17 +49,25 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 | Status | File | Grid char |
 |---|---|---|
-| 🟡 | ks-countertop.png | `#` legacy diagonal HD exists; regenerate same filename as a flat, front-facing rectangular wooden cabinet counter with clean front face and flat top surface |
-| ✅ | ks-chopping-block.png | `B` empty wooden end-grain chopping block with an idle chef's knife resting flat on it; no pre-rendered food, vegetables, garnish, scraps, or chopped ingredients |
+> **Stand-ins (2026-06-12):** the existing counter/board/sink/serve renders are
+> still isometric, so the GAME currently uses hand-built front-facing SVGs in
+> `public/assets/images/flat/` for those keys. When a regenerated straight-on
+> HD render lands, point the key in `assetManifest.js` back at the .png (and
+> drop its `flat: true`).
+
+| Status | File | Grid char |
+|---|---|---|
+| ✅ | ks-countertop.png | `#` front-facing cabinet counter (regenerated 2026-06-12, wired) |
+| 🟡 | ks-chopping-block.png | `B` REGEN NEEDED (isometric; game uses flat/board.svg): front-facing butcher block on a cabinet, idle knife, no food |
 | ✅ | ks-industrial-baking-oven.png | `V` oven |
 | ✅ | ks-stove-pan.png | `S` — range with frying pan on top |
 | ✅ | ks-stockpot.png | `O` — big soup pot on a burner |
-| 🟡 | ks-plate-stack.png | `P` legacy diagonal HD exists; regenerate same filename as a straight-on front-facing porcelain plate storage rack/stack |
-| ✅ | ks-serve-window.png | `W` — pass window with bell, green accent |
-| 🟡 | ks-trash-can.png | `T` legacy diagonal HD exists; regenerate same filename as a clean front-facing stainless steel step trash can |
-| ✅ | ks-sink.png | `K` — sink with faucet |
+| ✅ | ks-plate-stack.png | `P` straight-on front-facing porcelain plate storage rack/stack |
+| 🟡 | ks-serve-window.png | `W` REGEN NEEDED (isometric; game uses flat/serve-window.svg): front-facing service stand, cream pillars, green tile front, gold bell |
+| ✅ | ks-trash-can.png | `T` clean front-facing stainless steel step trash can |
+| 🟡 | ks-sink.png | `K` REGEN NEEDED (isometric; game uses flat/sink.svg): front-facing wooden cabinet with steel basin top and faucet |
 | ✅ | ks-stove-pan-fire.png | Optional: cooking/burning state |
-| ✅ | ks-sink-dirty.png | Optional: sink piled with dirty plates |
+| 🟡 | ks-sink-dirty.png | Optional REGEN (isometric; game uses flat/sink-dirty.svg): sink piled with dirty plates |
 
 ## 4. Ingredients — raw/whole (19)
 
@@ -112,11 +120,18 @@ Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ mis
 
 ## 7. Crates / baskets (one per ingredient that has a crate in any level — all 19)
 
+> **Stand-in (2026-06-12):** lettuce/tomato/cucumber crates are regenerated
+> front-facing and wired. The remaining iso crate renders are NOT used —
+> the game draws `flat/crate.svg` (front-facing, open-top) with the raw
+> ingredient sprite composited into the opening. As each crate is
+> regenerated straight-on, re-add it as `crate_<ing>` in `assetManifest.js`
+> with `flat: true` to override the generic crate.
+
 | Status | File |
 |---|---|
-| 🟡 | ks-lettuce-crate.png (legacy diagonal HD exists; regenerate same filename as a flat square/rectangular wooden crate or wicker basket filled with lettuce) |
-| 🟡 | ks-tomato-crate.png (legacy diagonal HD exists; regenerate same filename as a flat square/rectangular wooden crate or wicker basket filled with tomatoes) |
-| 🟡 | ks-cucumber-crate.png (legacy diagonal HD exists; regenerate same filename as a flat square/rectangular wooden crate or wicker basket filled with cucumbers) |
+| ✅ | ks-lettuce-crate.png (flat square/rectangular wooden crate filled with lettuce) |
+| ✅ | ks-tomato-crate.png (flat square/rectangular wooden crate filled with tomatoes) |
+| ✅ | ks-cucumber-crate.png (flat square/rectangular wooden crate or wicker basket filled with cucumbers) |
 | ✅ | ks-bun-crate.png (bread basket) |
 | ✅ | ks-patty-crate.png (butcher box / cooler) |
 | ✅ | ks-cheese-crate.png |
@@ -237,11 +252,11 @@ but excluded from Needed totals unless a replacement is still required.
 |---|---|---|---|
 | Chef | 3 (sheet crop + idle front/back) | 8 walk frames | 4 carry |
 | Customers | 12 | 0 | 10 emotions |
-| Stations | 8 HD + 3 legacy placeholders | 3 flat replacements | — |
+| Stations | 9 core + 2 states | 0 | — |
 | Ingredients raw | 19 | 0 | — |
 | Ingredients chopped | 13 | 0 | — |
 | Ingredients cooked | 2 | 0 | — |
-| Crates | 16 HD + 3 legacy placeholders | 3 flat replacements | — |
+| Crates | 19 | 0 | — |
 | Dishes | 14 | 0 | — |
 | Dishware | 2 | 0 | — |
 | Env: artisan bakery / diner | 4 active + 2 historical preserved | 4 | — |
@@ -249,7 +264,7 @@ but excluded from Needed totals unless a replacement is still required.
 | Env: winter lodge | 3 active + 3 historical preserved | 4 | — |
 | Env: beach shack | 4 active + 2 historical preserved | 4 | — |
 | UI | 2 HD + 2 placeholders | 0 | 1 heart-empty variant |
-| **Total** | **103 active HD files + 1 sheet-crop placeholder + 6 legacy gameplay placeholders + 8 historical/reference HD files** | **31** | **15** |
+| **Total** | **109 active HD files + 1 sheet-crop placeholder + 8 historical/reference HD files** | **25** | **15** |
 
 ## Suggested generation order (gameplay impact first)
 
