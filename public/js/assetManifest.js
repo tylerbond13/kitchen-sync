@@ -39,12 +39,14 @@
     counter:        { path: HD + 'ks-countertop.png',             width: 1408, height: 768 },
     chopping_board: { path: HD + 'ks-chopping-block.png',         width: 1408, height: 768 },
     oven:           { path: HD + 'ks-industrial-baking-oven.png', width: 1408, height: 768 },
+    // `scale` multiplies the engine's draw width for that asset only —
+    // tune renders whose aspect runs tall/wide without touching code.
     stove:          { path: HD + 'ks-stove-pan.png' },
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },   // cooking/burning state
     pot:            { path: HD + 'ks-stockpot.png' },
     plate_stack:    { path: HD + 'ks-plate-stack.png' },
-    serve_window:   { path: HD + 'ks-serve-window.png' },
-    trash:          { path: HD + 'ks-trash-can.png' },
+    serve_window:   { path: HD + 'ks-serve-window.png', scale: 1.08 },
+    trash:          { path: HD + 'ks-trash-can.png', scale: 0.88 },
     sink:           { path: HD + 'ks-sink.png' },
     sink_dirty:     { path: HD + 'ks-sink-dirty.png' },       // plates piled up state
 

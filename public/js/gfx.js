@@ -149,14 +149,36 @@
       return true;
     },
 
-    // Bottom-center anchored at baseY, scaled to width w (aspect preserved).
-    // This is how everything standing in the iso world is placed.
+    // Bottom-center anchored at baseY, scaled to width w (aspect preserved),
+    // times the asset's manifest `scale`. Returns the exact drawn rect (a
+    // truthy object) so callers can register precise hit regions, or false.
     drawAnchored(ctx, key, cx, baseY, w) {
       const img = this.img(key);
       if (!img || !img.width || !img.height) return false;
+      const ent = ASSETS[key];
+      if (ent && typeof ent === 'object' && ent.scale) w *= ent.scale;
       const h = w * img.height / img.width;
-      ctx.drawImage(img, cx - w/2, baseY - h, w, h);
-      return true;
+      const x = cx - w/2, y = baseY - h;
+      ctx.drawImage(img, x, y, w, h);
+      return { x, y, w, h };
+    },
+
+    // Pixel-precision hit test: is the sprite opaque at (u,v) ∈ [0,1]²?
+    // Used by reverse-depth click picking so transparent corners of a
+    // bounding rect never steal a tap from the sprite behind them.
+    alphaAt(key, u, v) {
+      const img = this.img(key);
+      if (!img) return false;
+      const px = Math.min(img.width-1,  Math.max(0, Math.floor(u * img.width)));
+      const py = Math.min(img.height-1, Math.max(0, Math.floor(v * img.height)));
+      if (!this._probe) {
+        this._probe = document.createElement('canvas');
+        this._probe.width = this._probe.height = 1;
+        this._probeCtx = this._probe.getContext('2d', { willReadFrequently: true });
+      }
+      this._probeCtx.clearRect(0, 0, 1, 1);
+      this._probeCtx.drawImage(img, px, py, 1, 1, 0, 0, 1, 1);
+      return this._probeCtx.getImageData(0, 0, 1, 1).data[3] > 40;
     },
 
     // Stretch-blit to fill an exact rect (floor diamonds, backdrop, patch).

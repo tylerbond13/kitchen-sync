@@ -37,6 +37,9 @@
   const CUSTOMER_H = 64;                  // customer sprite height (world px)
   const CARRY_GAP  = 40;                  // held item floats exactly this many
                                           // px above the chef's head (rule 4)
+  const SPRITE_FILL = 0.84;               // stations render at 84% of their
+                                          // tile width — visual "air" between
+                                          // counters; grid coords unchanged
 
   // ── Game-object lookups ─────────────────────────────────────────────────────
   const ING_EMOJI = {
@@ -174,6 +177,11 @@
       this.colorOf = {};
       this.emotes  = {};
       this.qPos    = new Map();            // orderId → smoothed queue position
+      // Serve-window cells anchor the customer queue (game-flow alignment):
+      // the line forms outside the wall nearest the hatch, front slot at it.
+      this.serveCells = [];
+      for (let y=0; y<staticState.h; y++) for (let x=0; x<staticState.w; x++)
+        if (staticState.grid[y][x]==='W') this.serveCells.push([x,y]);
       this.theme   = THEMES[staticState.theme] || THEMES.diner;
       this.running = true;
       this.dpr     = Math.min(window.devicePixelRatio||1, 3);
@@ -204,19 +212,50 @@
     // ── World space ⇄ canvas ──────────────────────────────────────────────────
     // World space uses the locked 64×32 tile constants. One uniform scale +
     // translate maps world space onto the device canvas.
+    // Queue geometry: slot i sits OUTSIDE the island wall nearest the serve
+    // hatch, with slot 0 aligned to the hatch and the line extending along
+    // that wall — the pink path always ends at the hatch, on every level.
+    queueSlot(i) {
+      const {w,h}=this.lvl;
+      let cx=(w-1)/2, cy=(h-1)/2;
+      if (this.serveCells.length) {
+        cx = this.serveCells.reduce((a,c)=>a+c[0],0)/this.serveCells.length;
+        cy = this.serveCells.reduce((a,c)=>a+c[1],0)/this.serveCells.length;
+      }
+      const dx = cx-(w-1)/2, dy = cy-(h-1)/2;
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        // Hatch on a side wall → line forms outside that column.
+        const gx  = dx>0 ? w+0.45 : -1.45;
+        const dir = cy > h/2 ? -1 : 1;
+        return { x: gx, y: Math.min(h-1.2, Math.max(1.2, cy)) + i*0.95*dir };
+      }
+      // Hatch on the front/back wall → line forms outside that row.
+      const gy  = dy>0 ? h+0.45 : -1.45;
+      const dir = cx > w/2 ? -1 : 1;
+      return { x: Math.min(w-1.2, Math.max(1.2, cx)) + i*0.95*dir, y: gy };
+    }
+
     resize() {
       const wrap=this.canvas.parentElement;
       this.canvas.width  = Math.round(wrap.clientWidth*this.dpr);
       this.canvas.height = Math.round(wrap.clientHeight*this.dpr);
 
       const {w,h}=this.lvl;
-      // Deepest scanline we ever draw: back grid corner vs. last queue slot.
-      const queueMaxXY = (w/2 - 1 + 4*0.95) + (h + 0.45);
-      const maxXY = Math.max(w + h - 2, queueMaxXY);
-
-      this.worldW = (w + h) * (TILE_WIDTH/2) + 32;
-      this.worldCX = this.worldW / 2 + (h - w) * (TILE_WIDTH/4); // centers the island
-      this.worldH = VERTICAL_OFFSET + maxXY * (TILE_HEIGHT/2) + TILE_HEIGHT + 56;
+      // World bounds from the island corners AND the queue slots, so the
+      // hatch-anchored queue always fits no matter which wall it lines up on.
+      const pts=[[0,0],[w-1,0],[0,h-1],[w-1,h-1]];
+      for (let i=-1;i<5;i++){ const q=this.queueSlot(i); pts.push([q.x,q.y]); }
+      let minFx=1e9, maxFx=-1e9, maxFy=-1e9;
+      for (const [x,y] of pts){
+        const fx=x-y, fy=x+y;
+        if (fx<minFx) minFx=fx;
+        if (fx>maxFx) maxFx=fx;
+        if (fy>maxFy) maxFy=fy;
+      }
+      const PAD=10;
+      this.worldW  = (maxFx-minFx)*(TILE_WIDTH/2) + TILE_WIDTH + PAD*2;
+      this.worldCX = PAD + TILE_WIDTH/2 - minFx*(TILE_WIDTH/2);
+      this.worldH  = VERTICAL_OFFSET + maxFy*(TILE_HEIGHT/2) + TILE_HEIGHT + 64;
 
       this.scale = Math.min(this.canvas.width/this.worldW, this.canvas.height/this.worldH);
       this.txOff = (this.canvas.width  - this.worldW*this.scale)/2;
@@ -241,23 +280,25 @@
       return [(fx + fy) / 2, (fy - fx) / 2];
     }
 
-    // Tap picking. A floor tap is a floor tap — movement is never hijacked.
-    // Only when the tap point itself doesn't hit a station do we re-test the
-    // point shifted down by BLOCK_LIFT, which catches taps landing on the
-    // raised TOP FACE of a counter block (those project to the cell behind).
+    // ── CLICK DETECTION: reverse-depth sprite hit testing ────────────────────
+    // The render pass registers every station's exact drawn rect (full sprite
+    // height included) in this._hits. A tap walks those regions from the
+    // FOREGROUND backwards (descending screenY), so the visually foremost
+    // sprite captures the click — with a per-pixel alpha probe so the
+    // transparent corners of a bounding rect pass through to whatever is
+    // behind. If no sprite claims the tap, it falls through to the ground
+    // plane via the exact inverse projection (floor movement).
     pick(wx, wy) {
-      const inside    = (x,y) => x>=0 && y>=0 && x<this.lvl.w && y<this.lvl.h;
-      const isStation = (x,y) => inside(x,y) && this.lvl.grid[y][x] !== '.';
-
-      let [ux, uy] = this.unproject(wx, wy);
-      let gx = Math.floor(ux), gy = Math.floor(uy);
-      if (isStation(gx, gy)) return [gx, gy];          // direct diamond hit
-
-      const [bx, by] = this.unproject(wx, wy + BLOCK_LIFT);
-      const tx = Math.floor(bx), ty = Math.floor(by);
-      if (isStation(tx, ty)) return [tx, ty];          // hit a block's top face
-
-      if (inside(gx, gy)) return [gx, gy];             // floor → walk there
+      const hits = (this._hits || []).slice().sort((a, b) => b.d - a.d);
+      for (const hit of hits) {
+        if (wx < hit.x || wx > hit.x + hit.w ||
+            wy < hit.y || wy > hit.y + hit.h) continue;
+        const u = (wx - hit.x) / hit.w, v = (wy - hit.y) / hit.h;
+        if (GFX.alphaAt(hit.key, u, v)) return [hit.gx, hit.gy];
+      }
+      const [ux, uy] = this.unproject(wx, wy);
+      const gx = Math.floor(ux), gy = Math.floor(uy);
+      if (gx>=0 && gy>=0 && gx<this.lvl.w && gy<this.lvl.h) return [gx, gy];
       return null;
     }
 
@@ -354,6 +395,7 @@
       ctx.setTransform(this.scale,0,0,this.scale,this.txOff,this.tyOff);
 
       const renderQueue = [];
+      this._hits = [];                 // precise sprite rects for click picking
       const {lvl}=this;
 
       // 1. Floor. The HD checkered patch is itself an iso diamond whose
@@ -375,10 +417,10 @@
           }});
         }
       }
-      // Queue-zone walkway tiles (faded) in front of the kitchen.
+      // Queue-zone walkway tiles (faded) — the path ends at the serve hatch.
       for (let i=-1;i<5;i++) {
-        const qx = lvl.w/2 - 1 + i*0.95, qy = lvl.h + 0.45;
-        const [sx, sy] = this.project(qx, qy);
+        const q = this.queueSlot(i);
+        const [sx, sy] = this.project(q.x, q.y);
         renderQueue.push({ screenY: sy - TILE_HEIGHT, draw: () => {
           ctx.globalAlpha = 0.45;
           GFX.tile(ctx, 'floor', sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT);
@@ -435,18 +477,27 @@
     // crates anchor outside the island (gy < 0), peeking over the back wall.
     pushDecor(queue) {
       const {lvl}=this;
-      // Hang an item on the wall above a back-perimeter tile.
-      const hang = (key, gx, gy, w) => {
+      // Desk decor: the street window, clock, and photo frames STAND ON the
+      // back counters (easel-backed), drawn just after their block so they
+      // rest on its top face instead of floating in the backdrop.
+      const deskDecor = (key, gx, gy, w) => {
         const [sx, sy] = this.project(gx, gy);
-        queue.push({ screenY: sy - 0.5, draw: () =>
-          GFX.drawAnchored(this.ctx, key, sx, sy - BLOCK_LIFT - 6, w) });
+        queue.push({ screenY: sy + 0.03, draw: () =>
+          GFX.drawAnchored(this.ctx, key, sx, sy - BLOCK_LIFT + 2, w) });
       };
-      // Back-right wall (row 0): multi-pane street window, clock, photos.
-      hang('wall_window', Math.max(1, Math.round(lvl.w*0.30)), 0, 92);
-      hang('wall_clock',  Math.max(2, Math.round(lvl.w*0.55)), 0, 22);
-      hang('wall_photos', Math.max(3, Math.round(lvl.w*0.78)), 0, 56);
-      // Back-left wall (column 0): the INDUSTRIAL BAKERY sign.
-      hang('wall_sign', 0, Math.max(1, Math.round(lvl.h*0.45)), 40);
+      deskDecor('wall_window', Math.max(1, Math.round(lvl.w*0.30)), 0, 84);
+      deskDecor('wall_clock',  Math.max(2, Math.round(lvl.w*0.55)), 0, 18);
+      deskDecor('wall_photos', Math.max(3, Math.round(lvl.w*0.78)), 0, 50);
+
+      // INDUSTRIAL BAKERY board sheared onto the left wall's isometric plane
+      // (slope -0.5 = the 2:1 wall climbing toward the back corner) so it
+      // reads as mounted on the wall, not a flat sticker.
+      {
+        const gy = Math.max(1, Math.round(lvl.h*0.45));
+        const [sx, sy] = this.project(0, gy);
+        queue.push({ screenY: sy - 0.5, draw: () =>
+          this.drawSheared(this.ctx, 'wall_sign', sx, sy - BLOCK_LIFT - 4, 42, -0.5) });
+      }
 
       // Flower vase with utensils on the back-corner counter top.
       if (lvl.grid[0][0] !== '.') {
@@ -473,26 +524,27 @@
 
       // Crates with dedicated art ARE the art (market basket on the floor).
       if (ing && GFX.img('crate_'+ing)) {
-        GFX.drawAnchored(ctx, 'crate_'+ing, sx, baseY - 1, TW*0.92);
+        const rect = GFX.drawAnchored(ctx, 'crate_'+ing, sx, baseY - 1, TW*SPRITE_FILL);
+        if (rect) this._hits.push({ ...rect, gx, gy, key: 'crate_'+ing, d: sy });
         return;
       }
 
       const s = this.cur && this.cur.stations[`${gx},${gy}`];
 
-      // Bottom-anchored, aspect-true: iso block placeholders and full 3D
-      // renders both stand on the tile's floor diamond this way.
-      // Stations with state-variant art swap sprites live.
+      // Bottom-anchored, aspect-true, at SPRITE_FILL of the tile width so
+      // counters get visual air between them (grid coords unchanged).
+      // Stations with state-variant art swap sprites live. Every drawn rect
+      // registers as a precise hit region for reverse-depth click picking.
       let key = STATION_KEY[c] || 'counter';
       if (c==='S' && s && s.contents && (s.state==='cooking'||s.state==='burned')) key='stove_fire';
       if (c==='K' && s && s.dirty > 0) key='sink_dirty';
-      // Per-station footprint tweaks for renders whose aspect runs tall.
-      const scale = c==='T' ? 0.74 : 1;
-      if (!GFX.drawAnchored(ctx, key, sx, baseY, TW*scale))
-        GFX.drawAnchored(ctx, 'counter', sx, baseY, TW);
+      let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL);
+      if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL); }
+      if (rect) this._hits.push({ ...rect, gx, gy, key, d: sy });
       const topY = sy - BLOCK_LIFT;
 
       // Crates without dedicated art: counter + ingredient sprite on top.
-      if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 22);
+      if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 14);
 
       if (!s) return;
 
@@ -547,20 +599,15 @@
       const col=this.colorOf[p.id]||PLAYER_COLORS[0];
       const isMe=p.id===this.myId;
 
-      // Identity ring on the floor (gameplay affordance).
+      // Clean base: a single soft ground shadow. Player identity lives in
+      // the floating name tag (multiplayer requirement), not base clutter.
       ctx.save();
-      if (isMe) {
-        const pulse=0.5+0.25*Math.sin(now/400);
-        ctx.globalAlpha=pulse*0.4; ctx.fillStyle=col;
-        ctx.beginPath(); ctx.ellipse(sx,sy,22,8.5,0,0,Math.PI*2); ctx.fill();
-      }
-      ctx.globalAlpha=isMe?0.9:0.55; ctx.fillStyle=col;
-      ctx.beginPath(); ctx.ellipse(sx,sy,14,5.5,0,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=0.22; ctx.fillStyle='#000';
+      ctx.beginPath(); ctx.ellipse(sx,sy,15,5.5,0,0,Math.PI*2); ctx.fill();
       ctx.restore();
 
       const headTopY = sy - bounce - CHEF_H;
       GFX.draw(ctx,'chef',sx,sy-bounce-CHEF_H*0.52,CHEF_H*0.85,CHEF_H);
-      if(p.avatar) this.glyph(p.avatar,sx,sy-bounce-CHEF_H*0.62,16);
 
       // Held item floats EXACTLY CARRY_GAP px above the chef's head.
       if (p.carry) {
@@ -595,12 +642,14 @@
 
       const out=[];
       orders.forEach((order,i)=>{
-        const tx = lvl.w/2 - 1 + i*0.95;
-        const ty = lvl.h + 0.45;
+        const slot = this.queueSlot(i);
         let pos=this.qPos.get(order.id);
-        if (!pos) { pos={x:tx+3, y:ty}; this.qPos.set(order.id,pos); }
-        pos.x += (tx-pos.x)*0.10;
-        pos.y += (ty-pos.y)*0.10;
+        if (!pos) {                          // walk in from down the line
+          const sp = this.queueSlot(i+3);
+          pos={x:sp.x, y:sp.y}; this.qPos.set(order.id,pos);
+        }
+        pos.x += (slot.x-pos.x)*0.10;
+        pos.y += (slot.y-pos.y)*0.10;
         out.push({ order, i, x:pos.x, y:pos.y,
           urgency: 1 - Math.max(0,order.ttl)/order.ttlMax });
       });
@@ -739,6 +788,20 @@
     }
 
     // ── Canvas helpers ────────────────────────────────────────────────────────
+    // Draw an asset sheared onto an isometric wall plane. slope = ±0.5 maps
+    // the sprite's horizontal axis onto the 2:1 iso wall direction (rise of
+    // 1 per 2 run — the 30° dimetric plane). Bottom-center anchored.
+    drawSheared(ctx, key, cx, baseY, w, slope) {
+      const img = GFX.img(key);
+      if (!img || !img.width) return false;
+      const h = w * img.height / img.width;
+      ctx.save();
+      ctx.translate(cx, baseY);
+      ctx.transform(1, slope, 0, 1, 0, 0);   // [x,y] → [x, y + slope·x]
+      ctx.drawImage(img, -w/2, -h, w, h);
+      ctx.restore();
+      return true;
+    }
     glyph(text,x,y,size,centered=true){
       const {ctx}=this;
       ctx.font=`${Math.round(size)}px "Apple Color Emoji","Segoe UI Emoji",system-ui`;
