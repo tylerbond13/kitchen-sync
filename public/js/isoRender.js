@@ -189,6 +189,62 @@
     return `<div class="chain">${steps.join('<i>›</i>')}</div>`;
   }
 
+  const DISH_TICKET_CELLS = {
+    soup_onion:  ['onion','onion','onion'].map((id)=>({ id, prep:['🔪','🥘'] })),
+    soup_tomato: ['tomato','tomato','tomato'].map((id)=>({ id, prep:['🔪','🥘'] })),
+    pizza: [
+      { id:'dough', prep:['🔥'] },
+      { id:'tomato', prep:['🔪','🔥'] },
+      { id:'cheese', prep:['🔪','🔥'] },
+    ],
+    stew: ['potato','carrot','onion'].map((id)=>({ id, prep:['🔪','🥘'] })),
+    cocoa: [
+      { id:'milk', prep:['🥘'] },
+      { id:'cocoa', prep:['🔪','🥘'] },
+    ],
+    juice: ['pineapple','strawberry','banana'].map((id)=>({ id, prep:['🔪','🥘'] })),
+  };
+
+  function assetImgHtml(key, fallback, cls='') {
+    const ent = window.ASSETS && window.ASSETS[key];
+    const path = typeof ent === 'string' ? ent : ent && ent.path;
+    if (path) return `<img class="${cls}" src="/${path}" alt="" draggable="false">`;
+    return `<span class="${cls} glyph">${fallback}</span>`;
+  }
+
+  function miniIngredientHtml(id) {
+    const svg = window.KSArt && KSArt.svg(`${id}.raw`);
+    if (svg) return svg;
+    return assetImgHtml(id, ING_EMOJI[id] || '❓', 'ticket-mini-img');
+  }
+
+  function cellForToken(token) {
+    const [id,state]=token.split('.');
+    if (state === 'dish') return null;
+    const prep = state === 'chopped' ? ['🔪']
+      : state === 'cooked' ? (id === 'patty' ? ['🔪','🍳'] : [COOK_TOOL[id] || '🍳'])
+      : [];
+    return { id, prep };
+  }
+
+  function ticketIngredientHtml(cell) {
+    const prep = (cell.prep || []).map((p)=>`<span>${p}</span>`).join('');
+    return `<div class="ticket-ingredient">
+      <div class="ticket-mini">${miniIngredientHtml(cell.id)}</div>
+      <div class="ticket-prep">${prep}</div>
+    </div>`;
+  }
+
+  function ticketRecipeHtml(order) {
+    const cells = DISH_TICKET_CELLS[order.recipe] || order.needs.map(cellForToken).filter(Boolean);
+    const dish = assetImgHtml(`dish_${order.recipe}`, order.emoji || '🍽️', 'ticket-dish-img');
+    return `<div class="ticket-dish">${dish}</div>
+      <div class="ticket-body">
+        <div class="ticket-name">${order.vip ? '👑 ' : ''}${order.name}</div>
+        <div class="ticket-ingredients">${cells.map(ticketIngredientHtml).join('')}</div>
+      </div>`;
+  }
+
   // ── The renderer ────────────────────────────────────────────────────────────
   class Renderer {
     constructor(canvas, staticState, myId, onTap) {
@@ -245,10 +301,9 @@
     // ── World space ⇄ canvas ──────────────────────────────────────────────────
     // World space uses the locked 64×32 tile constants. One uniform scale +
     // translate maps world space onto the device canvas.
-    // Queue geometry: customers always line the BOTTOM row, just outside the
-    // front of the room (consistent across every level). Slot 0 sits in the
-    // column nearest the serve hatch; the line extends toward the roomier
-    // side.
+    // Queue geometry: customers line up outside the front of the room. Slot 0
+    // sits in the column nearest the serve hatch; the line extends toward the
+    // roomier side.
     queueSlot(i) {
       const {w,h}=this.lvl;
       let bx = (w-1)/2;
@@ -260,7 +315,7 @@
       }
       bx = Math.min(w-1, Math.max(0, bx));
       const dir = bx > (w-1)/2 ? -1 : 1;
-      return { x: bx + i*dir, y: h + 0.05 };
+      return { x: bx + i*dir, y: h + 1.2 };
     }
 
     resize() {
@@ -746,32 +801,6 @@
       const preset=((q.order.id-1)%n+n)%n;
 
       GFX.draw(ctx, this.cast[preset], sx, sy+bob-CH*0.5, CH*0.92, CH);
-
-      // Hearts above the head.
-      const hearts=5, lit=Math.ceil((1-q.urgency)*hearts);
-      const hSz=10.5, hGap=hSz*1.05, hy=sy+bob-CH-7;
-      for(let h=0;h<hearts;h++){
-        const hx=sx-(hearts-1)*hGap/2+h*hGap;
-        GFX.draw(ctx, h<lit?'heart':'heart_empty', hx, hy, hSz, hSz);
-      }
-
-      // Order bubble: offset to the SIDE of the customer (toward the back of
-      // the line) and above head height, so it never covers the face of the
-      // customer behind them in the queue.
-      const bubW=48, bubH=40;
-      // Horizontal queues: bubble toward the back of the line. Vertical
-      // queues (hatch in a side wall): bubble toward the kitchen, so it
-      // never runs off the canvas edge.
-      const dx = this.queueSlot(1).x - this.queueSlot(0).x;
-      const side = dx > 0.01 ? -1 : dx < -0.01 ? 1 : (q.x > this.lvl.w/2 ? -1 : 1);
-      const bubX = sx + side*CH*0.34;
-      const bubCY = sy+bob-CH-12-bubH/2;
-      GFX.draw(ctx,'speech_bubble',bubX,bubCY,bubW,bubH);
-      const dishKey='dish_'+q.order.recipe;
-      if(!GFX.draw(ctx, GFX.has(dishKey)?dishKey:'__none__', bubX, bubCY-2, bubW*0.62, bubH*0.62))
-        this.glyph(q.order.emoji||'🍽️', bubX, bubCY-2, 17);
-      if (q.order.vip && !GFX.draw(ctx,'ui_crown', bubX+bubW*0.42, bubCY-bubH*0.42, 18, 18))
-        this.glyph('👑', bubX+bubW*0.42, bubCY-bubH*0.42, 12);
     }
 
     // ── Particle effects (world space, after the queue = always on top) ──────
@@ -889,5 +918,5 @@
     }
   }
 
-  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml, customerFace };
+  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml, ticketRecipeHtml, customerFace };
 })();

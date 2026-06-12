@@ -537,11 +537,7 @@
         el = document.createElement('div');
         el.className = 'ticket' + (o.vip ? ' vip' : '');
         el.innerHTML = `
-          <div class="ticket-face">${KSRender.customerFace(o.id)}</div>
-          <div class="ticket-bubble">
-            <div class="ticket-name">${o.vip ? '👑 ' : ''}${o.name}</div>
-            <div class="ticket-needs">${o.needs.map(KSRender.prepChainHtml).join('')}</div>
-          </div>
+          ${KSRender.ticketRecipeHtml(o)}
           <div class="ticket-bar"><i></i></div>`;
         strip.appendChild(el);
         ticketEls.set(o.id, el);
