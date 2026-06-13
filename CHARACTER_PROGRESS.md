@@ -57,6 +57,8 @@ Working in pairs. Each completed pair should have:
 - [x] Shaquille O'Neal
 - [x] Elton John
 - [x] Brad Pitt
+- [x] Kris Jenner
+- [x] Katy Perry
 
 ## Commits
 
@@ -80,6 +82,7 @@ Working in pairs. Each completed pair should have:
 - Tom Cruise + Michael Jordan: `ks-char-tom-cruise.png`, `ks-char-michael-jordan.png`; registered as chefs and customers.
 - Jerry Seinfeld + Shaquille O'Neal: `ks-char-jerry-seinfeld.png`, `ks-char-shaquille-oneal.png`; registered as chefs and customers.
 - Elton John + Brad Pitt: `ks-char-elton-john.png`, `ks-char-brad-pitt.png`; registered as chefs and customers.
+- Kris Jenner + Katy Perry: `ks-char-kris-jenner.png`, `ks-char-katy-perry.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 

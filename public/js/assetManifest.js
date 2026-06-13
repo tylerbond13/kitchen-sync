@@ -73,6 +73,8 @@
     { key: 'shaquille_oneal', name: "Shaquille O'Neal" },
     { key: 'elton_john', name: 'Elton John' },
     { key: 'brad_pitt', name: 'Brad Pitt' },
+    { key: 'kris_jenner', name: 'Kris Jenner' },
+    { key: 'katy_perry', name: 'Katy Perry' },
   ];
 
   window.ASSETS = {
@@ -136,6 +138,8 @@
     shaquille_oneal: { path: HD + 'ks-char-shaquille-oneal.png' },
     elton_john: { path: HD + 'ks-char-elton-john.png' },
     brad_pitt: { path: HD + 'ks-char-brad-pitt.png' },
+    kris_jenner: { path: HD + 'ks-char-kris-jenner.png' },
+    katy_perry: { path: HD + 'ks-char-katy-perry.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
