@@ -60,6 +60,8 @@
     { key: 'stephen_hawking', name: 'Stephen Hawking' },
     { key: 'greta_thunberg', name: 'Greta Thunberg' },
     { key: 'bart_simpson', name: 'Bart Simpson' },
+    { key: 'marge_simpson', name: 'Marge Simpson' },
+    { key: 'sonic_hedgehog', name: 'Sonic' },
   ];
 
   window.ASSETS = {
@@ -110,6 +112,8 @@
     stephen_hawking:   { path: HD + 'ks-char-stephen-hawking.png' },
     greta_thunberg:    { path: HD + 'ks-char-greta-thunberg.png' },
     bart_simpson:      { path: HD + 'ks-char-bart-simpson.png' },
+    marge_simpson:     { path: HD + 'ks-char-marge-simpson.png' },
+    sonic_hedgehog:    { path: HD + 'ks-char-sonic-hedgehog.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.

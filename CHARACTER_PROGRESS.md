@@ -43,8 +43,8 @@ Working in pairs. Each completed pair should have:
 - [ ] Buzz Lightyear
 - [x] Greta Thunberg
 - [x] Bart Simpson
-- [ ] Marge Simpson
-- [ ] Sonic the Hedgehog
+- [x] Marge Simpson
+- [x] Sonic the Hedgehog
 
 ## Commits
 
@@ -61,12 +61,17 @@ Working in pairs. Each completed pair should have:
 - Queen Elizabeth II + Joe Biden: `ks-char-queen-elizabeth-ii.png`, `ks-char-joe-biden.png`; registered as chefs and customers.
 - Kamala Harris + Stephen Hawking: `ks-char-kamala-harris.png`, `ks-char-stephen-hawking.png`; registered as chefs and customers.
 - Greta Thunberg + Bart Simpson: `ks-char-greta-thunberg.png`, `ks-char-bart-simpson.png`; registered as chefs and customers. Bart is an original homage-style schoolboy asset.
+- Marge Simpson + Sonic the Hedgehog: `ks-char-marge-simpson.png`, `ks-char-sonic-hedgehog.png`; registered as chefs and customers. Both are original homage-style assets.
 
 ## Needs Alternate Pass
 
 - Michael Jackson: direct and non-likeness pop performer prompts were rejected by the image tool.
 - Ellen Degeneres: direct and non-exact daytime host prompts were rejected by the image tool.
 - Leonardo Dicaprio: direct and non-exact movie star prompts were rejected by the image tool.
+- Count Chocula: direct and cereal-vampire homage prompts were rejected by the image tool.
+- Darth Vader: direct and non-exact dark sci-fi villain prompts were rejected by the image tool.
+- Woody: direct and western toy sheriff homage prompts were rejected by the image tool.
+- Buzz Lightyear: direct and space-ranger homage prompts were rejected by the image tool.
 
 ## Excluded
 
