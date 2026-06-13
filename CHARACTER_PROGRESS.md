@@ -64,6 +64,8 @@ Working in pairs. Each completed pair should have:
 - [x] Kim Kardashian
 - [x] Kris Jenner
 - [x] Katy Perry
+- [x] Lady Gaga
+- [x] Robyn
 
 ## Commits
 
@@ -91,6 +93,7 @@ Working in pairs. Each completed pair should have:
 - Brad Pitt + Darth Vader: `ks-char-brad-pitt.png`, `ks-char-darth-vader.png`; registered as chefs and customers. Darth Vader is an original homage-style dark space-villain asset.
 - Justin Bieber + Kim Kardashian: `ks-char-justin-bieber.png`, `ks-char-kim-kardashian.png`; registered as chefs and customers.
 - Kris Jenner + Katy Perry: `ks-char-kris-jenner.png`, `ks-char-katy-perry.png`; registered as chefs and customers.
+- Lady Gaga + Robyn: `ks-char-lady-gaga.png`, `ks-char-robyn.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 

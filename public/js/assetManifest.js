@@ -81,6 +81,8 @@
     { key: 'kim_kardashian', name: 'Kim Kardashian' },
     { key: 'kris_jenner', name: 'Kris Jenner' },
     { key: 'katy_perry', name: 'Katy Perry' },
+    { key: 'lady_gaga', name: 'Lady Gaga' },
+    { key: 'robyn', name: 'Robyn' },
   ];
 
   window.ASSETS = {
@@ -152,6 +154,8 @@
     kim_kardashian: { path: HD + 'ks-char-kim-kardashian.png' },
     kris_jenner: { path: HD + 'ks-char-kris-jenner.png' },
     katy_perry: { path: HD + 'ks-char-katy-perry.png' },
+    lady_gaga: { path: HD + 'ks-char-lady-gaga.png' },
+    robyn: { path: HD + 'ks-char-robyn.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
