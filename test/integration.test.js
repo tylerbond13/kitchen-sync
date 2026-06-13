@@ -111,6 +111,18 @@ test('two players: create, join, play a round, progress persists', async () => {
   assert.equal(secondQueued.queue.length, 2);
   assert.equal(secondQueued.queue[1].requestedBy, 'Megan');
 
+  // every queued song is appended to the forever-log with who and when
+  const songLog = fs.readFileSync(store.SONG_LOG_FILE, 'utf8')
+    .trim().split('\n').map((line) => JSON.parse(line));
+  assert.equal(songLog.length, 2);
+  assert.equal(songLog[0].player, 'Tyler');
+  assert.equal(songLog[0].playerId, 'u-tyler');
+  assert.equal(songLog[0].videoId, 'dQw4w9WgXcQ');
+  assert.equal(songLog[0].crew, code);
+  assert.ok(!Number.isNaN(Date.parse(songLog[0].at)), 'timestamp parses as a date');
+  assert.equal(songLog[1].player, 'Megan');
+  assert.equal(songLog[1].title, 'Song B');
+
   // host starts; both receive game_start and state ticks
   const gs1 = waitFor(tyler, 'game_start');
   const gs2 = waitFor(sib, 'game_start');

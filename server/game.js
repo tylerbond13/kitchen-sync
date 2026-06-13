@@ -534,19 +534,6 @@ class Game {
     s.contents = []; s.combo = null; s.progress = 0; s.state = 'idle'; s.warnAcc = 0; s.warned = false;
   }
 
-  autoPickupFinishedBoard(stationKey, s) {
-    if (!s.item || s.item.state !== 'chopped') return false;
-    const [sx, sy] = stationKey.split(',').map(Number);
-    const picker = Object.values(this.players).find((p) =>
-      !p.carry && !p.path.length && (!p.queue || p.queue.length === 0)
-      && Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1);
-    if (!picker) return false;
-    picker.carry = s.item;
-    s.item = null;
-    this.emit('pickup', { x: sx, y: sy, playerId: picker.id });
-    return true;
-  }
-
   tryServe(p, at) {
     const tokens = p.carry.contents.map(itemToken);
     const idx = this.orders.findIndex((o) => multisetEqual(tokens, RECIPES[o.recipe].needs));
@@ -640,7 +627,9 @@ class Game {
         s.soundAcc = 0;
         if (worker) worker.chops++;
         this.emit('chopped', { x: sx, y: sy });
-        this.autoPickupFinishedBoard(key, s);
+        // the finished item stays on the board for ANY chef to grab — an
+        // auto-grab into a bystander's hands used to trap it where only
+        // they could use it
       }
     }
 

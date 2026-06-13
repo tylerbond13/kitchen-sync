@@ -105,16 +105,30 @@ test('chopping continues after the chef walks away', () => {
   assert.equal(p.carry, null, 'chef can keep doing other things');
 });
 
-test('idle chef auto-picks up a board when chopping finishes', () => {
-  const game = makeGame();
-  const p = game.players.p1;
+test('finished chop stays on the board so any chef can grab it', () => {
+  const level = LEVELS.find((l) => l.id === 'salad-days');
+  const game = new Game(level, [
+    { id: 'p1', name: 'Ada', avatar: '🦊' },
+    { id: 'p2', name: 'Sam', avatar: '🐸' },
+  ], { rng: () => 0 });
+  const chopper = game.players.p1;
+  const helper = game.players.p2;
   const board = stationKey(game, 'board');
-  p.carry = { id: 'lettuce', state: 'raw' };
-  standAt(game, p, board);
-  game.interact(p, board);
 
-  for (let i = 0; i < 30 && !p.carry; i++) game.tick(0.1);
-  assert.deepEqual(p.carry, { id: 'lettuce', state: 'chopped' });
+  chopper.carry = { id: 'lettuce', state: 'raw' };
+  standAt(game, chopper, board);
+  game.interact(chopper, board);
+
+  // the chopper idles right next to the board while it finishes — the item
+  // must NOT jump into their hands (that trapped it for everyone else)
+  for (let i = 0; i < 30; i++) game.tick(0.1);
+  assert.equal(game.stations[board].item.state, 'chopped');
+  assert.equal(chopper.carry, null, 'no auto-grab into a bystander hands');
+
+  // a second chef on the same tile takes it while the chopper stands there
+  standAt(game, helper, board);
+  game.interact(helper, board);
+  assert.deepEqual(helper.carry, { id: 'lettuce', state: 'chopped' });
   assert.equal(game.stations[board].item, null);
 });
 
@@ -334,7 +348,10 @@ test('tapping a busy board does not interrupt chopping', () => {
   game.tap('p1', bx, by);
   assert.equal(p.carry, null, 'keeps chopping instead of picking up raw food');
   assert.equal(p.queue.length, 0);
-  for (let i = 0; i < 30 && !p.carry; i++) game.tick(0.1);
+  for (let i = 0; i < 30 && game.stations[board].item.state !== 'chopped'; i++) game.tick(0.1);
+  assert.equal(game.stations[board].item.state, 'chopped');
+  assert.equal(p.carry, null, 'finished food waits on the board');
+  game.interact(p, board);
   assert.deepEqual(p.carry, { id: 'lettuce', state: 'chopped' });
   assert.equal(game.stations[board].item, null);
 });
