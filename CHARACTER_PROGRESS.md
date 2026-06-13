@@ -32,8 +32,8 @@ Working in pairs. Each completed pair should have:
 - [ ] Leonardo Dicaprio
 - [x] John Lennon
 - [x] Elvis Presley
-- [ ] Queen Elizabeth II
-- [ ] Joe Biden
+- [x] Queen Elizabeth II
+- [x] Joe Biden
 - [ ] Kamala Harris
 - [ ] Osama Bin Laden
 - [ ] Stephen Hawking
@@ -58,6 +58,7 @@ Working in pairs. Each completed pair should have:
 - Oprah Winfrey + Dr. Phil: `ks-char-oprah-winfrey.png`, `ks-char-dr-phil.png`; registered as chefs and customers.
 - Princess Diana + George Washington: `ks-char-princess-diana.png`, `ks-char-george-washington.png`; registered as chefs and customers.
 - John Lennon + Elvis Presley: `ks-char-john-lennon.png`, `ks-char-elvis-presley.png`; registered as chefs and customers.
+- Queen Elizabeth II + Joe Biden: `ks-char-queen-elizabeth-ii.png`, `ks-char-joe-biden.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
