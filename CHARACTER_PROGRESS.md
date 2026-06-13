@@ -74,6 +74,8 @@ Working in pairs. Each completed pair should have:
 - [x] Yoda
 - [x] Walter Sobchak
 - [x] The Dude (Big Lebowski)
+- [x] Bill Murray
+- [x] Chevy Chase
 
 ## Commits
 
@@ -106,6 +108,7 @@ Working in pairs. Each completed pair should have:
 - Joe Walsh + Don Henley: `ks-char-joe-walsh.png`, `ks-char-don-henley.png`; registered as chefs and customers.
 - Glenn Frey + Yoda: `ks-char-glenn-frey.png`, `ks-char-yoda.png`; registered as chefs and customers. Yoda is an original homage-style wise green space-master asset.
 - Walter Sobchak + The Dude (Big Lebowski): `ks-char-walter-sobchak.png`, `ks-char-the-dude.png`; registered as chefs and customers.
+- Bill Murray + Chevy Chase: `ks-char-bill-murray.png`, `ks-char-chevy-chase.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 

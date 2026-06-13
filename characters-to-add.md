@@ -75,3 +75,5 @@ Glenn Frey
 Yoda
 Walter Sobchak
 The Dude (Big Lebowski)
+Bill Murray
+Chevy Chase
