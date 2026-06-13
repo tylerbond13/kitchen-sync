@@ -64,8 +64,8 @@ Working in pairs. Each completed pair should have:
 - [ ] Babe (the pig)
 - [x] Justin Bieber
 - [x] Kim Kardashian
-- [ ] Lady Gaga
-- [ ] Robyn
+- [x] Lady Gaga
+- [x] Robyn
 - [ ] Shania Twain
 - [ ] Drake
 - [ ] Joe Walsh
@@ -104,6 +104,7 @@ Working in pairs. Each completed pair should have:
 - Elton John + Brad Pitt: `ks-char-elton-john.png`, `ks-char-brad-pitt.png`; registered as chefs and customers.
 - Kris Jenner + Katy Perry: `ks-char-kris-jenner.png`, `ks-char-katy-perry.png`; registered as chefs and customers.
 - Justin Bieber + Kim Kardashian: `ks-char-justin-bieber.png`, `ks-char-kim-kardashian.png`; registered as chefs and customers.
+- Lady Gaga + Robyn: `ks-char-lady-gaga.png`, `ks-char-robyn.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
