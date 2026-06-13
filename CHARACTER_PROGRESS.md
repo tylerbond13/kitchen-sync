@@ -73,8 +73,8 @@ Working in pairs. Each completed pair should have:
 - [x] Glenn Frey
 - [ ] Yoda
 - [x] Walter Sobchak
-- [ ] The Dude (Big Lebowski)
-- [ ] Bill Murray
+- [x] The Dude (Big Lebowski)
+- [x] Bill Murray
 - [ ] Chevy Chase
 - [ ] Buddy the Elf
 - [ ] Bono
@@ -108,6 +108,7 @@ Working in pairs. Each completed pair should have:
 - Shania Twain + Drake: `ks-char-shania-twain.png`, `ks-char-drake.png`; registered as chefs and customers.
 - Joe Walsh + Don Henley: `ks-char-joe-walsh.png`, `ks-char-don-henley.png`; registered as chefs and customers.
 - Glenn Frey + Walter Sobchak: `ks-char-glenn-frey.png`, `ks-char-walter-sobchak.png`; registered as chefs and customers.
+- The Dude (Big Lebowski) + Bill Murray: `ks-char-the-dude.png`, `ks-char-bill-murray.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 

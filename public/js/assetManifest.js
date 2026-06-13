@@ -83,6 +83,8 @@
     { key: 'don_henley', name: 'Don Henley' },
     { key: 'glenn_frey', name: 'Glenn Frey' },
     { key: 'walter_sobchak', name: 'Walter Sobchak' },
+    { key: 'the_dude', name: 'The Dude' },
+    { key: 'bill_murray', name: 'Bill Murray' },
     { key: 'kim_kardashian', name: 'Kim Kardashian' },
     { key: 'justin_bieber', name: 'Justin Bieber' },
   ];
@@ -158,6 +160,8 @@
     don_henley: { path: HD + 'ks-char-don-henley.png' },
     glenn_frey: { path: HD + 'ks-char-glenn-frey.png' },
     walter_sobchak: { path: HD + 'ks-char-walter-sobchak.png' },
+    the_dude: { path: HD + 'ks-char-the-dude.png' },
+    bill_murray: { path: HD + 'ks-char-bill-murray.png' },
     kim_kardashian: { path: HD + 'ks-char-kim-kardashian.png' },
     justin_bieber: { path: HD + 'ks-char-justin-bieber.png' },
 
