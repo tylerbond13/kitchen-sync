@@ -54,3 +54,5 @@ Celine Dion
 Snooki from Jersey Shore
 Tom Cruise
 Michael Jordan
+Jerry Seinfeld
+Shaquille O'Neal

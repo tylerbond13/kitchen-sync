@@ -69,6 +69,8 @@
     { key: 'snooki', name: 'Snooki' },
     { key: 'tom_cruise', name: 'Tom Cruise' },
     { key: 'michael_jordan', name: 'Michael Jordan' },
+    { key: 'jerry_seinfeld', name: 'Jerry Seinfeld' },
+    { key: 'shaquille_oneal', name: "Shaquille O'Neal" },
   ];
 
   window.ASSETS = {
@@ -128,6 +130,8 @@
     snooki: { path: HD + 'ks-char-snooki.png' },
     tom_cruise: { path: HD + 'ks-char-tom-cruise.png' },
     michael_jordan: { path: HD + 'ks-char-michael-jordan.png' },
+    jerry_seinfeld: { path: HD + 'ks-char-jerry-seinfeld.png' },
+    shaquille_oneal: { path: HD + 'ks-char-shaquille-oneal.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
