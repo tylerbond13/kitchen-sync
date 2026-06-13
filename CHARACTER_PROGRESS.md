@@ -20,8 +20,8 @@ Working in pairs. Each completed pair should have:
 - [x] George Costanza
 - [x] Carrie Bradshaw
 - [ ] Michael Jackson
-- [ ] Marilyn Monroe
-- [ ] Donald Trump
+- [x] Marilyn Monroe
+- [x] Donald Trump
 - [ ] Lucy Ricardo
 - [ ] Ricky Ricardo
 - [ ] Ellen Degeneres
@@ -53,3 +53,8 @@ Working in pairs. Each completed pair should have:
 - Lorelai Gilmore + Angela Lansbury: `ks-char-lorelai-gilmore.png`, `ks-char-angela-lansbury.png`; registered as chefs and customers.
 - Elaine Benes + Cosmo Kramer: `ks-char-elaine-benes.png`, `ks-char-cosmo-kramer.png`; registered as chefs and customers.
 - George Costanza + Carrie Bradshaw: `ks-char-george-costanza.png`, `ks-char-carrie-bradshaw.png`; registered as chefs and customers.
+- Marilyn Monroe + Donald Trump: `ks-char-marilyn-monroe.png`, `ks-char-donald-trump.png`; registered as chefs and customers.
+
+## Needs Alternate Pass
+
+- Michael Jackson: direct and non-likeness pop performer prompts were rejected by the image tool.

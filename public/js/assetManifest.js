@@ -44,6 +44,8 @@
     { key: 'cosmo_kramer', name: 'Kramer' },
     { key: 'george_costanza', name: 'George Costanza' },
     { key: 'carrie_bradshaw', name: 'Carrie Bradshaw' },
+    { key: 'marilyn_monroe', name: 'Marilyn Monroe' },
+    { key: 'donald_trump', name: 'Donald Trump' },
   ];
 
   window.ASSETS = {
@@ -78,6 +80,8 @@
     cosmo_kramer:      { path: HD + 'ks-char-cosmo-kramer.png' },
     george_costanza:   { path: HD + 'ks-char-george-costanza.png' },
     carrie_bradshaw:   { path: HD + 'ks-char-carrie-bradshaw.png' },
+    marilyn_monroe:    { path: HD + 'ks-char-marilyn-monroe.png' },
+    donald_trump:      { path: HD + 'ks-char-donald-trump.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
