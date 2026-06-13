@@ -295,6 +295,20 @@ function attach(io) {
       game.pausedBy = on ? (p ? p.name : 'someone') : null;
     });
 
+    // any chef can restart the active level from the pause menu — the
+    // abandoned round is a do-over, so it records no progress
+    socket.on('restart_level', (payload, ack) => {
+      if (typeof ack !== 'function') ack = typeof payload === 'function' ? payload : () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      const room = joined.room;
+      if (!room.game || room.game.phase !== 'playing') return ack({ error: 'No round to restart' });
+      const levelId = room.game.level.id;
+      clearInterval(room.loop);
+      room.loop = null;
+      room.game = null;
+      ack(startGame(io, room, levelId));
+    });
+
     // player backed out to the lobby; the round keeps running for the rest
     // of the crew, but if NOBODY is left playing it wraps up immediately
     socket.on('exit_round', () => {
