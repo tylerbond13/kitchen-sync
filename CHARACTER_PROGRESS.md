@@ -45,6 +45,8 @@ Working in pairs. Each completed pair should have:
 - [x] Bart Simpson
 - [x] Marge Simpson
 - [x] Sonic the Hedgehog
+- [x] Cher
+- [x] Britney Spears (redo & replace)
 
 ## Commits
 
@@ -62,6 +64,7 @@ Working in pairs. Each completed pair should have:
 - Kamala Harris + Stephen Hawking: `ks-char-kamala-harris.png`, `ks-char-stephen-hawking.png`; registered as chefs and customers.
 - Greta Thunberg + Bart Simpson: `ks-char-greta-thunberg.png`, `ks-char-bart-simpson.png`; registered as chefs and customers. Bart is an original homage-style schoolboy asset.
 - Marge Simpson + Sonic the Hedgehog: `ks-char-marge-simpson.png`, `ks-char-sonic-hedgehog.png`; registered as chefs and customers. Both are original homage-style assets.
+- Cher + Britney Spears: `ks-char-cher.png`, `ks-char-britney-spears.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 

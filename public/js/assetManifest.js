@@ -33,7 +33,7 @@
     { key: 'sinatra', name: 'Sinatra' },
     { key: 'wadsworth', name: 'Wadsworth' },
     { key: 'obama', name: 'Obama' },
-    { key: 'britney', name: 'Britney' },
+    { key: 'britney', name: 'Britney Spears' },
     { key: 'blanche_devereaux', name: 'Blanche' },
     { key: 'dorothy_zbornak', name: 'Dorothy' },
     { key: 'julie_andrews', name: 'Julie Andrews' },
@@ -62,6 +62,7 @@
     { key: 'bart_simpson', name: 'Bart Simpson' },
     { key: 'marge_simpson', name: 'Marge Simpson' },
     { key: 'sonic_hedgehog', name: 'Sonic' },
+    { key: 'cher', name: 'Cher' },
   ];
 
   window.ASSETS = {
@@ -85,7 +86,7 @@
     // pose sheets ship at 50% (shrink-assets.sh) — crops pick the front
     // idle pose in halved coordinates (sheet cells are 176x384)
     obama:          { path: HD + 'ks-char-sprite-barack-obama.png',   crop: [0, 0, 176, 384] },
-    britney:        { path: HD + 'ks-char-sprite-britney-spears.png', crop: [0, 0, 176, 384] },
+    britney: { path: HD + 'ks-char-britney-spears.png' },
     blanche_devereaux: { path: HD + 'ks-char-blanche-devereaux.png' },
     dorothy_zbornak:   { path: HD + 'ks-char-dorothy-zbornak.png' },
     julie_andrews:     { path: HD + 'ks-char-julie-andrews.png' },
@@ -114,6 +115,7 @@
     bart_simpson:      { path: HD + 'ks-char-bart-simpson.png' },
     marge_simpson:     { path: HD + 'ks-char-marge-simpson.png' },
     sonic_hedgehog:    { path: HD + 'ks-char-sonic-hedgehog.png' },
+    cher: { path: HD + 'ks-char-cher.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
