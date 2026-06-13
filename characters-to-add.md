@@ -48,3 +48,5 @@ Peppa Pig
 
 --People we know
 Cher
+Taylor Swift
+Kanye West

@@ -63,6 +63,8 @@
     { key: 'marge_simpson', name: 'Marge Simpson' },
     { key: 'sonic_hedgehog', name: 'Sonic' },
     { key: 'cher', name: 'Cher' },
+    { key: 'taylor_swift', name: 'Taylor Swift' },
+    { key: 'kanye_west', name: 'Kanye West' },
   ];
 
   window.ASSETS = {
@@ -116,6 +118,8 @@
     marge_simpson:     { path: HD + 'ks-char-marge-simpson.png' },
     sonic_hedgehog:    { path: HD + 'ks-char-sonic-hedgehog.png' },
     cher: { path: HD + 'ks-char-cher.png' },
+    taylor_swift: { path: HD + 'ks-char-taylor-swift.png' },
+    kanye_west: { path: HD + 'ks-char-kanye-west.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
