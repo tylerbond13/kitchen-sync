@@ -77,3 +77,5 @@ Walter Sobchak
 The Dude (Big Lebowski)
 Bill Murray
 Chevy Chase
+Buddy the Elf
+Bono

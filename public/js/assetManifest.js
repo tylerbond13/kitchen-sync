@@ -93,6 +93,8 @@
     { key: 'the_dude', name: 'The Dude' },
     { key: 'bill_murray', name: 'Bill Murray' },
     { key: 'chevy_chase', name: 'Chevy Chase' },
+    { key: 'buddy_the_elf', name: 'Buddy the Elf' },
+    { key: 'bono', name: 'Bono' },
   ];
 
   window.ASSETS = {
@@ -176,6 +178,8 @@
     the_dude: { path: HD + 'ks-char-the-dude.png' },
     bill_murray: { path: HD + 'ks-char-bill-murray.png' },
     chevy_chase: { path: HD + 'ks-char-chevy-chase.png' },
+    buddy_the_elf: { path: HD + 'ks-char-buddy-the-elf.png' },
+    bono: { path: HD + 'ks-char-bono.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.

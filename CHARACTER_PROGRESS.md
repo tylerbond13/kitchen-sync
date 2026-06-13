@@ -76,6 +76,8 @@ Working in pairs. Each completed pair should have:
 - [x] The Dude (Big Lebowski)
 - [x] Bill Murray
 - [x] Chevy Chase
+- [x] Buddy the Elf
+- [x] Bono
 
 ## Commits
 
@@ -109,6 +111,7 @@ Working in pairs. Each completed pair should have:
 - Glenn Frey + Yoda: `ks-char-glenn-frey.png`, `ks-char-yoda.png`; registered as chefs and customers. Yoda is an original homage-style wise green space-master asset.
 - Walter Sobchak + The Dude (Big Lebowski): `ks-char-walter-sobchak.png`, `ks-char-the-dude.png`; registered as chefs and customers.
 - Bill Murray + Chevy Chase: `ks-char-bill-murray.png`, `ks-char-chevy-chase.png`; registered as chefs and customers.
+- Buddy the Elf + Bono: `ks-char-buddy-the-elf.png`, `ks-char-bono.png`; registered as chefs and customers. Buddy the Elf is an original homage-style holiday helper asset.
 
 ## Needs Alternate Pass
 
