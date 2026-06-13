@@ -18,10 +18,44 @@
     return typeof ent === 'string' ? ent : ent && ent.path;
   }
 
+  // Sheet-cropped chefs (obama/britney) must show the game's prepared frame,
+  // not the raw 16-pose sheet. GFX crops/keys/trims asynchronously, so serve
+  // a blank until the canvas is ready, then fill every pending <img>.
+  const SPRITE_BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  const chefSpriteCache = {};
+  let chefSpriteTimer = null;
+  function chefSpriteSrc(key) {
+    if (chefSpriteCache[key]) return chefSpriteCache[key];
+    const sprite = window.GFX && window.GFX.img(key);
+    if (sprite && sprite.width) {
+      chefSpriteCache[key] = sprite.toDataURL();
+      return chefSpriteCache[key];
+    }
+    if (!chefSpriteTimer) {
+      chefSpriteTimer = setTimeout(() => {
+        chefSpriteTimer = null;
+        document.querySelectorAll('img[data-chef-sprite]').forEach((el) => {
+          const src = chefSpriteSrc(el.dataset.chefSprite);
+          if (src !== SPRITE_BLANK) {
+            el.src = src;
+            el.removeAttribute('data-chef-sprite');
+          }
+        });
+      }, 200);
+    }
+    return SPRITE_BLANK;
+  }
+
   function chefImgHtml(key, cls = 'chef-face-img') {
     const choice = chefChoice(key);
     const path = chefPath(choice.key);
     if (!path) return '';
+    const ent = window.ASSETS && window.ASSETS[choice.key];
+    if (ent && typeof ent === 'object' && ent.crop) {
+      const src = chefSpriteSrc(choice.key);
+      const pending = src === SPRITE_BLANK ? ` data-chef-sprite="${choice.key}"` : '';
+      return `<img class="${cls}" src="${src}"${pending} alt="${escapeHtml(choice.name)}" draggable="false">`;
+    }
     return `<img class="${cls}" src="/${path}" alt="${escapeHtml(choice.name)}" draggable="false">`;
   }
 
