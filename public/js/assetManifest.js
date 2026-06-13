@@ -42,6 +42,8 @@
     { key: 'angela_lansbury', name: 'Angela Lansbury' },
     { key: 'elaine_benes', name: 'Elaine Benes' },
     { key: 'cosmo_kramer', name: 'Kramer' },
+    { key: 'george_costanza', name: 'George Costanza' },
+    { key: 'carrie_bradshaw', name: 'Carrie Bradshaw' },
   ];
 
   window.ASSETS = {
@@ -74,6 +76,8 @@
     angela_lansbury:   { path: HD + 'ks-char-angela-lansbury.png' },
     elaine_benes:      { path: HD + 'ks-char-elaine-benes.png' },
     cosmo_kramer:      { path: HD + 'ks-char-cosmo-kramer.png' },
+    george_costanza:   { path: HD + 'ks-char-george-costanza.png' },
+    carrie_bradshaw:   { path: HD + 'ks-char-carrie-bradshaw.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.

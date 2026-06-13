@@ -17,8 +17,8 @@ Working in pairs. Each completed pair should have:
 - [x] Angela Lansbury
 - [x] Elaine Benes
 - [x] Cosmo Kramer
-- [ ] George Costanza
-- [ ] Carrie Bradshaw
+- [x] George Costanza
+- [x] Carrie Bradshaw
 - [ ] Michael Jackson
 - [ ] Marilyn Monroe
 - [ ] Donald Trump
@@ -52,3 +52,4 @@ Working in pairs. Each completed pair should have:
 - Julie Andrews + Rory Gilmore: `ks-char-julie-andrews.png`, `ks-char-rory-gilmore.png`; registered as chefs and customers.
 - Lorelai Gilmore + Angela Lansbury: `ks-char-lorelai-gilmore.png`, `ks-char-angela-lansbury.png`; registered as chefs and customers.
 - Elaine Benes + Cosmo Kramer: `ks-char-elaine-benes.png`, `ks-char-cosmo-kramer.png`; registered as chefs and customers.
+- George Costanza + Carrie Bradshaw: `ks-char-george-costanza.png`, `ks-char-carrie-bradshaw.png`; registered as chefs and customers.
