@@ -56,3 +56,5 @@ Babe (the pig)
 Celine Dion
 Snooki from Jersey Shore
 Tom Cruise
+Michael Jordan
+Jerry Seinfeld
