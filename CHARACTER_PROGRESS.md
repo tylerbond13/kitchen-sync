@@ -70,9 +70,9 @@ Working in pairs. Each completed pair should have:
 - [x] Drake
 - [x] Joe Walsh
 - [x] Don Henley
-- [ ] Glenn Frey
+- [x] Glenn Frey
 - [ ] Yoda
-- [ ] Walter Sobchak
+- [x] Walter Sobchak
 - [ ] The Dude (Big Lebowski)
 - [ ] Bill Murray
 - [ ] Chevy Chase
@@ -107,6 +107,7 @@ Working in pairs. Each completed pair should have:
 - Lady Gaga + Robyn: `ks-char-lady-gaga.png`, `ks-char-robyn.png`; registered as chefs and customers.
 - Shania Twain + Drake: `ks-char-shania-twain.png`, `ks-char-drake.png`; registered as chefs and customers.
 - Joe Walsh + Don Henley: `ks-char-joe-walsh.png`, `ks-char-don-henley.png`; registered as chefs and customers.
+- Glenn Frey + Walter Sobchak: `ks-char-glenn-frey.png`, `ks-char-walter-sobchak.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
