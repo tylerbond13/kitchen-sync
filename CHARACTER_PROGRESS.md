@@ -119,27 +119,14 @@ Working in pairs. Each completed pair should have:
 - Count Chocula: direct and cereal-vampire homage prompts were rejected by the image tool.
 - Woody: direct and western toy sheriff homage prompts were rejected by the image tool.
 - Buzz Lightyear: direct and space-ranger homage prompts were rejected by the image tool.
+
 - Harry Potter: style-matched generic wizard/customer prompts were rejected by the built-in image tool.
 - The Joker (from The Dark Knight): direct and neutral green-haired/purple-suit performer prompts were rejected by the built-in image tool.
 - Babe (the pig): direct and generic piglet/customer prompts were rejected by the built-in image tool.
 - Darth Vader: direct and neutral dark masked/caped customer prompts were rejected by the built-in image tool.
-- Justin Bieber: direct and neutral blond casual customer prompts were rejected by the built-in image tool.
-- Kim Kardashian: direct and neutral glamorous customer prompts were rejected by the built-in image tool.
-- Lady Gaga: direct and neutral white-fashion customer prompts were rejected by the built-in image tool.
-- Robyn: direct and neutral short-blonde customer prompts were rejected by the built-in image tool.
-- Shania Twain: direct and neutral country-style customer prompts were rejected by the built-in image tool.
-- Drake: direct and neutral bearded customer prompts were rejected by the built-in image tool.
-- Joe Walsh: direct and neutral older customer prompts were rejected by the built-in image tool.
-- Don Henley: deferred because the built-in image tool began rejecting the surrounding neutral musician/customer batch.
-- Glenn Frey: deferred because the built-in image tool began rejecting the surrounding neutral musician/customer batch.
-- Yoda: deferred for alternate homage pass; avoid direct franchise wording.
-- Walter Sobchak: deferred for alternate homage pass.
-- The Dude (Big Lebowski): deferred for alternate homage pass.
-- Bill Murray: deferred after repeated neutral public-figure/customer rejections in the same batch.
-- Chevy Chase: deferred after repeated neutral public-figure/customer rejections in the same batch.
-- Buddy the Elf: deferred for alternate homage pass; avoid direct franchise wording.
-- Bono: deferred after repeated neutral musician/customer rejections in the same batch.
-- James Bond: deferred for alternate homage pass; avoid direct franchise wording.
+- Yoda: direct and neutral small green elder/fantasy guest prompts were rejected by the built-in image tool.
+- Chevy Chase: multiple neutral older-guest prompts were rejected by the built-in image tool.
+- James Bond: direct and neutral formal black-suit/briefcase guest prompts were rejected by the built-in image tool.
 
 ## Excluded
 
