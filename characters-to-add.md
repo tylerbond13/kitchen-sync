@@ -50,3 +50,5 @@ Peppa Pig
 Cher
 Taylor Swift
 Kanye West
+Celine Dion
+Snooki from Jersey Shore

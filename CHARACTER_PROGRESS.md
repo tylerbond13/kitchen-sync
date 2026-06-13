@@ -49,6 +49,8 @@ Working in pairs. Each completed pair should have:
 - [x] Britney Spears (redo & replace)
 - [x] Taylor Swift
 - [x] Kanye West
+- [x] Celine Dion
+- [x] Snooki from Jersey Shore
 
 ## Commits
 
@@ -68,6 +70,7 @@ Working in pairs. Each completed pair should have:
 - Marge Simpson + Sonic the Hedgehog: `ks-char-marge-simpson.png`, `ks-char-sonic-hedgehog.png`; registered as chefs and customers. Both are original homage-style assets.
 - Cher + Britney Spears: `ks-char-cher.png`, `ks-char-britney-spears.png`; registered as chefs and customers.
 - Taylor Swift + Kanye West: `ks-char-taylor-swift.png`, `ks-char-kanye-west.png`; registered as chefs and customers.
+- Celine Dion + Snooki from Jersey Shore: `ks-char-celine-dion.png`, `ks-char-snooki.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
