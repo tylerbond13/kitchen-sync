@@ -75,6 +75,20 @@
     { key: 'brad_pitt', name: 'Brad Pitt' },
     { key: 'kris_jenner', name: 'Kris Jenner' },
     { key: 'katy_perry', name: 'Katy Perry' },
+    { key: 'lady_gaga', name: 'Lady Gaga' },
+    { key: 'robyn', name: 'Robyn' },
+    { key: 'shania_twain', name: 'Shania Twain' },
+    { key: 'drake', name: 'Drake' },
+    { key: 'joe_walsh', name: 'Joe Walsh' },
+    { key: 'don_henley', name: 'Don Henley' },
+    { key: 'glenn_frey', name: 'Glenn Frey' },
+    { key: 'walter_sobchak', name: 'Walter Sobchak' },
+    { key: 'the_dude', name: 'The Dude' },
+    { key: 'bill_murray', name: 'Bill Murray' },
+    { key: 'buddy_the_elf', name: 'Buddy the Elf' },
+    { key: 'bono', name: 'Bono' },
+    { key: 'kim_kardashian', name: 'Kim Kardashian' },
+    { key: 'justin_bieber', name: 'Justin Bieber' },
   ];
 
   window.ASSETS = {
@@ -140,6 +154,20 @@
     brad_pitt: { path: HD + 'ks-char-brad-pitt.png' },
     kris_jenner: { path: HD + 'ks-char-kris-jenner.png' },
     katy_perry: { path: HD + 'ks-char-katy-perry.png' },
+    lady_gaga: { path: HD + 'ks-char-lady-gaga.png' },
+    robyn: { path: HD + 'ks-char-robyn.png' },
+    shania_twain: { path: HD + 'ks-char-shania-twain.png' },
+    drake: { path: HD + 'ks-char-drake.png' },
+    joe_walsh: { path: HD + 'ks-char-joe-walsh.png' },
+    don_henley: { path: HD + 'ks-char-don-henley.png' },
+    glenn_frey: { path: HD + 'ks-char-glenn-frey.png' },
+    walter_sobchak: { path: HD + 'ks-char-walter-sobchak.png' },
+    the_dude: { path: HD + 'ks-char-the-dude.png' },
+    bill_murray: { path: HD + 'ks-char-bill-murray.png' },
+    buddy_the_elf: { path: HD + 'ks-char-buddy-the-elf.png' },
+    bono: { path: HD + 'ks-char-bono.png' },
+    kim_kardashian: { path: HD + 'ks-char-kim-kardashian.png' },
+    justin_bieber: { path: HD + 'ks-char-justin-bieber.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.

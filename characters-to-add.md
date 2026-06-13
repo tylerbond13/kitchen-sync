@@ -60,3 +60,23 @@ Elton John
 Brad Pitt
 Kris Jenner
 Katy Perry
+Harry Potter
+The Joker (from The Dark Knight)
+Babe (the pig)
+Justin Bieber
+Kim Kardashian
+Lady Gaga
+Robyn
+Shania Twain
+Drake
+Joe Walsh
+Don Henley
+Glenn Frey
+Yoda
+Walter Sobchak
+The Dude (Big Lebowski)
+Bill Murray
+Chevy Chase
+Buddy the Elf
+Bono
+James Bond
