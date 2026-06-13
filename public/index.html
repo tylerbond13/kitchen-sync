@@ -717,6 +717,116 @@ input[type="text"]:focus {
 }
 .gp-face img { width: 22px; height: 22px; object-fit: contain; display: block; }
 
+/* ============ Level music (crew radio queue) ============ */
+.music-title { display: flex; align-items: center; gap: 8px; }
+.music-now {
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  max-width: 155px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.music-search input[type="text"] {
+  height: 44px;
+  padding: 0 13px;
+  border-radius: 14px;
+  font-size: 15px;
+}
+.music-search-btn {
+  font: inherit;
+  font-size: 18px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--cream-deep);
+  cursor: pointer;
+}
+.music-results,
+.music-queue { display: flex; flex-direction: column; gap: 8px; }
+.music-results {
+  max-height: 260px;
+  overflow: auto;
+  margin-bottom: 10px;
+  padding-right: 2px;
+}
+.music-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  background: var(--cream);
+  border-radius: 14px;
+  padding: 8px;
+}
+.music-row.current {
+  outline: 2px solid var(--bubblegum-glow);
+  background: #FFF0F8;
+}
+.music-thumb {
+  width: 56px;
+  height: 42px;
+  flex: 0 0 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--cream-deep);
+  color: var(--bubblegum);
+  font-weight: 900;
+}
+.music-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.music-info { flex: 1; min-width: 0; }
+.music-name {
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-action {
+  font: inherit;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 12px;
+  background: var(--cream-deep);
+  color: var(--ink-soft);
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.music-action.add { background: var(--bubblegum); color: #fff; box-shadow: 0 3px 0 var(--bubblegum-deep); }
+.music-empty {
+  background: var(--cream);
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
 /* ============ Kitchen shop ============ */
 .crew-stats { margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
 .shop-coins { float: right; color: var(--ink); font-weight: 800; }
@@ -959,6 +1069,19 @@ input[type="text"]:focus {
         <div class="shop-list" id="shop-list"></div>
       </div>
 
+      <div class="card music-card">
+        <div class="card-title music-title">
+          <span>Level Music</span>
+          <span class="music-now" id="music-now">Queue empty</span>
+        </div>
+        <form class="music-search" id="music-search">
+          <input id="music-search-input" type="text" maxlength="80" placeholder="Search YouTube" autocomplete="off" enterkeyhint="search">
+          <button class="music-search-btn" id="music-search-btn" type="submit" title="Search">🔎</button>
+        </form>
+        <div class="music-results" id="music-results" hidden></div>
+        <div class="music-queue" id="music-queue"></div>
+      </div>
+
       <div class="card levels-card">
         <div class="card-title">Levels</div>
         <div class="level-list" id="level-list"></div>
@@ -1073,6 +1196,7 @@ input[type="text"]:focus {
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/sound.js"></script>
   <script src="/js/music.js"></script>
+  <script src="/js/radio.js"></script>
   <script src="/js/art.js"></script>
   <script src="/js/assetManifest.js"></script>
   <script src="/js/gfx.js"></script>

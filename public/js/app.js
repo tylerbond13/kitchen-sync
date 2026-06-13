@@ -177,6 +177,15 @@
   let exitedRound = false; // player bailed to the lobby mid-round
   let iAmHost = false;
   let curStatic = null; // current round's static state (theme, star goals, ...)
+  let musicState = { radio: null, queue: [], now: Date.now() };
+  let musicSearchSeq = 0;
+
+  if (window.KSRadio) {
+    KSRadio.init({
+      send: (cmd) => socket.emit('radio', cmd),
+      onChange: handleRadioChange,
+    });
+  }
 
   socket.on('connect', () => {
     $('connection-banner').hidden = true;
@@ -285,6 +294,7 @@
       saveCrewBackup(res.crew);
       savePlayerBackup(res.player);
       renderLobby(res.lobby);
+      updateMusic(res.radio || (res.lobby && res.lobby.music));
       if (res.game) {
         // a round is already running — jump in
         startRound(res.game);
@@ -336,6 +346,180 @@
       }
     }
   };
+
+  // ---------- level music (crew radio queue) ----------
+  socket.on('radio', (payload) => updateMusic(payload));
+
+  function handleRadioChange(evt) {
+    if (!evt) return;
+    if (evt.type === 'state') {
+      musicState = {
+        radio: evt.radio || null,
+        queue: evt.queue || musicState.queue || [],
+        now: Date.now(),
+      };
+      renderMusic();
+    } else if (evt.type === 'title' && musicState.radio) {
+      musicState.radio.title = evt.title;
+      renderMusic();
+    }
+  }
+
+  function updateMusic(payload) {
+    if (!payload) return;
+    musicState = {
+      radio: payload.radio || null,
+      queue: payload.queue || [],
+      now: payload.now || Date.now(),
+    };
+    if (window.KSRadio) KSRadio.update(payload);
+    // the local soundtrack yields to whatever the crew queued
+    if (window.KSMusic) KSMusic.suspend(!!musicState.radio);
+    renderMusic();
+  }
+
+  function safeThumb(src) {
+    try {
+      const url = new URL(src);
+      return url.protocol === 'https:' ? url.href : '';
+    } catch {
+      return '';
+    }
+  }
+
+  function trackSubtitle(track) {
+    return [track.channel, track.duration, track.requestedBy ? `by ${track.requestedBy}` : '']
+      .filter(Boolean)
+      .join(' · ');
+  }
+
+  function musicRow(track, label, opts = {}) {
+    const row = document.createElement('div');
+    row.className = 'music-row' + (opts.current ? ' current' : '');
+
+    const thumb = document.createElement('div');
+    thumb.className = 'music-thumb';
+    const thumbSrc = safeThumb(track.thumbnail);
+    if (thumbSrc) {
+      const img = document.createElement('img');
+      img.src = thumbSrc;
+      img.alt = '';
+      thumb.appendChild(img);
+    } else {
+      thumb.textContent = '♪';
+    }
+    row.appendChild(thumb);
+
+    const info = document.createElement('div');
+    info.className = 'music-info';
+    const title = document.createElement('div');
+    title.className = 'music-name';
+    title.textContent = track.title || 'YouTube song';
+    const meta = document.createElement('div');
+    meta.className = 'music-meta';
+    const subtitle = trackSubtitle(track);
+    meta.textContent = label ? `${label}${subtitle ? ` · ${subtitle}` : ''}` : subtitle;
+    info.append(title, meta);
+    row.appendChild(info);
+
+    if (opts.removeId) {
+      const remove = document.createElement('button');
+      remove.className = 'music-action';
+      remove.type = 'button';
+      remove.title = 'Remove';
+      remove.textContent = '×';
+      remove.onclick = () => {
+        SFX.tap();
+        socket.emit('radio', { action: 'remove', id: opts.removeId });
+      };
+      row.appendChild(remove);
+    }
+    if (opts.addTrack) {
+      const add = document.createElement('button');
+      add.className = 'music-action add';
+      add.type = 'button';
+      add.title = 'Add to queue';
+      add.textContent = '+';
+      add.onclick = () => {
+        SFX.tap();
+        if (window.KSRadio) KSRadio.unlock();
+        if ((musicState.queue || []).length >= 12) {
+          toast('The music queue is full.');
+          return;
+        }
+        socket.emit('radio', { action: 'enqueue', track: opts.addTrack });
+        toast(`Queued ${opts.addTrack.title || 'song'}`);
+      };
+      row.appendChild(add);
+    }
+    return row;
+  }
+
+  function renderMusic(payload = musicState) {
+    const titleEl = $('music-now');
+    const queueEl = $('music-queue');
+    if (!titleEl || !queueEl) return;
+
+    const current = payload.radio || null;
+    const queue = payload.queue || [];
+    titleEl.textContent = current ? 'Now playing' : queue.length ? `${queue.length} queued` : 'Queue empty';
+    queueEl.innerHTML = '';
+
+    if (current) queueEl.appendChild(musicRow(current, 'Now', { current: true }));
+    if (!current && !queue.length) {
+      const empty = document.createElement('div');
+      empty.className = 'music-empty';
+      empty.textContent = 'Queue empty';
+      queueEl.appendChild(empty);
+      return;
+    }
+    queue.forEach((track, idx) => {
+      queueEl.appendChild(musicRow(track, idx === 0 ? 'Next level' : `${idx + 1}`, { removeId: track.id }));
+    });
+  }
+
+  async function searchMusic() {
+    const input = $('music-search-input');
+    const resultsEl = $('music-results');
+    const btn = $('music-search-btn');
+    if (!input || !resultsEl || !btn) return;
+    const q = input.value.trim();
+    if (q.length < 2) {
+      toast('Search needs at least 2 letters.');
+      return;
+    }
+    const seq = ++musicSearchSeq;
+    btn.disabled = true;
+    resultsEl.hidden = false;
+    resultsEl.innerHTML = '<div class="music-empty">Searching...</div>';
+    try {
+      const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Search failed');
+      if (seq !== musicSearchSeq) return;
+      const results = data.results || [];
+      resultsEl.innerHTML = '';
+      if (!results.length) {
+        resultsEl.innerHTML = '<div class="music-empty">No results</div>';
+        return;
+      }
+      for (const track of results) resultsEl.appendChild(musicRow(track, '', { addTrack: track }));
+    } catch (err) {
+      if (seq === musicSearchSeq) resultsEl.innerHTML = `<div class="music-empty">${escapeHtml(err.message || 'Search failed')}</div>`;
+    } finally {
+      if (seq === musicSearchSeq) btn.disabled = false;
+    }
+  }
+
+  const musicSearchForm = $('music-search');
+  if (musicSearchForm) {
+    musicSearchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      SFX.tap();
+      if (window.KSRadio) KSRadio.unlock();
+      searchMusic();
+    });
+  }
 
   // ---------- lobby ----------
   socket.on('lobby', (state) => {
@@ -400,6 +584,7 @@
 
     renderShop(state);
     renderCrewStats(state);
+    renderMusic(state.music || musicState);
 
     $('lobby-hint').textContent = !iAmHost
       ? `Waiting for ${nameOf(state.hostId)} to pick a level…`
@@ -811,5 +996,15 @@
   // to keep the home screen's first paint snappy.
   setTimeout(() => { if (window.GFX) GFX.preload(); }, 600);
 
-  document.addEventListener('touchstart', () => SFX.unlock(), { once: true });
+  // one shared gesture unlock: SFX synth + the YouTube radio player
+  // (music.js installs its own identical listeners)
+  let audioUnlocked = false;
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    SFX.unlock();
+    if (window.KSRadio) KSRadio.unlock();
+  }
+  document.addEventListener('pointerdown', unlockAudio, { once: true });
+  document.addEventListener('touchstart', unlockAudio, { once: true });
 })();

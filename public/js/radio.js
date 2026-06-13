@@ -1,25 +1,23 @@
-// Crew Radio — one shared YouTube jukebox per kitchen.
-// The server owns {videoId, startedAt, paused}; every phone plays the same
-// thing, seeked to the same position. Anyone can DJ; changes hit everyone.
+// Crew Radio: shared YouTube playback for one kitchen.
 (function () {
-  const PRESETS = [
-    { id: 'jfKfPfyJRdk', title: 'Lofi Beats 📻', live: true },
-    { id: '4xDzrJKXOOY', title: 'Synthwave 🌆', live: true },
-    { id: 'Dx5qFachd3A', title: 'Jazz Café ☕', live: true },
-  ];
-
   let player = null;
   let apiReady = false;
-  let unlocked = false;     // user gesture given (autoplay rules)
-  let current = null;       // latest radio state from server
-  let clockOffset = 0;      // serverNow - clientNow
+  let playerReady = false;
+  let unlocked = false;
+  let current = null;
+  let queue = [];
+  let clockOffset = 0;
   let sendCmd = () => {};
   let onStateChange = () => {};
   let pendingSync = false;
+  let readyCallbacks = [];
   let volume = Number(localStorage.getItem('ks-radio-vol') || 60);
 
   function loadApi() {
-    if (window.YT && window.YT.Player) { apiReady = true; return; }
+    if (window.YT && window.YT.Player) {
+      apiReady = true;
+      return;
+    }
     if (document.getElementById('yt-api')) return;
     const tag = document.createElement('script');
     tag.id = 'yt-api';
@@ -32,21 +30,41 @@
   }
 
   function ensurePlayer(cb) {
-    if (player) return cb();
-    if (!apiReady) { pendingSync = true; loadApi(); return; }
+    if (!document.getElementById('radio-frame')) {
+      const shell = document.createElement('div');
+      shell.id = 'radio-frame';
+      shell.style.cssText = 'position:fixed;left:-220px;top:-140px;width:160px;height:90px;overflow:hidden;opacity:.01;pointer-events:none;';
+      document.body.appendChild(shell);
+    }
+    if (player && playerReady) return cb();
+    if (player) {
+      readyCallbacks.push(cb);
+      return;
+    }
+    if (!apiReady) {
+      pendingSync = true;
+      loadApi();
+      return;
+    }
+    readyCallbacks.push(cb);
     player = new YT.Player('radio-frame', {
-      width: '120', height: '68',
-      playerVars: { playsinline: 1, controls: 0, disablekb: 1, rel: 0 },
+      width: '160',
+      height: '90',
+      playerVars: { playsinline: 1, controls: 0, disablekb: 1, rel: 0, origin: location.origin },
       events: {
         onReady() {
+          playerReady = true;
           player.setVolume(volume);
-          cb();
+          const callbacks = readyCallbacks.splice(0);
+          callbacks.forEach((fn) => fn());
         },
         onStateChange(e) {
-          // surface title once the video loads
+          if (e.data === YT.PlayerState.ENDED && current) {
+            sendCmd({ action: 'ended', videoId: current.videoId });
+          }
           if (e.data === YT.PlayerState.PLAYING && current && !current.title) {
-            const d = player.getVideoData && player.getVideoData();
-            if (d && d.title) onStateChange({ type: 'title', title: d.title });
+            const data = player.getVideoData && player.getVideoData();
+            if (data && data.title) onStateChange({ type: 'title', title: data.title });
           }
         },
       },
@@ -63,9 +81,9 @@
     if (!current || !unlocked) return;
     pendingSync = false;
     ensurePlayer(() => {
-      const d = player.getVideoData && player.getVideoData();
+      const data = player.getVideoData && player.getVideoData();
       const pos = targetPosition();
-      if (!d || d.video_id !== current.videoId) {
+      if (!data || data.video_id !== current.videoId) {
         player.loadVideoById(current.videoId, pos);
       } else {
         const drift = Math.abs((player.getCurrentTime() || 0) - pos);
@@ -76,7 +94,6 @@
     });
   }
 
-  // gentle drift correction for non-live videos
   setInterval(() => {
     if (current && !current.paused && unlocked && player && player.getPlayerState
         && player.getPlayerState() === 1) {
@@ -92,42 +109,46 @@
   }
 
   window.KSRadio = {
-    PRESETS,
     init(opts) {
       sendCmd = opts.send;
       onStateChange = opts.onChange || (() => {});
       loadApi();
     },
-    // server state arrived (join ack or broadcast)
     update(payload) {
       if (!payload) return;
       clockOffset = payload.now ? payload.now - Date.now() : 0;
       current = payload.radio;
-      if (!current && player) player.stopVideo();
+      queue = payload.queue || [];
+      if (!current && player && player.stopVideo) player.stopVideo();
       if (current) sync();
-      onStateChange({ type: 'state', radio: current, unlocked });
+      onStateChange({ type: 'state', radio: current, queue, unlocked });
     },
-    // the one-time tap that satisfies autoplay policies
     unlock() {
       unlocked = true;
+      ensurePlayer(() => {});
       sync();
-      onStateChange({ type: 'state', radio: current, unlocked });
+      onStateChange({ type: 'state', radio: current, queue, unlocked });
     },
     isUnlocked: () => unlocked,
     state: () => current,
+    queue: () => queue.slice(),
     play(input, title) {
       const id = parseYouTube(input);
       if (!id) return false;
       sendCmd({ action: 'play', videoId: id, title: title || '' });
       return true;
     },
+    enqueue(track) { sendCmd({ action: 'enqueue', track }); },
+    remove(id) { sendCmd({ action: 'remove', id }); },
+    clear() { sendCmd({ action: 'clear' }); },
+    skip() { sendCmd({ action: 'skip' }); },
     pause() { sendCmd({ action: 'pause' }); },
     resume() { sendCmd({ action: 'resume' }); },
     stop() { sendCmd({ action: 'stop' }); },
     setVolume(v) {
       volume = Math.max(0, Math.min(100, v));
       localStorage.setItem('ks-radio-vol', String(volume));
-      if (player) player.setVolume(volume);
+      if (player && player.setVolume) player.setVolume(volume);
     },
     volume: () => volume,
   };

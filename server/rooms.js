@@ -8,6 +8,8 @@ const EMOTES = ['🔥', '😱', '🙏', '🎉', '🍽️', '❤️'];
 
 const TICK_MS = 1000 / 12;
 const MAX_PLAYERS = 8;
+const MAX_RADIO_QUEUE = 12;
+const VIDEO_ID_RE = /^[\w-]{11}$/;
 
 const rooms = new Map(); // code -> room
 
@@ -42,6 +44,8 @@ function ensureRoom(crew) {
       loop: null,
       hostId: crew.hostId,
       exited: new Set(), // players who backed out of the current round
+      radio: null,       // currently playing YouTube track
+      radioQueue: [],    // tracks queued for upcoming rounds
     };
     rooms.set(crew.code, room);
   }
@@ -50,6 +54,66 @@ function ensureRoom(crew) {
 
 function roomBroadcast(io, room, event, data) {
   io.to(`room:${room.code}`).emit(event, data);
+}
+
+function publicTrack(track) {
+  if (!track) return null;
+  return {
+    id: track.id,
+    videoId: track.videoId,
+    title: track.title,
+    channel: track.channel,
+    duration: track.duration,
+    thumbnail: track.thumbnail,
+    requestedBy: track.requestedBy,
+  };
+}
+
+function radioPayload(room) {
+  return {
+    radio: room.radio ? { ...room.radio } : null,
+    queue: (room.radioQueue || []).map(publicTrack),
+    now: Date.now(),
+  };
+}
+
+function makeTrack(cmd, by) {
+  const src = cmd.track && typeof cmd.track === 'object' ? cmd.track : cmd;
+  const videoId = String(src.videoId || '').trim();
+  if (!VIDEO_ID_RE.test(videoId)) return null;
+  return {
+    id: `q-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    videoId,
+    title: String(src.title || '').trim().slice(0, 120) || 'YouTube song',
+    channel: String(src.channel || '').trim().slice(0, 80),
+    duration: String(src.duration || '').trim().slice(0, 16),
+    thumbnail: String(src.thumbnail || '').trim().slice(0, 300),
+    requestedBy: by,
+  };
+}
+
+function playNextRadio(io, room) {
+  const queue = room.radioQueue || [];
+  const track = queue.shift();
+  if (!track) {
+    room.radio = null;
+    roomBroadcast(io, room, 'radio', radioPayload(room));
+    return null;
+  }
+  room.radio = {
+    ...publicTrack(track),
+    startedAt: Date.now(),
+    paused: false,
+    by: track.requestedBy,
+  };
+  roomBroadcast(io, room, 'radio', radioPayload(room));
+  return room.radio;
+}
+
+function stopRadio(io, room) {
+  if (!room.radio) return;
+  room.radio = null;
+  roomBroadcast(io, room, 'radio', radioPayload(room));
 }
 
 function lobbyState(room) {
@@ -63,6 +127,7 @@ function lobbyState(room) {
     wallet: room.crew.wallet,
     crewStats: room.crew.stats,
     upgrades: UPGRADES,
+    music: radioPayload(room),
     inGame: !!room.game && room.game.phase === 'playing',
   };
 }
@@ -93,6 +158,9 @@ function startGame(io, room, levelId) {
     autoChop: room.crew.settings.autoChop,
   });
   roomBroadcast(io, room, 'game_start', room.game.staticState());
+  // rounds own the speakers: drop whatever was playing, then start the queue
+  if (room.radio) stopRadio(io, room);
+  if ((room.radioQueue || []).length) playNextRadio(io, room);
 
   let last = Date.now();
   room.loop = setInterval(() => {
@@ -128,6 +196,7 @@ function finishGame(io, room) {
   }
   room.game = null;
   roomBroadcast(io, room, 'game_over', { ...results, crew: room.crew });
+  stopRadio(io, room);
   roomBroadcast(io, room, 'lobby', lobbyState(room));
 }
 
@@ -195,7 +264,7 @@ function attach(io) {
         lobby: lobbyState(room),
         crew,                                  // device backup of campaign progress
         player: store.getPlayer(profile.id),   // device backup of lifetime stats
-        radio: { radio: room.radio || null, now: Date.now() },
+        radio: radioPayload(room),
         // mid-game rejoin support
         game: room.game ? room.game.staticState() : null,
       });
@@ -233,13 +302,46 @@ function attach(io) {
       if (joined.room.game) joined.room.game.autoChop = !!on;
     });
 
-    // crew radio: one shared YouTube jukebox per kitchen — anyone can DJ
+    // crew radio: one shared YouTube jukebox per kitchen — anyone can DJ.
+    // The lobby builds a queue; each round plays it in order.
     socket.on('radio', (cmd) => {
       if (!joined || !cmd || typeof cmd !== 'object') return;
       const room = joined.room;
       const by = (room.players.get(joined.playerId) || {}).name || 'someone';
       const r = room.radio;
-      if (cmd.action === 'play' && typeof cmd.videoId === 'string' && /^[\w-]{6,20}$/.test(cmd.videoId)) {
+      if (cmd.action === 'enqueue') {
+        const queue = room.radioQueue || (room.radioQueue = []);
+        if (queue.length >= MAX_RADIO_QUEUE) return;
+        const track = makeTrack(cmd, by);
+        if (!track) return;
+        queue.push(track);
+        roomBroadcast(io, room, 'radio', radioPayload(room));
+        if (room.game && room.game.phase === 'playing' && !room.radio) playNextRadio(io, room);
+        return;
+      }
+      if (cmd.action === 'remove' && typeof cmd.id === 'string') {
+        const queue = room.radioQueue || (room.radioQueue = []);
+        const idx = queue.findIndex((track) => track.id === cmd.id);
+        if (idx === -1) return;
+        queue.splice(idx, 1);
+        roomBroadcast(io, room, 'radio', radioPayload(room));
+        return;
+      }
+      if (cmd.action === 'clear') {
+        room.radioQueue = [];
+        roomBroadcast(io, room, 'radio', radioPayload(room));
+        return;
+      }
+      if (cmd.action === 'skip' && r && room.game && room.game.phase === 'playing') {
+        playNextRadio(io, room);
+        return;
+      }
+      if (cmd.action === 'ended' && r && cmd.videoId === r.videoId) {
+        if (room.game && room.game.phase === 'playing') playNextRadio(io, room);
+        else stopRadio(io, room);
+        return;
+      }
+      if (cmd.action === 'play' && typeof cmd.videoId === 'string' && VIDEO_ID_RE.test(cmd.videoId)) {
         room.radio = {
           videoId: cmd.videoId,
           title: String(cmd.title || '').slice(0, 100),
@@ -260,7 +362,7 @@ function attach(io) {
       } else {
         return;
       }
-      roomBroadcast(io, room, 'radio', { radio: room.radio, now: Date.now() });
+      roomBroadcast(io, room, 'radio', radioPayload(room));
     });
 
     socket.on('emote', (idx) => {
