@@ -34,6 +34,8 @@
     { key: 'wadsworth', name: 'Wadsworth' },
     { key: 'obama', name: 'Obama' },
     { key: 'britney', name: 'Britney' },
+    { key: 'blanche_devereaux', name: 'Blanche' },
+    { key: 'dorothy_zbornak', name: 'Dorothy' },
   ];
 
   window.ASSETS = {
@@ -58,6 +60,8 @@
     // idle pose in halved coordinates (sheet cells are 176x384)
     obama:          { path: HD + 'ks-char-sprite-barack-obama.png',   crop: [0, 0, 176, 384] },
     britney:        { path: HD + 'ks-char-sprite-britney-spears.png', crop: [0, 0, 176, 384] },
+    blanche_devereaux: { path: HD + 'ks-char-blanche-devereaux.png' },
+    dorothy_zbornak:   { path: HD + 'ks-char-dorothy-zbornak.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
