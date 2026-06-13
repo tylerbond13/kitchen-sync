@@ -57,6 +57,8 @@ Working in pairs. Each completed pair should have:
 - [x] Tom Cruise
 - [x] Michael Jordan
 - [x] Jerry Seinfeld
+- [x] Shaquille O'Neal
+- [x] Elton John
 
 ## Commits
 
@@ -80,6 +82,7 @@ Working in pairs. Each completed pair should have:
 - Babe (the pig) + Celine Dion: `ks-char-babe-pig.png`, `ks-char-celine-dion.png`; registered as chefs and customers. Babe is an original gentle piglet homage-style asset.
 - Snooki from Jersey Shore + Tom Cruise: `ks-char-snooki.png`, `ks-char-tom-cruise.png`; registered as chefs and customers.
 - Michael Jordan + Jerry Seinfeld: `ks-char-michael-jordan.png`, `ks-char-jerry-seinfeld.png`; registered as chefs and customers.
+- Shaquille O'Neal + Elton John: `ks-char-shaquille-oneal.png`, `ks-char-elton-john.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
