@@ -39,7 +39,8 @@
   // the flat square until front-facing art is swapped in.
   const ISO_FIX     = { squash: 0.88, dy: 3 };
   const CHEF_H     = 62;                  // chef sprite height (world px)
-  const CUSTOMER_H = 80;                  // customer sprite height (world px)
+  const CUSTOMER_H = 80;                  // customer sprite height (world px) —
+                                          // intentionally larger than the chef
   const CARRY_GAP  = 40;                  // held item floats exactly this many
                                           // px above the chef's head
   const SPRITE_FILL = 0.84;               // stations render at 84% of their
@@ -88,10 +89,50 @@
     return e && e.flat ? null : ISO_FIX;
   }
 
+  // Per-theme scene palette. Everything cosmetic — wall, wainscot, floor,
+  // fixtures, surround — is drawn as vector geometry from these so the whole
+  // room shares one art language and aligns to the grid (no pasted-on PNGs
+  // at mismatched angles).
   const THEMES = {
-    diner:  { wallTop:'#3DBBB8', bgA:'#FF7DB8', bgB:'#FFB0D8' },
-    winter: { wallTop:'#A8D8F8', bgA:'#7860C8', bgB:'#A888E8' },
-    beach:  { wallTop:'#48C8E8', bgA:'#28C898', bgB:'#58E8B8' },
+    diner: {
+      surroundA:'#F4D9E6', surroundB:'#C98BB0',          // soft framed backdrop
+      wallTop:'#D7F2EA', wallBot:'#B4E3D4',               // upper wall gradient
+      ledge:'#C98A5E', ledgeShadow:'#A66E45',             // wooden picture rail
+      tile:'#F4F8F5', tileGrout:'#CFE2DA', baseboard:'#A7D2C5', // subway wainscot
+      floorA:'#F0E3D0', floorB:'#E8D3BF', grout:'#E2CFB8',// warm checker floor (low-contrast)
+      sky:['#BFE6FF','#E9F6FF'], skyGround:'#9FD6A8',     // window scene
+      accent:'#FF6FAE',
+    },
+    winter: {
+      surroundA:'#DCE6F6', surroundB:'#8E9FD0',
+      wallTop:'#EAF3FB', wallBot:'#CFE2F2',
+      ledge:'#8FA8C0', ledgeShadow:'#6F89A4',
+      tile:'#F7FAFD', tileGrout:'#DCE8F2', baseboard:'#ABC4DC',
+      floorA:'#EDF2F8', floorB:'#DCE6F0', grout:'#D4E0EB',
+      sky:['#CFE6FA','#EEF7FE'], skyGround:'#E8F2FA',
+      accent:'#7C8FE0',
+    },
+    beach: {
+      surroundA:'#CFF1E8', surroundB:'#5FBFA8',
+      wallTop:'#DFF7F0', wallBot:'#BEEBDD',
+      ledge:'#D8B27E', ledgeShadow:'#B8915E',
+      tile:'#F3FBF8', tileGrout:'#CFEDE2', baseboard:'#A7DCCB',
+      floorA:'#F1E7CB', floorB:'#E5D4AF', grout:'#DCCDA9',
+      sky:['#9FE0F0','#E6FAFB'], skyGround:'#F2E2B0',
+      accent:'#2FC8A0',
+    },
+  };
+
+  // ── Painted-scene metadata ──────────────────────────────────────────────────
+  // Each theme ships a full hand-painted wall illustration + a real floor
+  // palette. `floorLine` is the fraction of the wall image that is WALL (above
+  // its own painted floor strip); we crop there and continue with our own
+  // glossy checker so the play floor can be as deep as the grid needs. floorA/B
+  // are the saturated checker colours sampled to match the wall art.
+  const WALL_META = {
+    diner:  { key:'wall_diner',  floorLine:0.80, floorA:'#F7EBD0', floorB:'#CC7B4C', deep:'#8E4F2E' },
+    winter: { key:'wall_winter', floorLine:0.84, floorA:'#EFEBDA', floorB:'#A6C6E2', deep:'#6E96BC' },
+    beach:  { key:'wall_beach',  floorLine:0.85, floorA:'#F3E8CE', floorB:'#67C3BE', deep:'#3C9A95' },
   };
 
   // ── Customer face SVG (used by the HTML ticket strip, not the canvas) ──────
@@ -276,7 +317,9 @@
       this.serveCells = [];
       for (let y=0; y<staticState.h; y++) for (let x=0; x<staticState.w; x++)
         if (staticState.grid[y][x]==='W') this.serveCells.push([x,y]);
-      this.theme   = THEMES[staticState.theme] || THEMES.diner;
+      this.themeName = staticState.theme || 'diner';
+      this.theme   = THEMES[this.themeName] || THEMES.diner;
+      this.wallMeta = WALL_META[this.themeName] || WALL_META.diner;
       // Per-round customer cast: Fisher-Yates with the server's seed.
       const rand = mulberry32((staticState.seed ?? 1) >>> 0);
       this.cast = [...CUSTOMER_KEYS];
@@ -289,8 +332,10 @@
 
       if (window.GFX) GFX.preload();
       const t = this.theme;
+      // A calm, slightly-deeper framed backdrop so the colourful room pops
+      // against it (the vignette in drawAtmosphere finishes the framing).
       canvas.parentElement.style.background =
-        `linear-gradient(145deg,${t.bgA} 0%,${t.bgB} 100%)`;
+        `radial-gradient(120% 100% at 50% 18%, ${t.surroundA} 0%, ${t.surroundB} 100%)`;
 
       this.resize = this.resize.bind(this);
       window.addEventListener('resize', this.resize);
@@ -484,58 +529,23 @@
       const {ctx}=this;
       const now=performance.now();
 
-      // Clear in raw device space — the page gradient shows through outside
-      // the room; the room itself gets real structural walls below.
       ctx.setTransform(1,0,0,1,0,0);
       ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-      // Everything draws in world space (fixed 64×48 units).
+
+      // 0. PAINTED SCENE BACKDROP (device space). The theme's hand-painted wall
+      // illustration, bled to the screen edges and shown at true proportions,
+      // sitting above a glossy checkerboard floor in the theme's real colours.
+      // This fills every margin with the illustrated environment (no flat
+      // gradient voids) and finally USES the authored wall art instead of
+      // squashing it into a sliver or replacing it with vector shapes.
+      this.drawScene();
+
+      // Everything else draws in world space (fixed 64×48 units).
       ctx.setTransform(this.scale,0,0,this.scale,this.txOff,this.tyOff);
 
       const renderQueue = [];
       this._hits = [];                 // precise sprite rects for click picking
       const {lvl}=this;
-
-      // 1. Floor: straight-on checkerboard, one square tile per cell.
-      for (let gy=0; gy<lvl.h; gy++) for (let gx=0; gx<lvl.w; gx++) {
-        const [sx, sy] = this.project(gx, gy);
-        const key = (gx+gy)%2 ? 'floor_tile_alt' : 'floor_tile';
-        renderQueue.push({ screenY: -1e9, draw: () =>
-          GFX.tile(ctx, key, sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT) });
-      }
-
-      // 1b. BOUNDARY WALLS: structural back wall along gridY===0 plus
-      // vertical side walls down the leftmost and rightmost grid edges, so
-      // the room is fully enclosed and the floor/background seams are
-      // covered. All three share the wall texture's top corners so they
-      // stitch seamlessly. Minimum depth: behind counters, appliances, and
-      // characters; in front of the page background.
-      {
-        const T = lvl.theme || 'diner';
-        const wallKey = GFX.has('wall_'+T) ? 'wall_'+T : 'wall_diner';
-        const left = this.ox - WALL_SIDE, top = this.oy - WALL_H;
-        const roomW = lvl.w*TILE_WIDTH, roomH = lvl.h*TILE_HEIGHT;
-        renderQueue.push({ screenY: -1e8, draw: () => {
-          const img = GFX.img(wallKey);
-          if (!img) return;
-          const slice = Math.max(1, img.width*0.06);
-          ctx.drawImage(img, this.ox, top, roomW, WALL_H);            // back wall
-          ctx.drawImage(img, 0, 0, slice, img.height,
-                        left, top, WALL_SIDE, WALL_H + roomH);        // left wall
-          ctx.drawImage(img, img.width - slice, 0, slice, img.height,
-                        this.ox + roomW, top, WALL_SIDE, WALL_H + roomH); // right wall
-        }});
-      }
-
-      // Queue-zone walkway tiles (faded) — the path ends at the serve hatch.
-      for (let i=-1;i<5;i++) {
-        const q = this.queueSlot(i);
-        const [sx, sy] = this.project(q.x, q.y);
-        renderQueue.push({ screenY: -1e9 + 1, draw: () => {
-          ctx.globalAlpha = 0.7;
-          GFX.tile(ctx, 'floor_tile', sx-TILE_WIDTH/2, sy-TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT);
-          ctx.globalAlpha = 1;
-        }});
-      }
 
       // 2. Counter blocks, stations, crates — anchored at their base screenY.
       for (let gy=0; gy<lvl.h; gy++) for (let gx=0; gx<lvl.w; gx++) {
@@ -576,6 +586,7 @@
       }
 
       this.drawEffects(now);
+      this.drawAtmosphere();
     }
 
     // ── Background Layer: wall-mounted decor + decorative clutter ────────────
@@ -591,26 +602,10 @@
     // Their coordinates derive from the WALL SURFACE, never raw screen space,
     // so they stay pinned when the room resizes or the theme changes.
     pushDecor(queue) {
+      // Wall fixtures (window, clock, framed art) are drawn as vector geometry
+      // inside drawWall so they align to the wall by construction. Only the
+      // small counter-top clutter remains here.
       const {lvl}=this;
-      const T = lvl.theme || 'diner';
-      const DECOR = {
-        diner:  ['wall_window','wall_clock','wall_photos','wall_sign'],
-        winter: ['wall_window_winter','decor_wreath','decor_cocoa_sign','decor_fireplace'],
-        beach:  ['wall_window_beach','decor_surfboard','decor_tiki_sign','decor_palm'],
-      };
-      for (const key of (DECOR[T] || DECOR.diner)) {
-        const ent = (window.ASSETS||{})[key];
-        const a = ent && ent.wallAnchor;
-        if (!a) continue;
-        const cx = a.wall==='left'
-          ? this.ox - WALL_LW/2
-          : this.ox + a.pos*TILE_WIDTH;
-        const bottom = this.oy - (a.height||40);
-        queue.push({ screenY: -1e7, draw: () =>
-          GFX.drawAnchored(this.ctx, key, cx, bottom, a.width||60) });
-      }
-
-      // Desk clutter on the back-corner counter tops.
       const desk = (key, gx, w) => {
         if (!lvl.grid[0] || lvl.grid[0][gx] === '.') return;
         const [sx, sy] = this.project(gx, 0);
@@ -621,12 +616,127 @@
       desk('decor_utensils', lvl.w-1, 16);
     }
 
+    // ── Painted scene: wall illustration + glossy checker floor ──────────────
+    // Drawn in DEVICE space (full canvas) so it bleeds to every edge. The wall
+    // art is cover-fit across the width and bottom-anchored to the room's floor
+    // line; its own floor strip is cropped off (floorLine) and our checker
+    // continues underneath, as deep as the grid needs.
+    drawScene() {
+      const {ctx,canvas}=this, m=this.wallMeta;
+      const W=canvas.width, H=canvas.height;
+      const floorY = Math.round(this.tyOff + this.oy*this.scale); // room floor line
+
+      // ---- glossy checker floor: from the floor line to the bottom edge ----
+      const pat = this.floorPattern();
+      if (pat) { ctx.fillStyle=pat; } else { ctx.fillStyle=m.floorA; }
+      ctx.fillRect(0, Math.max(0,floorY), W, H-Math.max(0,floorY));
+      // depth: darken toward the back of the floor (under the wall) + warm pool
+      const fg=ctx.createLinearGradient(0,floorY,0,H);
+      fg.addColorStop(0,'rgba(30,12,20,0.22)');
+      fg.addColorStop(0.18,'rgba(30,12,20,0)');
+      fg.addColorStop(1,'rgba(255,240,210,0.05)');
+      ctx.fillStyle=fg; ctx.fillRect(0,floorY,W,H-floorY);
+
+      // ---- wall illustration above the floor line ----
+      const img=GFX.img(m.key);
+      if (img && img.width) {
+        const srcH=Math.round(img.height*m.floorLine);   // wall portion only
+        // cover BOTH axes: fill the width, and guarantee the band reaches the
+        // top edge (real art, no stretched filler strip). Slight side crop is
+        // fine — the wall is a continuous illustration.
+        const scale=Math.max(W/img.width, floorY/srcH);
+        const drawW=img.width*scale, drawH=srcH*scale;
+        const dx=Math.round((W-drawW)/2), dy=Math.round(floorY-drawH);
+        ctx.drawImage(img, 0,0, img.width,srcH, dx,dy, drawW,drawH);
+      } else {
+        ctx.fillStyle=this.theme.wallBot||'#F4D9E6'; ctx.fillRect(0,0,W,floorY);
+      }
+
+      // contact shadow where the wall meets the floor (grounds the room)
+      const ws=ctx.createLinearGradient(0,floorY-10,0,floorY+12);
+      ws.addColorStop(0,'rgba(0,0,0,0)'); ws.addColorStop(1,'rgba(20,8,16,0.20)');
+      ctx.fillStyle=ws; ctx.fillRect(0,floorY-10,W,22);
+    }
+
+    // Cached glossy checkerboard pattern in the theme's real floor colours —
+    // saturated, polished cells with a top-left gloss highlight, soft inner
+    // shade, and grout. Built once per theme (device-pixel sized).
+    floorPattern() {
+      if (this._floorPat && this._floorPatKey===this.themeName) return this._floorPat;
+      const m=this.wallMeta;
+      const S=Math.max(40, Math.round(TILE_WIDTH*this.scale*0.92)); // cell px
+      const c=document.createElement('canvas'); c.width=c.height=S*2;
+      const x=c.getContext('2d');
+      const cell=(cx,cy,col)=>{
+        x.fillStyle=col; x.fillRect(cx,cy,S,S);
+        const g=x.createRadialGradient(cx+S*0.34,cy+S*0.30,S*0.04,cx+S*0.55,cy+S*0.6,S*0.95);
+        g.addColorStop(0,'rgba(255,255,255,0.34)');
+        g.addColorStop(0.45,'rgba(255,255,255,0.06)');
+        g.addColorStop(1,'rgba(0,0,0,0.16)');
+        x.fillStyle=g; x.fillRect(cx,cy,S,S);
+        x.strokeStyle='rgba(0,0,0,0.14)'; x.lineWidth=Math.max(1.5,S*0.03);
+        x.strokeRect(cx+0.75,cy+0.75,S-1.5,S-1.5);
+      };
+      cell(0,0,m.floorA); cell(S,0,m.floorB);
+      cell(0,S,m.floorB); cell(S,S,m.floorA);
+      this._floorPat=this.ctx.createPattern(c,'repeat');
+      this._floorPatKey=this.themeName;
+      return this._floorPat;
+    }
+
+    // Soft elliptical contact shadow that grounds any object on the floor.
+    // A radial gradient gives it a real penumbra (no hard edge) so it reads as
+    // a shadow rather than a painted blob.
+    contactShadow(cx, cy, rx, ry, alpha) {
+      const {ctx}=this;
+      ctx.save();
+      ctx.translate(cx, cy); ctx.scale(1, ry/rx);
+      const g=ctx.createRadialGradient(0,0,rx*0.2,0,0,rx);
+      g.addColorStop(0,`rgba(36,16,25,${alpha})`);
+      g.addColorStop(0.6,`rgba(36,16,25,${alpha*0.65})`);
+      g.addColorStop(1,'rgba(36,16,25,0)');
+      ctx.fillStyle=g;
+      ctx.beginPath(); ctx.arc(0,0,rx,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+
+    // Cinematic finish: ambient top-light + corner vignette, in device space.
+    drawAtmosphere() {
+      const {ctx}=this;
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0);
+      const W=this.canvas.width, H=this.canvas.height;
+      // bright warm top light (adds glow, never dulls the saturated art)
+      const amb=ctx.createLinearGradient(0,0,0,H);
+      amb.addColorStop(0,'rgba(255,250,235,0.14)');
+      amb.addColorStop(0.45,'rgba(255,255,255,0)');
+      ctx.fillStyle=amb; ctx.fillRect(0,0,W,H);
+      // whisper-soft vignette — just enough to frame, edges stay vibrant
+      const vg=ctx.createRadialGradient(W/2,H*0.44,Math.min(W,H)*0.34,W/2,H*0.52,Math.max(W,H)*0.78);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(1,'rgba(24,10,28,0.13)');
+      ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+      ctx.restore();
+    }
+
+    // Lighten (+) or darken (−) a hex colour by a fraction.
+    shade(hex, f) {
+      const n=parseInt(hex.slice(1),16);
+      let r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+      const t=f<0?0:255, a=Math.abs(f);
+      r=Math.round(r+(t-r)*a); g=Math.round(g+(t-g)*a); b=Math.round(b+(t-b)*a);
+      return `rgb(${r},${g},${b})`;
+    }
+
     // ── Blocks (counters, stations, crates) + whatever sits on them ──────────
     drawBlock(c, gx, gy, sx, sy, now) {
       const {ctx}=this;
       const TW=TILE_WIDTH, TH=TILE_HEIGHT;
       const baseY = sy + TH/2;            // tile's south corner — ground anchor
       const ing = this.lvl.crates && this.lvl.crates[c];
+
+      // Contact shadow under the block's footprint so nothing floats.
+      this.contactShadow(sx, baseY-3, TW*0.40, 8, 0.16);
 
       // Crates: per-ingredient art if the manifest has it, otherwise the
       // flat generic crate with the raw ingredient sprite in its open top.
@@ -722,10 +832,7 @@
 
       // Clean base: a single soft ground shadow. Player identity lives in
       // the floating name tag (multiplayer requirement), not base clutter.
-      ctx.save();
-      ctx.globalAlpha=0.22; ctx.fillStyle='#000';
-      ctx.beginPath(); ctx.ellipse(sx,sy,17,6,0,0,Math.PI*2); ctx.fill();
-      ctx.restore();
+      this.contactShadow(sx, sy, 17, 6, 0.24);
 
       const headTopY = sy - bounce - CHEF_H;
       GFX.draw(ctx,chefKey,sx,sy-bounce-CHEF_H*0.52,CHEF_H*0.85,CHEF_H);
@@ -823,6 +930,8 @@
       const CH=CUSTOMER_H;
       const bob=Math.sin(now/320+q.i*2.1);
 
+      // grounding shadow so the waiting line doesn't float on the walkway
+      this.contactShadow(sx, sy+4, 16, 6, 0.20);
       GFX.draw(ctx, this.customerKeyForOrder(q.order), sx, sy+bob-CH*0.5, CH*0.92, CH);
     }
 

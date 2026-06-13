@@ -526,18 +526,20 @@ input[type="text"]:focus {
 .orders-strip::-webkit-scrollbar { display: none; }
 .ticket {
   flex: 0 0 auto;
-  background: var(--card);
-  border-radius: 14px;
-  box-shadow: var(--shadow-card);
-  padding: 6px 7px 5px;
-  width: 178px;
+  /* cozy warm card so the ticket reads as part of the kitchen, not a web UI */
+  background: linear-gradient(180deg, #FFFDF8 0%, #FFF3E6 100%);
+  border-radius: 22px;
+  box-shadow: 0 5px 16px rgba(150, 95, 55, 0.16), inset 0 0 0 1px rgba(255,255,255,0.55);
+  padding: 7px 9px 6px;
+  width: 196px;
   animation: ticket-in .3s ease-out;
-  border: 1.5px solid rgba(255, 111, 174, 0.10);
+  /* warm woody rim instead of the cold pink hairline */
+  border: 1.5px solid rgba(176, 116, 74, 0.30);
   border-top: 4px solid var(--mint);
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 52px minmax(0, 1fr);
   grid-template-rows: 1fr auto;
-  gap: 5px 7px;
+  gap: 5px 8px;
   scroll-snap-align: start;
 }
 .ticket.warn { border-top-color: var(--gold); }
@@ -552,8 +554,8 @@ input[type="text"]:focus {
   min-width: 0;
 }
 .ticket-dish-img {
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(80, 30, 60, 0.12));
 }
@@ -624,39 +626,39 @@ input[type="text"]:focus {
   overflow: hidden;
 }
 .ticket-ingredient {
-  width: 28px;
-  flex: 0 0 28px;
+  width: 36px;
+  flex: 0 0 36px;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 0;
 }
 .ticket-mini {
-  width: 25px;
-  height: 25px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
 }
 .ticket-mini svg.art,
 .ticket-mini-img {
-  width: 24px;
-  height: 24px;
+  width: 33px;
+  height: 33px;
   object-fit: contain;
 }
 .ticket-prep {
-  min-height: 24px;
+  min-height: 26px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 0;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 0.95;
 }
 .ticket.vip {
   border-top-color: var(--gold);
-  background: linear-gradient(180deg, #FFF9E0 0%, var(--card) 60%);
-  box-shadow: 0 0 0 1.5px var(--gold), var(--shadow-card);
+  background: linear-gradient(180deg, #FFF6D6 0%, #FFF3E6 70%);
+  box-shadow: 0 0 0 1.5px var(--gold), 0 5px 16px rgba(150, 95, 55, 0.18);
 }
 
 /* ============ Rush banner & star progress ============ */
