@@ -77,6 +77,8 @@
     { key: 'katy_perry', name: 'Katy Perry' },
     { key: 'lady_gaga', name: 'Lady Gaga' },
     { key: 'robyn', name: 'Robyn' },
+    { key: 'shania_twain', name: 'Shania Twain' },
+    { key: 'drake', name: 'Drake' },
     { key: 'kim_kardashian', name: 'Kim Kardashian' },
     { key: 'justin_bieber', name: 'Justin Bieber' },
   ];
@@ -146,6 +148,8 @@
     katy_perry: { path: HD + 'ks-char-katy-perry.png' },
     lady_gaga: { path: HD + 'ks-char-lady-gaga.png' },
     robyn: { path: HD + 'ks-char-robyn.png' },
+    shania_twain: { path: HD + 'ks-char-shania-twain.png' },
+    drake: { path: HD + 'ks-char-drake.png' },
     kim_kardashian: { path: HD + 'ks-char-kim-kardashian.png' },
     justin_bieber: { path: HD + 'ks-char-justin-bieber.png' },
 

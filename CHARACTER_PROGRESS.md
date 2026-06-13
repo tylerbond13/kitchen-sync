@@ -66,8 +66,8 @@ Working in pairs. Each completed pair should have:
 - [x] Kim Kardashian
 - [x] Lady Gaga
 - [x] Robyn
-- [ ] Shania Twain
-- [ ] Drake
+- [x] Shania Twain
+- [x] Drake
 - [ ] Joe Walsh
 - [ ] Don Henley
 - [ ] Glenn Frey
@@ -105,6 +105,7 @@ Working in pairs. Each completed pair should have:
 - Kris Jenner + Katy Perry: `ks-char-kris-jenner.png`, `ks-char-katy-perry.png`; registered as chefs and customers.
 - Justin Bieber + Kim Kardashian: `ks-char-justin-bieber.png`, `ks-char-kim-kardashian.png`; registered as chefs and customers.
 - Lady Gaga + Robyn: `ks-char-lady-gaga.png`, `ks-char-robyn.png`; registered as chefs and customers.
+- Shania Twain + Drake: `ks-char-shania-twain.png`, `ks-char-drake.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
