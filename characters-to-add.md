@@ -69,3 +69,5 @@ Lady Gaga
 Robyn
 Shania Twain
 Drake
+Joe Walsh
+Don Henley
