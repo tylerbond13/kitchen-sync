@@ -71,3 +71,5 @@ Shania Twain
 Drake
 Joe Walsh
 Don Henley
+Glenn Frey
+Yoda

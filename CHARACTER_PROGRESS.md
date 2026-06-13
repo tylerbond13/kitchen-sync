@@ -70,6 +70,8 @@ Working in pairs. Each completed pair should have:
 - [x] Drake
 - [x] Joe Walsh
 - [x] Don Henley
+- [x] Glenn Frey
+- [x] Yoda
 
 ## Commits
 
@@ -100,6 +102,7 @@ Working in pairs. Each completed pair should have:
 - Lady Gaga + Robyn: `ks-char-lady-gaga.png`, `ks-char-robyn.png`; registered as chefs and customers.
 - Shania Twain + Drake: `ks-char-shania-twain.png`, `ks-char-drake.png`; registered as chefs and customers.
 - Joe Walsh + Don Henley: `ks-char-joe-walsh.png`, `ks-char-don-henley.png`; registered as chefs and customers.
+- Glenn Frey + Yoda: `ks-char-glenn-frey.png`, `ks-char-yoda.png`; registered as chefs and customers. Yoda is an original homage-style wise green space-master asset.
 
 ## Needs Alternate Pass
 

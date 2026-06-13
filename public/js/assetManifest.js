@@ -87,6 +87,8 @@
     { key: 'drake', name: 'Drake' },
     { key: 'joe_walsh', name: 'Joe Walsh' },
     { key: 'don_henley', name: 'Don Henley' },
+    { key: 'glenn_frey', name: 'Glenn Frey' },
+    { key: 'yoda', name: 'Yoda' },
   ];
 
   window.ASSETS = {
@@ -164,6 +166,8 @@
     drake: { path: HD + 'ks-char-drake.png' },
     joe_walsh: { path: HD + 'ks-char-joe-walsh.png' },
     don_henley: { path: HD + 'ks-char-don-henley.png' },
+    glenn_frey: { path: HD + 'ks-char-glenn-frey.png' },
+    yoda: { path: HD + 'ks-char-yoda.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
