@@ -627,6 +627,14 @@
 
   $('btn-pause').onclick = () => socket.emit('pause', true);
   $('btn-resume').onclick = () => socket.emit('pause', false);
+  // Any chef can restart the level for the whole crew — the server replies
+  // with a fresh game_start, and startRound resets this client's round state.
+  $('btn-restart').onclick = () => {
+    SFX.tap();
+    socket.emit('restart_level', null, (res) => {
+      if (res && res.error) toast(res.error);
+    });
+  };
   // Exit to the lobby without leaving the crew. The round keeps running on
   // the server (other chefs are unaffected); results are recorded silently.
   $('btn-exit-lobby').onclick = () => {
