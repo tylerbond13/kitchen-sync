@@ -186,6 +186,19 @@ test('two players: create, join, play a round, progress persists', async () => {
   });
   const musicMidRound = await musicMidRoundP;
   assert.equal(musicMidRound.radio.videoId, 'kJQP7kiw5Fk');
+
+  // anyone can skip to the next queued song mid-round
+  const queuedDP = waitForWhere(tyler, 'radio', (p) => p.queue.length === 1);
+  tyler.emit('radio', {
+    action: 'enqueue',
+    track: { videoId: 'fJ9rUzIMcZQ', title: 'Song D', channel: 'DJ Test', duration: '5:55' },
+  });
+  await queuedDP;
+  const skippedP = waitForWhere(tyler, 'radio', (p) => !!p.radio && p.radio.videoId === 'fJ9rUzIMcZQ');
+  sib.emit('radio', { action: 'skip' });
+  const skipped = await skippedP;
+  assert.equal(skipped.queue.length, 0, 'skip consumes the queue head');
+
   let resetState = await waitFor(tyler, 'state');
   for (let i = 0; i < 30 && resetState.score !== 0; i++) resetState = await waitFor(tyler, 'state');
   assert.equal(resetState.score, 0, 'restart clears the old score');

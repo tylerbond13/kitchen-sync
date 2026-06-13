@@ -12,6 +12,7 @@
   let pendingSync = false;
   let readyCallbacks = [];
   let volume = Number(localStorage.getItem('ks-radio-vol') || 60);
+  let muted = JSON.parse(localStorage.getItem('ks-radio-muted') || 'false');
 
   function loadApi() {
     if (window.YT && window.YT.Player) {
@@ -55,6 +56,7 @@
         onReady() {
           playerReady = true;
           player.setVolume(volume);
+          if (muted) player.mute();
           const callbacks = readyCallbacks.splice(0);
           callbacks.forEach((fn) => fn());
         },
@@ -151,5 +153,18 @@
       if (player && player.setVolume) player.setVolume(volume);
     },
     volume: () => volume,
+    // local mute: this phone opts out of the crew radio without affecting
+    // anyone else (the track keeps advancing for the room)
+    isMuted: () => muted,
+    toggleMute() {
+      muted = !muted;
+      localStorage.setItem('ks-radio-muted', JSON.stringify(muted));
+      if (player && playerReady) {
+        if (muted) player.mute();
+        else player.unMute();
+      }
+      onStateChange({ type: 'state', radio: current, queue, unlocked });
+      return muted;
+    },
   };
 })();

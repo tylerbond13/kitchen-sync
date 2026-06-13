@@ -701,6 +701,37 @@ input[type="text"]:focus {
 }
 .emote-bar button:active { transform: scale(.82); }
 .game-foot { display: flex; flex-direction: column; gap: 4px; }
+
+/* in-game crew radio strip: now playing, what's next, skip + local mute */
+.radio-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--cream);
+  border: 1.5px solid rgba(255, 111, 174, 0.15);
+  border-radius: 14px;
+  padding: 6px 10px;
+  margin-bottom: 2px;
+}
+.radio-emoji { font-size: 16px; flex: 0 0 auto; }
+.radio-bar-info { flex: 1; min-width: 0; }
+.radio-bar-title {
+  font-size: 12px; font-weight: 800;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.radio-bar-next {
+  font-size: 10.5px; font-weight: 700; color: var(--ink-soft);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.radio-bar-btn {
+  font: inherit; font-size: 16px;
+  width: 36px; height: 36px;
+  border: none; border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 2px 0 var(--cream-deep);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.radio-bar-btn:active { transform: translateY(1px); }
+.radio-bar-btn:disabled { opacity: .4; }
 .game-players { display: flex; gap: 8px; flex-wrap: wrap; }
 .gp {
   display: flex; align-items: center; gap: 3px;
@@ -1168,6 +1199,15 @@ input[type="text"]:focus {
       </div>
     </div>
     <div class="game-foot">
+      <div class="radio-bar" id="radio-bar" hidden>
+        <span class="radio-emoji">📻</span>
+        <div class="radio-bar-info">
+          <div class="radio-bar-title" id="radio-bar-title"></div>
+          <div class="radio-bar-next" id="radio-bar-next"></div>
+        </div>
+        <button class="radio-bar-btn" id="btn-radio-mute" title="Mute radio on this phone">🔊</button>
+        <button class="radio-bar-btn" id="btn-radio-skip" title="Next song">⏭️</button>
+      </div>
       <div class="foot-row">
         <div class="game-players" id="game-players"></div>
         <div class="emote-bar" id="emote-bar"></div>

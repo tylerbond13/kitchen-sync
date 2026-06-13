@@ -358,11 +358,20 @@
         queue: evt.queue || musicState.queue || [],
         now: Date.now(),
       };
+      applyRadioDucking();
       renderMusic();
     } else if (evt.type === 'title' && musicState.radio) {
       musicState.radio.title = evt.title;
       renderMusic();
     }
+  }
+
+  // the local soundtrack yields to the crew radio — unless this phone has
+  // muted the radio, in which case its own game music comes back
+  function applyRadioDucking() {
+    if (!window.KSMusic) return;
+    const radioAudible = !!musicState.radio && !(window.KSRadio && KSRadio.isMuted());
+    KSMusic.suspend(radioAudible);
   }
 
   function updateMusic(payload) {
@@ -373,8 +382,7 @@
       now: payload.now || Date.now(),
     };
     if (window.KSRadio) KSRadio.update(payload);
-    // the local soundtrack yields to whatever the crew queued
-    if (window.KSMusic) KSMusic.suspend(!!musicState.radio);
+    applyRadioDucking();
     renderMusic();
   }
 
@@ -455,7 +463,36 @@
     return row;
   }
 
+  // compact in-game strip: now playing + what's next, skip + local mute
+  function renderRadioBar() {
+    const bar = $('radio-bar');
+    if (!bar) return;
+    const current = musicState.radio;
+    const queue = musicState.queue || [];
+    bar.hidden = !current && !queue.length;
+    if (bar.hidden) return;
+    $('radio-bar-title').textContent = current
+      ? (current.title || 'YouTube song') + (current.by ? ` · by ${current.by}` : '')
+      : `${queue.length} queued for this round`;
+    const next = queue[0];
+    $('radio-bar-next').textContent = next
+      ? `Next: ${next.title}${queue.length > 1 ? ` · +${queue.length - 1} more` : ''}`
+      : (current ? 'Last song in the queue' : '');
+    $('btn-radio-skip').disabled = !current;
+    $('btn-radio-mute').textContent = (window.KSRadio && KSRadio.isMuted()) ? '🔇' : '🔊';
+  }
+
+  $('btn-radio-skip').onclick = () => {
+    SFX.tap();
+    socket.emit('radio', { action: 'skip' });
+  };
+  $('btn-radio-mute').onclick = () => {
+    SFX.tap();
+    if (window.KSRadio) KSRadio.toggleMute(); // onChange re-renders the bar
+  };
+
   function renderMusic(payload = musicState) {
+    renderRadioBar();
     const titleEl = $('music-now');
     const queueEl = $('music-queue');
     if (!titleEl || !queueEl) return;
@@ -689,6 +726,7 @@
     }, 7000);
     updateMuteBtn();
     $('btn-pause').style.display = '';
+    renderRadioBar();
   }
 
   const SOUND_FOR = {
