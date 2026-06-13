@@ -15,8 +15,8 @@ Working in pairs. Each completed pair should have:
 - [x] Rory Gilmore
 - [x] Lorelai Gilmore
 - [x] Angela Lansbury
-- [ ] Elaine Benes
-- [ ] Cosmo Kramer
+- [x] Elaine Benes
+- [x] Cosmo Kramer
 - [ ] George Costanza
 - [ ] Carrie Bradshaw
 - [ ] Michael Jackson
@@ -51,3 +51,4 @@ Working in pairs. Each completed pair should have:
 - Blanche Devereaux + Dorothy Zbornak: `ks-char-blanche-devereaux.png`, `ks-char-dorothy-zbornak.png`; registered as chefs and customers.
 - Julie Andrews + Rory Gilmore: `ks-char-julie-andrews.png`, `ks-char-rory-gilmore.png`; registered as chefs and customers.
 - Lorelai Gilmore + Angela Lansbury: `ks-char-lorelai-gilmore.png`, `ks-char-angela-lansbury.png`; registered as chefs and customers.
+- Elaine Benes + Cosmo Kramer: `ks-char-elaine-benes.png`, `ks-char-cosmo-kramer.png`; registered as chefs and customers.

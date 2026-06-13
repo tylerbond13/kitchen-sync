@@ -40,6 +40,8 @@
     { key: 'rory_gilmore', name: 'Rory Gilmore' },
     { key: 'lorelai_gilmore', name: 'Lorelai Gilmore' },
     { key: 'angela_lansbury', name: 'Angela Lansbury' },
+    { key: 'elaine_benes', name: 'Elaine Benes' },
+    { key: 'cosmo_kramer', name: 'Kramer' },
   ];
 
   window.ASSETS = {
@@ -70,6 +72,8 @@
     rory_gilmore:      { path: HD + 'ks-char-rory-gilmore.png' },
     lorelai_gilmore:   { path: HD + 'ks-char-lorelai-gilmore.png' },
     angela_lansbury:   { path: HD + 'ks-char-angela-lansbury.png' },
+    elaine_benes:      { path: HD + 'ks-char-elaine-benes.png' },
+    cosmo_kramer:      { path: HD + 'ks-char-cosmo-kramer.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
