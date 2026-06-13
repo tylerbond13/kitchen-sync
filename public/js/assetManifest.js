@@ -48,6 +48,8 @@
     { key: 'donald_trump', name: 'Donald Trump' },
     { key: 'lucy_ricardo', name: 'Lucy Ricardo' },
     { key: 'ricky_ricardo', name: 'Ricky Ricardo' },
+    { key: 'oprah_winfrey', name: 'Oprah Winfrey' },
+    { key: 'dr_phil', name: 'Dr. Phil' },
   ];
 
   window.ASSETS = {
@@ -86,6 +88,8 @@
     donald_trump:      { path: HD + 'ks-char-donald-trump.png' },
     lucy_ricardo:      { path: HD + 'ks-char-lucy-ricardo.png' },
     ricky_ricardo:     { path: HD + 'ks-char-ricky-ricardo.png' },
+    oprah_winfrey:     { path: HD + 'ks-char-oprah-winfrey.png' },
+    dr_phil:           { path: HD + 'ks-char-dr-phil.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.

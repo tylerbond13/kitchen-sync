@@ -25,8 +25,8 @@ Working in pairs. Each completed pair should have:
 - [x] Lucy Ricardo
 - [x] Ricky Ricardo
 - [ ] Ellen Degeneres
-- [ ] Oprah Winfrey
-- [ ] Dr. Phil
+- [x] Oprah Winfrey
+- [x] Dr. Phil
 - [ ] Princess Diana
 - [ ] George Washington
 - [ ] Leonardo Dicaprio
@@ -55,7 +55,9 @@ Working in pairs. Each completed pair should have:
 - George Costanza + Carrie Bradshaw: `ks-char-george-costanza.png`, `ks-char-carrie-bradshaw.png`; registered as chefs and customers.
 - Marilyn Monroe + Donald Trump: `ks-char-marilyn-monroe.png`, `ks-char-donald-trump.png`; registered as chefs and customers.
 - Lucy Ricardo + Ricky Ricardo: `ks-char-lucy-ricardo.png`, `ks-char-ricky-ricardo.png`; registered as chefs and customers.
+- Oprah Winfrey + Dr. Phil: `ks-char-oprah-winfrey.png`, `ks-char-dr-phil.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
 - Michael Jackson: direct and non-likeness pop performer prompts were rejected by the image tool.
+- Ellen Degeneres: direct and non-exact daytime host prompts were rejected by the image tool.
