@@ -11,6 +11,7 @@
 
   let muted = JSON.parse(localStorage.getItem('ks-music-muted') || 'false');
   let unlocked = false;
+  let suspended = false;                   // a crew-radio track owns the speakers
   let want = 'menu';                       // track that should be playing
   const els = {};                          // name → HTMLAudioElement
 
@@ -43,7 +44,7 @@
     for (const [name, a] of Object.entries(els)) {
       if (name !== want && !a.paused) fadeTo(a, 0, () => a.pause());
     }
-    if (muted) {
+    if (muted || suspended) {
       const a = els[want];
       if (a && !a.paused) { a.pause(); }
       return;
@@ -74,6 +75,13 @@
       apply();
     },
     isMuted: () => muted,
+    // While the crew radio plays a YouTube track the local soundtrack stays
+    // silent; releasing resumes whatever screen music was due.
+    suspend(on) {
+      if (suspended === !!on) return;
+      suspended = !!on;
+      apply();
+    },
     toggleMute() {
       muted = !muted;
       localStorage.setItem('ks-music-muted', JSON.stringify(muted));
