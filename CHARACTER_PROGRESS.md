@@ -62,8 +62,8 @@ Working in pairs. Each completed pair should have:
 - [ ] Harry Potter
 - [ ] The Joker (from The Dark Knight)
 - [ ] Babe (the pig)
-- [ ] Justin Bieber
-- [ ] Kim Kardashian
+- [x] Justin Bieber
+- [x] Kim Kardashian
 - [ ] Lady Gaga
 - [ ] Robyn
 - [ ] Shania Twain
@@ -103,6 +103,7 @@ Working in pairs. Each completed pair should have:
 - Jerry Seinfeld + Shaquille O'Neal: `ks-char-jerry-seinfeld.png`, `ks-char-shaquille-oneal.png`; registered as chefs and customers.
 - Elton John + Brad Pitt: `ks-char-elton-john.png`, `ks-char-brad-pitt.png`; registered as chefs and customers.
 - Kris Jenner + Katy Perry: `ks-char-kris-jenner.png`, `ks-char-katy-perry.png`; registered as chefs and customers.
+- Justin Bieber + Kim Kardashian: `ks-char-justin-bieber.png`, `ks-char-kim-kardashian.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
