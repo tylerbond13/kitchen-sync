@@ -27,8 +27,8 @@ Working in pairs. Each completed pair should have:
 - [ ] Ellen Degeneres
 - [x] Oprah Winfrey
 - [x] Dr. Phil
-- [ ] Princess Diana
-- [ ] George Washington
+- [x] Princess Diana
+- [x] George Washington
 - [ ] Leonardo Dicaprio
 - [ ] John Lennon
 - [ ] Elvis Presley
@@ -56,6 +56,7 @@ Working in pairs. Each completed pair should have:
 - Marilyn Monroe + Donald Trump: `ks-char-marilyn-monroe.png`, `ks-char-donald-trump.png`; registered as chefs and customers.
 - Lucy Ricardo + Ricky Ricardo: `ks-char-lucy-ricardo.png`, `ks-char-ricky-ricardo.png`; registered as chefs and customers.
 - Oprah Winfrey + Dr. Phil: `ks-char-oprah-winfrey.png`, `ks-char-dr-phil.png`; registered as chefs and customers.
+- Princess Diana + George Washington: `ks-char-princess-diana.png`, `ks-char-george-washington.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
