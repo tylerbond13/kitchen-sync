@@ -315,6 +315,16 @@ function attach(io) {
         const track = makeTrack(cmd, by);
         if (!track) return;
         queue.push(track);
+        store.logSongRequest({
+          at: new Date().toISOString(),
+          crew: room.code,
+          playerId: joined.playerId,
+          player: by,
+          videoId: track.videoId,
+          title: track.title,
+          channel: track.channel,
+          duration: track.duration,
+        });
         roomBroadcast(io, room, 'radio', radioPayload(room));
         if (room.game && room.game.phase === 'playing' && !room.radio) playNextRadio(io, room);
         return;

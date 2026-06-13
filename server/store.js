@@ -253,10 +253,25 @@ function flushAll() {
   players.flush();
 }
 
+// Append-only jukebox history: every song anyone queues, forever. One JSON
+// object per line (JSONL) so the file only ever grows by appending — it is
+// never rewritten, so past entries can't be lost to a bad write.
+const SONG_LOG_FILE = path.join(DATA_DIR, 'song-history.jsonl');
+
+function logSongRequest(entry) {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.appendFileSync(SONG_LOG_FILE, JSON.stringify(entry) + '\n');
+  } catch (err) {
+    console.error('store: failed to append song history:', err.message);
+  }
+}
+
 module.exports = {
   createCrew, getCrew, touchCrewMember, recordLevelResult,
   getPlayer, upsertPlayer, recordPlayerResult, flushAll,
   restoreCrew, mergeCrew, mergePlayerStats,
   ensureCrewExtras, buyUpgrade,
   ensureAdminCrew, ADMIN_CODE,
+  logSongRequest, SONG_LOG_FILE,
 };
