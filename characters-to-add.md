@@ -52,3 +52,5 @@ Harry Potter
 Taylor Swift
 Kanye West
 The Joker (from The Dark Knight)
+Babe (the pig)
+Celine Dion

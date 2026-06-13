@@ -67,6 +67,8 @@
     { key: 'taylor_swift', name: 'Taylor Swift' },
     { key: 'kanye_west', name: 'Kanye West' },
     { key: 'joker_dark_knight', name: 'The Joker' },
+    { key: 'babe_pig', name: 'Babe' },
+    { key: 'celine_dion', name: 'Celine Dion' },
   ];
 
   window.ASSETS = {
@@ -124,6 +126,8 @@
     taylor_swift: { path: HD + 'ks-char-taylor-swift.png' },
     kanye_west: { path: HD + 'ks-char-kanye-west.png' },
     joker_dark_knight: { path: HD + 'ks-char-joker-dark-knight.png' },
+    babe_pig: { path: HD + 'ks-char-babe-pig.png' },
+    celine_dion: { path: HD + 'ks-char-celine-dion.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
