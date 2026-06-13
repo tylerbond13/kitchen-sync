@@ -67,3 +67,5 @@ Kris Jenner
 Katy Perry
 Lady Gaga
 Robyn
+Shania Twain
+Drake
