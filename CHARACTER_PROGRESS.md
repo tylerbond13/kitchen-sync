@@ -34,9 +34,9 @@ Working in pairs. Each completed pair should have:
 - [x] Elvis Presley
 - [x] Queen Elizabeth II
 - [x] Joe Biden
-- [ ] Kamala Harris
+- [x] Kamala Harris
 - [ ] Osama Bin Laden
-- [ ] Stephen Hawking
+- [x] Stephen Hawking
 - [ ] Count Chocula
 - [ ] Darth Vader
 - [ ] Woody
@@ -59,9 +59,14 @@ Working in pairs. Each completed pair should have:
 - Princess Diana + George Washington: `ks-char-princess-diana.png`, `ks-char-george-washington.png`; registered as chefs and customers.
 - John Lennon + Elvis Presley: `ks-char-john-lennon.png`, `ks-char-elvis-presley.png`; registered as chefs and customers.
 - Queen Elizabeth II + Joe Biden: `ks-char-queen-elizabeth-ii.png`, `ks-char-joe-biden.png`; registered as chefs and customers.
+- Kamala Harris + Stephen Hawking: `ks-char-kamala-harris.png`, `ks-char-stephen-hawking.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
 - Michael Jackson: direct and non-likeness pop performer prompts were rejected by the image tool.
 - Ellen Degeneres: direct and non-exact daytime host prompts were rejected by the image tool.
 - Leonardo Dicaprio: direct and non-exact movie star prompts were rejected by the image tool.
+
+## Excluded
+
+- Osama Bin Laden: not incorporated as a playable/customer character.

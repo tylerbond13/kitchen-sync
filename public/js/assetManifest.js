@@ -56,6 +56,8 @@
     { key: 'elvis_presley', name: 'Elvis Presley' },
     { key: 'queen_elizabeth_ii', name: 'Queen Elizabeth II' },
     { key: 'joe_biden', name: 'Joe Biden' },
+    { key: 'kamala_harris', name: 'Kamala Harris' },
+    { key: 'stephen_hawking', name: 'Stephen Hawking' },
   ];
 
   window.ASSETS = {
@@ -102,6 +104,8 @@
     elvis_presley:     { path: HD + 'ks-char-elvis-presley.png' },
     queen_elizabeth_ii:{ path: HD + 'ks-char-queen-elizabeth-ii.png' },
     joe_biden:         { path: HD + 'ks-char-joe-biden.png' },
+    kamala_harris:     { path: HD + 'ks-char-kamala-harris.png' },
+    stephen_hawking:   { path: HD + 'ks-char-stephen-hawking.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
