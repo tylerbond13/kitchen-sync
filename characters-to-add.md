@@ -63,3 +63,5 @@ Elton John
 Brad Pitt
 Justin Bieber
 Kim Kardashian
+Kris Jenner
+Katy Perry
