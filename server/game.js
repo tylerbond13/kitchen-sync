@@ -414,21 +414,36 @@ class Game {
         break;
       }
       case 'board': {
-        if (p.carry && !s.item && p.carry.kind !== 'plate') {
-          // anything non-plate can rest on a board; only raw choppables chop.
-          // chop progress lives ON the item, so it always survives moves.
-          s.item = p.carry; p.carry = null;
-          this.emit('place', at);
-        } else if (!p.carry && s.item) {
+        // a board doubles as a counter: anything (including a plate, empty or
+        // full) can rest on it. Only raw choppables actually chop, and chop
+        // progress lives ON the item so it survives being moved.
+        if (!p.carry && s.item) {
           if (s.item.state === 'raw' && CHOPPABLE.has(s.item.id)) {
-            this.emit('go', at);
+            this.emit('go', at); // mid-chop — leave it to finish
             break;
           }
           p.carry = s.item; s.item = null;
           this.emit('pickup', at);
+        } else if (p.carry && !s.item) {
+          s.item = p.carry; p.carry = null;
+          this.emit('place', at);
         } else if (p.carry && s.item) {
-          if (p.carry.kind === 'plate') {
+          if (p.carry.kind === 'plate' && s.item.kind === 'plate') {
+            // merge plates: pour the held plate onto the seated one, keep the
+            // empty plate in hand
+            const tokens = s.item.contents.map(itemToken).concat(p.carry.contents.map(itemToken));
+            const fitsAny = Object.values(RECIPES).some((r) => isSubset(tokens, r.needs));
+            if (fitsAny && p.carry.contents.length) {
+              s.item.contents.push(...p.carry.contents);
+              p.carry.contents = [];
+              this.emit('plate', at);
+            } else {
+              this.emit('reject', at);
+            }
+          } else if (p.carry.kind === 'plate' && s.item.kind !== 'plate') {
             if (this.addToPlate(p.carry, s.item, at)) s.item = null;
+          } else if (s.item.kind === 'plate' && p.carry.kind !== 'plate') {
+            if (this.addToPlate(s.item, p.carry, at)) p.carry = null;
           } else {
             const stack = this.tryStack(p.carry, s.item);
             if (stack) {

@@ -151,10 +151,10 @@ test('two players: create, join, play a round, progress persists', async () => {
   assert.equal(musicNext.radio.videoId, '9bZkp7q19f0');
   assert.equal(musicNext.queue.length, 0);
 
-  // a tap moves the chef
+  // a tap moves the chef (target a floor tile far from the central spawn)
   const me = state.players.find((p) => p.id === 'u-sib');
   tyler.emit('tap', { x: 1, y: 1 });
-  sib.emit('tap', { x: 3, y: 2 });
+  sib.emit('tap', { x: 1, y: 4 });
   await new Promise((r) => setTimeout(r, 600));
   const later = await waitFor(sib, 'state');
   const meLater = later.players.find((p) => p.id === 'u-sib');

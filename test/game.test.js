@@ -70,6 +70,11 @@ test('every level layout is valid and reachable', () => {
       const reachable = adj.some((f) => game.findPath(spawn.x, spawn.y, f.x, f.y) !== null);
       assert.ok(reachable, `${level.id} station ${s.type}@${key} reachable`);
     }
+    // corners stay clear of counters (open kitchen corners)
+    const corners = [[0, 0], [game.w - 1, 0], [0, game.h - 1], [game.w - 1, game.h - 1]];
+    for (const [cx, cy] of corners) {
+      assert.notEqual(game.grid[cy][cx], '#', `${level.id} corner ${cx},${cy} is not a counter`);
+    }
     // every order recipe must be craftable from the level's crates/appliances
     for (const r of level.orders.recipes) {
       assert.ok(RECIPES[r], `${level.id} recipe ${r} exists`);
@@ -227,6 +232,33 @@ test('chopped items stay chopped wherever they are placed', () => {
   game.interact(p, board);
   for (let i = 0; i < 40; i++) game.tick(0.1);
   assert.equal(game.stations[board].item.state, 'raw', 'bun never chops');
+});
+
+test('a plate (empty or full) can be set down on a chopping board', () => {
+  const game = makeGame();
+  const p = game.players.p1;
+  const board = stationKey(game, 'board');
+  standAt(game, p, board);
+
+  // empty plate rests on the board
+  p.carry = { kind: 'plate', contents: [] };
+  game.interact(p, board);
+  assert.equal(p.carry, null, 'empty plate set down on the board');
+  assert.equal(game.stations[board].item.kind, 'plate');
+
+  // pick it back up, load it, and set the full plate down too
+  game.interact(p, board);
+  assert.equal(game.stations[board].item, null);
+  p.carry = { kind: 'plate', contents: [{ id: 'lettuce', state: 'chopped' }] };
+  game.interact(p, board);
+  assert.equal(p.carry, null, 'full plate set down on the board');
+  assert.equal(game.stations[board].item.contents.length, 1);
+
+  // a chopped ingredient brought to the seated plate lands on it
+  p.carry = { id: 'tomato', state: 'chopped' };
+  game.interact(p, board);
+  assert.equal(p.carry, null, 'ingredient added to the plate on the board');
+  assert.equal(game.stations[board].item.contents.length, 2);
 });
 
 test('tapping a busy board with full hands swaps items (no dead taps)', () => {
