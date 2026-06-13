@@ -11,8 +11,8 @@ Working in pairs. Each completed pair should have:
 
 - [x] Blanche Devereaux
 - [x] Dorothy Zbornak
-- [ ] Julie Andrews
-- [ ] Rory Gilmore
+- [x] Julie Andrews
+- [x] Rory Gilmore
 - [ ] Lorelai Gilmore
 - [ ] Angela Lansbury
 - [ ] Elaine Benes
@@ -49,3 +49,4 @@ Working in pairs. Each completed pair should have:
 ## Commits
 
 - Blanche Devereaux + Dorothy Zbornak: `ks-char-blanche-devereaux.png`, `ks-char-dorothy-zbornak.png`; registered as chefs and customers.
+- Julie Andrews + Rory Gilmore: `ks-char-julie-andrews.png`, `ks-char-rory-gilmore.png`; registered as chefs and customers.
