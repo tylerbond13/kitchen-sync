@@ -30,8 +30,8 @@ Working in pairs. Each completed pair should have:
 - [x] Princess Diana
 - [x] George Washington
 - [ ] Leonardo Dicaprio
-- [ ] John Lennon
-- [ ] Elvis Presley
+- [x] John Lennon
+- [x] Elvis Presley
 - [ ] Queen Elizabeth II
 - [ ] Joe Biden
 - [ ] Kamala Harris
@@ -57,8 +57,10 @@ Working in pairs. Each completed pair should have:
 - Lucy Ricardo + Ricky Ricardo: `ks-char-lucy-ricardo.png`, `ks-char-ricky-ricardo.png`; registered as chefs and customers.
 - Oprah Winfrey + Dr. Phil: `ks-char-oprah-winfrey.png`, `ks-char-dr-phil.png`; registered as chefs and customers.
 - Princess Diana + George Washington: `ks-char-princess-diana.png`, `ks-char-george-washington.png`; registered as chefs and customers.
+- John Lennon + Elvis Presley: `ks-char-john-lennon.png`, `ks-char-elvis-presley.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
 - Michael Jackson: direct and non-likeness pop performer prompts were rejected by the image tool.
 - Ellen Degeneres: direct and non-exact daytime host prompts were rejected by the image tool.
+- Leonardo Dicaprio: direct and non-exact movie star prompts were rejected by the image tool.
