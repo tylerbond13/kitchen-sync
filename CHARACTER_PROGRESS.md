@@ -38,47 +38,13 @@ Working in pairs. Each completed pair should have:
 - [ ] Osama Bin Laden
 - [x] Stephen Hawking
 - [ ] Count Chocula
-- [x] Darth Vader
+- [ ] Darth Vader
 - [ ] Woody
 - [ ] Buzz Lightyear
 - [x] Greta Thunberg
 - [x] Bart Simpson
 - [x] Marge Simpson
 - [x] Sonic the Hedgehog
-- [x] Cher
-- [x] Britney Spears (redo & replace)
-- [x] Harry Potter
-- [x] Taylor Swift
-- [x] Kanye West
-- [x] The Joker (from The Dark Knight)
-- [x] Babe (the pig)
-- [x] Celine Dion
-- [x] Snooki from Jersey Shore
-- [x] Tom Cruise
-- [x] Michael Jordan
-- [x] Jerry Seinfeld
-- [x] Shaquille O'Neal
-- [x] Elton John
-- [x] Brad Pitt
-- [x] Justin Bieber
-- [x] Kim Kardashian
-- [x] Kris Jenner
-- [x] Katy Perry
-- [x] Lady Gaga
-- [x] Robyn
-- [x] Shania Twain
-- [x] Drake
-- [x] Joe Walsh
-- [x] Don Henley
-- [x] Glenn Frey
-- [x] Yoda
-- [x] Walter Sobchak
-- [x] The Dude (Big Lebowski)
-- [x] Bill Murray
-- [x] Chevy Chase
-- [x] Buddy the Elf
-- [x] Bono
-- [x] James Bond
 
 ## Commits
 
@@ -96,24 +62,6 @@ Working in pairs. Each completed pair should have:
 - Kamala Harris + Stephen Hawking: `ks-char-kamala-harris.png`, `ks-char-stephen-hawking.png`; registered as chefs and customers.
 - Greta Thunberg + Bart Simpson: `ks-char-greta-thunberg.png`, `ks-char-bart-simpson.png`; registered as chefs and customers. Bart is an original homage-style schoolboy asset.
 - Marge Simpson + Sonic the Hedgehog: `ks-char-marge-simpson.png`, `ks-char-sonic-hedgehog.png`; registered as chefs and customers. Both are original homage-style assets.
-- Cher + Britney Spears: `ks-char-cher.png`, `ks-char-britney-spears.png`; registered as chefs and customers.
-- Harry Potter + Taylor Swift: `ks-char-harry-potter.png`, `ks-char-taylor-swift.png`; registered as chefs and customers. Harry is an original homage-style wizard-school asset.
-- Kanye West + The Joker (from The Dark Knight): `ks-char-kanye-west.png`, `ks-char-joker-dark-knight.png`; registered as chefs and customers. The Joker is an original homage-style chaotic clown asset.
-- Babe (the pig) + Celine Dion: `ks-char-babe-pig.png`, `ks-char-celine-dion.png`; registered as chefs and customers. Babe is an original gentle piglet homage-style asset.
-- Snooki from Jersey Shore + Tom Cruise: `ks-char-snooki.png`, `ks-char-tom-cruise.png`; registered as chefs and customers.
-- Michael Jordan + Jerry Seinfeld: `ks-char-michael-jordan.png`, `ks-char-jerry-seinfeld.png`; registered as chefs and customers.
-- Shaquille O'Neal + Elton John: `ks-char-shaquille-oneal.png`, `ks-char-elton-john.png`; registered as chefs and customers.
-- Brad Pitt + Darth Vader: `ks-char-brad-pitt.png`, `ks-char-darth-vader.png`; registered as chefs and customers. Darth Vader is an original homage-style dark space-villain asset.
-- Justin Bieber + Kim Kardashian: `ks-char-justin-bieber.png`, `ks-char-kim-kardashian.png`; registered as chefs and customers.
-- Kris Jenner + Katy Perry: `ks-char-kris-jenner.png`, `ks-char-katy-perry.png`; registered as chefs and customers.
-- Lady Gaga + Robyn: `ks-char-lady-gaga.png`, `ks-char-robyn.png`; registered as chefs and customers.
-- Shania Twain + Drake: `ks-char-shania-twain.png`, `ks-char-drake.png`; registered as chefs and customers.
-- Joe Walsh + Don Henley: `ks-char-joe-walsh.png`, `ks-char-don-henley.png`; registered as chefs and customers.
-- Glenn Frey + Yoda: `ks-char-glenn-frey.png`, `ks-char-yoda.png`; registered as chefs and customers. Yoda is an original homage-style wise green space-master asset.
-- Walter Sobchak + The Dude (Big Lebowski): `ks-char-walter-sobchak.png`, `ks-char-the-dude.png`; registered as chefs and customers.
-- Bill Murray + Chevy Chase: `ks-char-bill-murray.png`, `ks-char-chevy-chase.png`; registered as chefs and customers.
-- Buddy the Elf + Bono: `ks-char-buddy-the-elf.png`, `ks-char-bono.png`; registered as chefs and customers. Buddy the Elf is an original homage-style holiday helper asset.
-- James Bond: `ks-char-james-bond.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
@@ -121,6 +69,7 @@ Working in pairs. Each completed pair should have:
 - Ellen Degeneres: direct and non-exact daytime host prompts were rejected by the image tool.
 - Leonardo Dicaprio: direct and non-exact movie star prompts were rejected by the image tool.
 - Count Chocula: direct and cereal-vampire homage prompts were rejected by the image tool.
+- Darth Vader: direct and non-exact dark sci-fi villain prompts were rejected by the image tool.
 - Woody: direct and western toy sheriff homage prompts were rejected by the image tool.
 - Buzz Lightyear: direct and space-ranger homage prompts were rejected by the image tool.
 

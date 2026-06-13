@@ -47,36 +47,4 @@ Darth Maul
 Peppa Pig
 
 --People we know
-Cher
-Harry Potter
-Taylor Swift
-Kanye West
-The Joker (from The Dark Knight)
-Babe (the pig)
-Celine Dion
-Snooki from Jersey Shore
-Tom Cruise
-Michael Jordan
-Jerry Seinfeld
-Shaquille O'Neal
-Elton John
-Brad Pitt
-Justin Bieber
-Kim Kardashian
-Kris Jenner
-Katy Perry
-Lady Gaga
-Robyn
-Shania Twain
-Drake
-Joe Walsh
-Don Henley
-Glenn Frey
-Yoda
-Walter Sobchak
-The Dude (Big Lebowski)
-Bill Murray
-Chevy Chase
-Buddy the Elf
-Bono
-James Bond
+
