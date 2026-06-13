@@ -41,8 +41,8 @@ Working in pairs. Each completed pair should have:
 - [ ] Darth Vader
 - [ ] Woody
 - [ ] Buzz Lightyear
-- [ ] Greta Thunberg
-- [ ] Bart Simpson
+- [x] Greta Thunberg
+- [x] Bart Simpson
 - [ ] Marge Simpson
 - [ ] Sonic the Hedgehog
 
@@ -60,6 +60,7 @@ Working in pairs. Each completed pair should have:
 - John Lennon + Elvis Presley: `ks-char-john-lennon.png`, `ks-char-elvis-presley.png`; registered as chefs and customers.
 - Queen Elizabeth II + Joe Biden: `ks-char-queen-elizabeth-ii.png`, `ks-char-joe-biden.png`; registered as chefs and customers.
 - Kamala Harris + Stephen Hawking: `ks-char-kamala-harris.png`, `ks-char-stephen-hawking.png`; registered as chefs and customers.
+- Greta Thunberg + Bart Simpson: `ks-char-greta-thunberg.png`, `ks-char-bart-simpson.png`; registered as chefs and customers. Bart is an original homage-style schoolboy asset.
 
 ## Needs Alternate Pass
 
