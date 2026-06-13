@@ -55,6 +55,8 @@ Working in pairs. Each completed pair should have:
 - [x] Michael Jordan
 - [x] Jerry Seinfeld
 - [x] Shaquille O'Neal
+- [x] Elton John
+- [x] Brad Pitt
 
 ## Commits
 
@@ -77,6 +79,7 @@ Working in pairs. Each completed pair should have:
 - Celine Dion + Snooki from Jersey Shore: `ks-char-celine-dion.png`, `ks-char-snooki.png`; registered as chefs and customers.
 - Tom Cruise + Michael Jordan: `ks-char-tom-cruise.png`, `ks-char-michael-jordan.png`; registered as chefs and customers.
 - Jerry Seinfeld + Shaquille O'Neal: `ks-char-jerry-seinfeld.png`, `ks-char-shaquille-oneal.png`; registered as chefs and customers.
+- Elton John + Brad Pitt: `ks-char-elton-john.png`, `ks-char-brad-pitt.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
