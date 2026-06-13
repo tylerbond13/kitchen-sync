@@ -38,7 +38,7 @@ Working in pairs. Each completed pair should have:
 - [ ] Osama Bin Laden
 - [x] Stephen Hawking
 - [ ] Count Chocula
-- [ ] Darth Vader
+- [x] Darth Vader
 - [ ] Woody
 - [ ] Buzz Lightyear
 - [x] Greta Thunberg
@@ -59,6 +59,7 @@ Working in pairs. Each completed pair should have:
 - [x] Jerry Seinfeld
 - [x] Shaquille O'Neal
 - [x] Elton John
+- [x] Brad Pitt
 
 ## Commits
 
@@ -83,6 +84,7 @@ Working in pairs. Each completed pair should have:
 - Snooki from Jersey Shore + Tom Cruise: `ks-char-snooki.png`, `ks-char-tom-cruise.png`; registered as chefs and customers.
 - Michael Jordan + Jerry Seinfeld: `ks-char-michael-jordan.png`, `ks-char-jerry-seinfeld.png`; registered as chefs and customers.
 - Shaquille O'Neal + Elton John: `ks-char-shaquille-oneal.png`, `ks-char-elton-john.png`; registered as chefs and customers.
+- Brad Pitt + Darth Vader: `ks-char-brad-pitt.png`, `ks-char-darth-vader.png`; registered as chefs and customers. Darth Vader is an original homage-style dark space-villain asset.
 
 ## Needs Alternate Pass
 
@@ -90,7 +92,6 @@ Working in pairs. Each completed pair should have:
 - Ellen Degeneres: direct and non-exact daytime host prompts were rejected by the image tool.
 - Leonardo Dicaprio: direct and non-exact movie star prompts were rejected by the image tool.
 - Count Chocula: direct and cereal-vampire homage prompts were rejected by the image tool.
-- Darth Vader: direct and non-exact dark sci-fi villain prompts were rejected by the image tool.
 - Woody: direct and western toy sheriff homage prompts were rejected by the image tool.
 - Buzz Lightyear: direct and space-ranger homage prompts were rejected by the image tool.
 

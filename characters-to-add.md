@@ -60,3 +60,4 @@ Michael Jordan
 Jerry Seinfeld
 Shaquille O'Neal
 Elton John
+Brad Pitt

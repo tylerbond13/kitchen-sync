@@ -75,6 +75,8 @@
     { key: 'jerry_seinfeld', name: 'Jerry Seinfeld' },
     { key: 'shaquille_oneal', name: "Shaquille O'Neal" },
     { key: 'elton_john', name: 'Elton John' },
+    { key: 'brad_pitt', name: 'Brad Pitt' },
+    { key: 'darth_vader', name: 'Darth Vader' },
   ];
 
   window.ASSETS = {
@@ -140,6 +142,8 @@
     jerry_seinfeld: { path: HD + 'ks-char-jerry-seinfeld.png' },
     shaquille_oneal: { path: HD + 'ks-char-shaquille-oneal.png' },
     elton_john: { path: HD + 'ks-char-elton-john.png' },
+    brad_pitt: { path: HD + 'ks-char-brad-pitt.png' },
+    darth_vader: { path: HD + 'ks-char-darth-vader.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
