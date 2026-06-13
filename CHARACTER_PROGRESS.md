@@ -76,8 +76,8 @@ Working in pairs. Each completed pair should have:
 - [x] The Dude (Big Lebowski)
 - [x] Bill Murray
 - [ ] Chevy Chase
-- [ ] Buddy the Elf
-- [ ] Bono
+- [x] Buddy the Elf
+- [x] Bono
 - [ ] James Bond
 
 ## Commits
@@ -109,6 +109,7 @@ Working in pairs. Each completed pair should have:
 - Joe Walsh + Don Henley: `ks-char-joe-walsh.png`, `ks-char-don-henley.png`; registered as chefs and customers.
 - Glenn Frey + Walter Sobchak: `ks-char-glenn-frey.png`, `ks-char-walter-sobchak.png`; registered as chefs and customers.
 - The Dude (Big Lebowski) + Bill Murray: `ks-char-the-dude.png`, `ks-char-bill-murray.png`; registered as chefs and customers.
+- Buddy the Elf + Bono: `ks-char-buddy-the-elf.png`, `ks-char-bono.png`; registered as chefs and customers. Buddy the Elf is an original homage-style holiday helper asset.
 
 ## Needs Alternate Pass
 

@@ -85,6 +85,8 @@
     { key: 'walter_sobchak', name: 'Walter Sobchak' },
     { key: 'the_dude', name: 'The Dude' },
     { key: 'bill_murray', name: 'Bill Murray' },
+    { key: 'buddy_the_elf', name: 'Buddy the Elf' },
+    { key: 'bono', name: 'Bono' },
     { key: 'kim_kardashian', name: 'Kim Kardashian' },
     { key: 'justin_bieber', name: 'Justin Bieber' },
   ];
@@ -162,6 +164,8 @@
     walter_sobchak: { path: HD + 'ks-char-walter-sobchak.png' },
     the_dude: { path: HD + 'ks-char-the-dude.png' },
     bill_murray: { path: HD + 'ks-char-bill-murray.png' },
+    buddy_the_elf: { path: HD + 'ks-char-buddy-the-elf.png' },
+    bono: { path: HD + 'ks-char-bono.png' },
     kim_kardashian: { path: HD + 'ks-char-kim-kardashian.png' },
     justin_bieber: { path: HD + 'ks-char-justin-bieber.png' },
 
