@@ -73,3 +73,5 @@ Joe Walsh
 Don Henley
 Glenn Frey
 Yoda
+Walter Sobchak
+The Dude (Big Lebowski)
