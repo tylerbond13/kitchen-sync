@@ -52,3 +52,5 @@ Taylor Swift
 Kanye West
 Celine Dion
 Snooki from Jersey Shore
+Tom Cruise
+Michael Jordan

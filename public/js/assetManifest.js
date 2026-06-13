@@ -67,6 +67,8 @@
     { key: 'kanye_west', name: 'Kanye West' },
     { key: 'celine_dion', name: 'Celine Dion' },
     { key: 'snooki', name: 'Snooki' },
+    { key: 'tom_cruise', name: 'Tom Cruise' },
+    { key: 'michael_jordan', name: 'Michael Jordan' },
   ];
 
   window.ASSETS = {
@@ -124,6 +126,8 @@
     kanye_west: { path: HD + 'ks-char-kanye-west.png' },
     celine_dion: { path: HD + 'ks-char-celine-dion.png' },
     snooki: { path: HD + 'ks-char-snooki.png' },
+    tom_cruise: { path: HD + 'ks-char-tom-cruise.png' },
+    michael_jordan: { path: HD + 'ks-char-michael-jordan.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.

@@ -51,6 +51,8 @@ Working in pairs. Each completed pair should have:
 - [x] Kanye West
 - [x] Celine Dion
 - [x] Snooki from Jersey Shore
+- [x] Tom Cruise
+- [x] Michael Jordan
 
 ## Commits
 
@@ -71,6 +73,7 @@ Working in pairs. Each completed pair should have:
 - Cher + Britney Spears: `ks-char-cher.png`, `ks-char-britney-spears.png`; registered as chefs and customers.
 - Taylor Swift + Kanye West: `ks-char-taylor-swift.png`, `ks-char-kanye-west.png`; registered as chefs and customers.
 - Celine Dion + Snooki from Jersey Shore: `ks-char-celine-dion.png`, `ks-char-snooki.png`; registered as chefs and customers.
+- Tom Cruise + Michael Jordan: `ks-char-tom-cruise.png`, `ks-char-michael-jordan.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
