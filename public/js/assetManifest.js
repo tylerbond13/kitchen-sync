@@ -69,6 +69,8 @@
     { key: 'joker_dark_knight', name: 'The Joker' },
     { key: 'babe_pig', name: 'Babe' },
     { key: 'celine_dion', name: 'Celine Dion' },
+    { key: 'snooki', name: 'Snooki' },
+    { key: 'tom_cruise', name: 'Tom Cruise' },
   ];
 
   window.ASSETS = {
@@ -128,6 +130,8 @@
     joker_dark_knight: { path: HD + 'ks-char-joker-dark-knight.png' },
     babe_pig: { path: HD + 'ks-char-babe-pig.png' },
     celine_dion: { path: HD + 'ks-char-celine-dion.png' },
+    snooki: { path: HD + 'ks-char-snooki.png' },
+    tom_cruise: { path: HD + 'ks-char-tom-cruise.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.

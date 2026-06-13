@@ -53,6 +53,8 @@ Working in pairs. Each completed pair should have:
 - [x] The Joker (from The Dark Knight)
 - [x] Babe (the pig)
 - [x] Celine Dion
+- [x] Snooki from Jersey Shore
+- [x] Tom Cruise
 
 ## Commits
 
@@ -74,6 +76,7 @@ Working in pairs. Each completed pair should have:
 - Harry Potter + Taylor Swift: `ks-char-harry-potter.png`, `ks-char-taylor-swift.png`; registered as chefs and customers. Harry is an original homage-style wizard-school asset.
 - Kanye West + The Joker (from The Dark Knight): `ks-char-kanye-west.png`, `ks-char-joker-dark-knight.png`; registered as chefs and customers. The Joker is an original homage-style chaotic clown asset.
 - Babe (the pig) + Celine Dion: `ks-char-babe-pig.png`, `ks-char-celine-dion.png`; registered as chefs and customers. Babe is an original gentle piglet homage-style asset.
+- Snooki from Jersey Shore + Tom Cruise: `ks-char-snooki.png`, `ks-char-tom-cruise.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 

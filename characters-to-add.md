@@ -54,3 +54,5 @@ Kanye West
 The Joker (from The Dark Knight)
 Babe (the pig)
 Celine Dion
+Snooki from Jersey Shore
+Tom Cruise
