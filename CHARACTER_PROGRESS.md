@@ -22,8 +22,8 @@ Working in pairs. Each completed pair should have:
 - [ ] Michael Jackson
 - [x] Marilyn Monroe
 - [x] Donald Trump
-- [ ] Lucy Ricardo
-- [ ] Ricky Ricardo
+- [x] Lucy Ricardo
+- [x] Ricky Ricardo
 - [ ] Ellen Degeneres
 - [ ] Oprah Winfrey
 - [ ] Dr. Phil
@@ -54,6 +54,7 @@ Working in pairs. Each completed pair should have:
 - Elaine Benes + Cosmo Kramer: `ks-char-elaine-benes.png`, `ks-char-cosmo-kramer.png`; registered as chefs and customers.
 - George Costanza + Carrie Bradshaw: `ks-char-george-costanza.png`, `ks-char-carrie-bradshaw.png`; registered as chefs and customers.
 - Marilyn Monroe + Donald Trump: `ks-char-marilyn-monroe.png`, `ks-char-donald-trump.png`; registered as chefs and customers.
+- Lucy Ricardo + Ricky Ricardo: `ks-char-lucy-ricardo.png`, `ks-char-ricky-ricardo.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 
