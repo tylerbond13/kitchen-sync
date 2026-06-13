@@ -13,8 +13,8 @@ Working in pairs. Each completed pair should have:
 - [x] Dorothy Zbornak
 - [x] Julie Andrews
 - [x] Rory Gilmore
-- [ ] Lorelai Gilmore
-- [ ] Angela Lansbury
+- [x] Lorelai Gilmore
+- [x] Angela Lansbury
 - [ ] Elaine Benes
 - [ ] Cosmo Kramer
 - [ ] George Costanza
@@ -50,3 +50,4 @@ Working in pairs. Each completed pair should have:
 
 - Blanche Devereaux + Dorothy Zbornak: `ks-char-blanche-devereaux.png`, `ks-char-dorothy-zbornak.png`; registered as chefs and customers.
 - Julie Andrews + Rory Gilmore: `ks-char-julie-andrews.png`, `ks-char-rory-gilmore.png`; registered as chefs and customers.
+- Lorelai Gilmore + Angela Lansbury: `ks-char-lorelai-gilmore.png`, `ks-char-angela-lansbury.png`; registered as chefs and customers.

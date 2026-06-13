@@ -38,6 +38,8 @@
     { key: 'dorothy_zbornak', name: 'Dorothy' },
     { key: 'julie_andrews', name: 'Julie Andrews' },
     { key: 'rory_gilmore', name: 'Rory Gilmore' },
+    { key: 'lorelai_gilmore', name: 'Lorelai Gilmore' },
+    { key: 'angela_lansbury', name: 'Angela Lansbury' },
   ];
 
   window.ASSETS = {
@@ -66,6 +68,8 @@
     dorothy_zbornak:   { path: HD + 'ks-char-dorothy-zbornak.png' },
     julie_andrews:     { path: HD + 'ks-char-julie-andrews.png' },
     rory_gilmore:      { path: HD + 'ks-char-rory-gilmore.png' },
+    lorelai_gilmore:   { path: HD + 'ks-char-lorelai-gilmore.png' },
+    angela_lansbury:   { path: HD + 'ks-char-angela-lansbury.png' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
