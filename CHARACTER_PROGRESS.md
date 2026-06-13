@@ -49,6 +49,8 @@ Working in pairs. Each completed pair should have:
 - [x] Britney Spears (redo & replace)
 - [x] Harry Potter
 - [x] Taylor Swift
+- [x] Kanye West
+- [x] The Joker (from The Dark Knight)
 
 ## Commits
 
@@ -68,6 +70,7 @@ Working in pairs. Each completed pair should have:
 - Marge Simpson + Sonic the Hedgehog: `ks-char-marge-simpson.png`, `ks-char-sonic-hedgehog.png`; registered as chefs and customers. Both are original homage-style assets.
 - Cher + Britney Spears: `ks-char-cher.png`, `ks-char-britney-spears.png`; registered as chefs and customers.
 - Harry Potter + Taylor Swift: `ks-char-harry-potter.png`, `ks-char-taylor-swift.png`; registered as chefs and customers. Harry is an original homage-style wizard-school asset.
+- Kanye West + The Joker (from The Dark Knight): `ks-char-kanye-west.png`, `ks-char-joker-dark-knight.png`; registered as chefs and customers. The Joker is an original homage-style chaotic clown asset.
 
 ## Needs Alternate Pass
 

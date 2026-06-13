@@ -50,3 +50,5 @@ Peppa Pig
 Cher
 Harry Potter
 Taylor Swift
+Kanye West
+The Joker (from The Dark Knight)
