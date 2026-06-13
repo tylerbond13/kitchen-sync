@@ -60,6 +60,8 @@ Working in pairs. Each completed pair should have:
 - [x] Shaquille O'Neal
 - [x] Elton John
 - [x] Brad Pitt
+- [x] Justin Bieber
+- [x] Kim Kardashian
 
 ## Commits
 
@@ -85,6 +87,7 @@ Working in pairs. Each completed pair should have:
 - Michael Jordan + Jerry Seinfeld: `ks-char-michael-jordan.png`, `ks-char-jerry-seinfeld.png`; registered as chefs and customers.
 - Shaquille O'Neal + Elton John: `ks-char-shaquille-oneal.png`, `ks-char-elton-john.png`; registered as chefs and customers.
 - Brad Pitt + Darth Vader: `ks-char-brad-pitt.png`, `ks-char-darth-vader.png`; registered as chefs and customers. Darth Vader is an original homage-style dark space-villain asset.
+- Justin Bieber + Kim Kardashian: `ks-char-justin-bieber.png`, `ks-char-kim-kardashian.png`; registered as chefs and customers.
 
 ## Needs Alternate Pass
 

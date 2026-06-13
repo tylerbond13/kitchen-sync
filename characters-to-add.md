@@ -61,3 +61,5 @@ Jerry Seinfeld
 Shaquille O'Neal
 Elton John
 Brad Pitt
+Justin Bieber
+Kim Kardashian
