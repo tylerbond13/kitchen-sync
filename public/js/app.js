@@ -94,6 +94,16 @@
     $(`screen-${name}`).classList.add('active');
     // Acrostics everywhere except live rounds; Caketown while cooking.
     if (window.KSMusic) KSMusic.play(name === 'game' ? 'game' : 'menu');
+    lockLandscape();
+  }
+
+  // The kitchen is a landscape-only experience. Where the platform allows it
+  // (installed PWA / Android Chrome in fullscreen) we hard-lock the screen to
+  // landscape; iOS Safari ignores this, so the CSS rotate-nudge overlay on the
+  // game screen is the real cross-platform guarantee (see #rotate-nudge).
+  function lockLandscape() {
+    try { screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {}); }
+    catch (_) { /* unsupported (iOS Safari) — handled by the rotate-nudge overlay */ }
   }
 
   let toastTimer = null;

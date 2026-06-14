@@ -46,6 +46,8 @@
   const SPRITE_FILL = 0.84;               // stations render at 84% of their
                                           // tile width — visual "air" between
                                           // counters; grid coords unchanged
+  const QUEUE_DEPTH = 5;                  // visible customers in the waiting
+                                          // line (matches orders.slice(0,5))
 
   // ── Game-object lookups ─────────────────────────────────────────────────────
   const ING_EMOJI = {
@@ -339,6 +341,14 @@
 
       this.resize = this.resize.bind(this);
       window.addEventListener('resize', this.resize);
+      // The canvas box also changes without a window resize — e.g. the orders
+      // strip appearing/disappearing reflows the stage, and the landscape rail
+      // wraps. Observe the wrapper directly so the draw buffer never goes stale
+      // (resize() only writes canvas.width/height, so this can't loop).
+      if (window.ResizeObserver) {
+        this._ro = new ResizeObserver(() => this.resize());
+        this._ro.observe(canvas.parentElement);
+      }
       this.resize();
 
       canvas.addEventListener('pointerdown', (e) => {
@@ -353,26 +363,21 @@
       requestAnimationFrame(()=>this.frame());
     }
 
-    destroy() { this.running=false; window.removeEventListener('resize',this.resize); }
+    destroy() { this.running=false; window.removeEventListener('resize',this.resize); this._ro && this._ro.disconnect(); }
 
     // ── World space ⇄ canvas ──────────────────────────────────────────────────
     // World space uses the locked 64×32 tile constants. One uniform scale +
     // translate maps world space onto the device canvas.
-    // Queue geometry: customers line up outside the front of the room. Slot 0
-    // sits in the column nearest the serve hatch; the line extends toward the
-    // roomier side.
+    // Queue geometry: landscape kitchens are wide and short, so the waiting
+    // line forms a VERTICAL column just outside the right wall instead of a row
+    // below the front. This fills the horizontal room and reserves no grid rows
+    // below the floor, so scale-to-fit can grow the tiles. Slot 0 is at the top;
+    // the line grows downward, centered against the room's depth.
     queueSlot(i) {
-      const {w,h}=this.lvl;
-      let bx = (w-1)/2;
-      const cells = this.serveCells;
-      if (cells.length) {
-        const onBottom = cells.filter((c) => c[1] === h-1);
-        bx = onBottom.length ? onBottom[0][0]
-           : cells.reduce((a,c)=>a+c[0],0)/cells.length;
-      }
-      bx = Math.min(w-1, Math.max(0, bx));
-      const dir = bx > (w-1)/2 ? -1 : 1;
-      return { x: bx + i*dir, y: h + 1.2 };
+      const { w, h } = this.lvl;
+      const col = w + 0.7;                       // one tile beyond the right wall
+      const top = Math.max(0, (h - QUEUE_DEPTH) / 2); // center the line vertically
+      return { x: col, y: top + 0.5 + i };
     }
 
     customerKeyForOrder(order) {
@@ -899,9 +904,9 @@
     }
 
     // ── Customer waiting line ─────────────────────────────────────────────────
-    // Slot i targets flat-grid coords (w/2-1 + 0.95i, h+0.45): a diagonal row
-    // just OUTSIDE the kitchen's front wall. Smoothed per-order positions make
-    // the whole line glide forward when the front customer is served.
+    // Slot i targets the vertical column just outside the right wall (see
+    // queueSlot). Smoothed per-order positions make the whole line glide
+    // forward when the front customer is served.
     customerQueue() {
       if (!this.cur || !this.cur.orders) return [];
       const {lvl}=this;
