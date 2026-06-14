@@ -907,20 +907,6 @@
     }
   }
 
-  // ---------- emotes ----------
-  const EMOTES = ['🔥', '😱', '🙏', '🎉', '🍽️', '❤️'];
-  const emoteBar = $('emote-bar');
-  EMOTES.forEach((e, i) => {
-    const b = document.createElement('button');
-    b.textContent = e;
-    b.onclick = () => { SFX.tap(); socket.emit('emote', i); };
-    emoteBar.appendChild(b);
-  });
-  socket.on('emote', ({ playerId, emoji }) => {
-    if (renderer) renderer.addEmote(playerId, emoji);
-    SFX.order();
-  });
-
   // ---------- audio toggles (music & SFX are independent, home + game) ----------
   function updateMuteBtn() {
     const sfxOff = SFX.isMuted(), musOff = KSMusic.isMuted();

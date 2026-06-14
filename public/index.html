@@ -60,6 +60,8 @@ html, body { height: 100%; overscroll-behavior: none; }
 
 body {
   font-family: ui-rounded, -apple-system, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+  /* Cover the full dynamic viewport so the in-game cake gradient never gaps. */
+  min-height: 100dvh;
   background: #FFF8FC;
   background-image:
     radial-gradient(ellipse at 15% 10%, #FFD6EC 0%, transparent 50%),
@@ -71,6 +73,13 @@ body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
+}
+
+/* During gameplay the whole screen becomes the cake-shop backdrop (a soft
+   purple→mint gradient with the showpiece cake on the right), filling the
+   viewport behind the play area. */
+body:has(#screen-game.active) {
+  background: #B79AD6 url('assets/images/env/ks-screen-bg.jpg') center center / cover no-repeat;
 }
 
 /* ============ Floating background emojis (home screen only) ============ */
@@ -696,19 +705,8 @@ input[type="text"]:focus {
 }
 .star-progress .star-mark.hit { color: var(--gold); filter: drop-shadow(0 0 4px rgba(255, 210, 63, 0.7)); }
 
-/* ============ Emotes & crew strip ============ */
+/* ============ Crew strip ============ */
 .foot-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.emote-bar { display: flex; gap: 5px; }
-.emote-bar button {
-  font-size: 16px; width: 36px; height: 36px;
-  border: none; border-radius: 50%;
-  background: var(--card);
-  box-shadow: var(--shadow-card);
-  cursor: pointer;
-  transition: transform .08s;
-  border: 1.5px solid rgba(255, 111, 174, 0.12);
-}
-.emote-bar button:active { transform: scale(.82); }
 .game-foot { display: flex; flex-direction: column; gap: 4px; }
 
 /* in-game crew radio strip: now playing, what's next, skip + local mute */
@@ -921,7 +919,7 @@ input[type="text"]:focus {
   border-radius: 22px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(180, 60, 130, 0.18), 0 2px 8px rgba(180,60,130,0.10);
-  background: #F0D8F0;
+  background: #E8D3BF url('assets/images/env/ks-board-wood.jpg') center center / cover no-repeat;
   min-height: 0;
   border: 2px solid rgba(255, 111, 174, 0.15);
 }
@@ -1092,12 +1090,10 @@ input[type="text"]:focus {
   .orders-strip .ticket-ingredient { width: 22px; flex: 0 0 22px; }
   .orders-strip .ticket-prep { font-size: 10px; min-height: 16px; }
 
-  /* Footer (radio / players / emotes / hint) packs under the rail */
+  /* Footer (radio / players / hint) packs under the rail */
   .foot-row    { flex-direction: column; align-items: stretch; gap: 5px; }
   .game-players { justify-content: center; flex-wrap: wrap; }
   .game-players .gp { font-size: 11px; padding: 3px 7px; }
-  .emote-bar   { justify-content: center; flex-wrap: wrap; gap: 4px; }
-  .emote-bar button { width: 32px; height: 32px; font-size: 15px; }
   .game-hint   { font-size: 10.5px; min-height: 0; }
   .radio-bar   { margin-bottom: 0; padding: 4px 8px; }
 }
@@ -1325,7 +1321,6 @@ input[type="text"]:focus {
       </div>
       <div class="foot-row">
         <div class="game-players" id="game-players"></div>
-        <div class="emote-bar" id="emote-bar"></div>
       </div>
       <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
     </div>

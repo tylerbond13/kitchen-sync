@@ -4,8 +4,6 @@ const { Game } = require('./game');
 const { LEVELS, RECIPES, SECTIONS, UPGRADES } = require('./levels');
 const store = require('./store');
 
-const EMOTES = ['🔥', '😱', '🙏', '🎉', '🍽️', '❤️'];
-
 const TICK_MS = 1000 / 12;
 const MAX_PLAYERS = 8;
 const MAX_RADIO_QUEUE = 12;
@@ -373,16 +371,6 @@ function attach(io) {
         return;
       }
       roomBroadcast(io, room, 'radio', radioPayload(room));
-    });
-
-    socket.on('emote', (idx) => {
-      if (!joined) return;
-      const emoji = EMOTES[idx];
-      if (!emoji) return;
-      const now = Date.now();
-      if (socket._lastEmote && now - socket._lastEmote < 900) return; // gentle rate limit
-      socket._lastEmote = now;
-      roomBroadcast(io, joined.room, 'emote', { playerId: joined.playerId, emoji });
     });
 
     socket.on('buy_upgrade', (id, ack) => {

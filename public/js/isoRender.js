@@ -49,6 +49,12 @@
   const QUEUE_DEPTH = 5;                  // visible customers in the waiting
                                           // line (matches orders.slice(0,5))
 
+  // Flat painted board: the play area uses a single board image (the wood floor
+  // + frosting trim) set as the .canvas-wrap CSS background, instead of the
+  // procedural isometric wall + checker floor. The canvas backdrop is left
+  // transparent so the board shows through and stations/chefs draw on top.
+  const USE_IMAGE_BOARD = true;
+
   // ── Game-object lookups ─────────────────────────────────────────────────────
   const ING_EMOJI = {
     lettuce:'🥬',tomato:'🍅',cucumber:'🥒',bun:'🍞',patty:'🥩',
@@ -312,7 +318,6 @@
       this.prevAt  = 0;    this.curAt = 0;
       this.fx      = [];                   // particles, in world space
       this.colorOf = {};
-      this.emotes  = {};
       this.qPos    = new Map();            // orderId → smoothed queue position
       // Serve-window cells anchor the customer queue (game-flow alignment):
       // the line forms outside the wall nearest the hatch, front slot at it.
@@ -333,11 +338,15 @@
       this.dpr     = Math.min(window.devicePixelRatio||1, 3);
 
       if (window.GFX) GFX.preload();
-      const t = this.theme;
-      // A calm, slightly-deeper framed backdrop so the colourful room pops
-      // against it (the vignette in drawAtmosphere finishes the framing).
-      canvas.parentElement.style.background =
-        `radial-gradient(120% 100% at 50% 18%, ${t.surroundA} 0%, ${t.surroundB} 100%)`;
+      // Backdrop behind/around the play area. With the flat image board the wood
+      // board is the .canvas-wrap CSS background and shows through the
+      // transparent canvas, so leave it to the stylesheet; otherwise paint the
+      // per-theme framed gradient (the vignette in drawAtmosphere finishes it).
+      if (!USE_IMAGE_BOARD) {
+        const t = this.theme;
+        canvas.parentElement.style.background =
+          `radial-gradient(120% 100% at 50% 18%, ${t.surroundA} 0%, ${t.surroundB} 100%)`;
+      }
 
       this.resize = this.resize.bind(this);
       window.addEventListener('resize', this.resize);
@@ -461,10 +470,6 @@
           this.colorOf[p.id]=PLAYER_COLORS[Object.keys(this.colorOf).length%PLAYER_COLORS.length];
       });
       for (const ev of state.events) this.addFx(ev);
-    }
-
-    addEmote(playerId, emoji) {
-      this.emotes[playerId]={emoji,until:performance.now()+2500};
     }
 
     lerpPlayers() {
@@ -627,6 +632,9 @@
     // line; its own floor strip is cropped off (floorLine) and our checker
     // continues underneath, as deep as the grid needs.
     drawScene() {
+      // Flat image board: the wood board is the .canvas-wrap CSS background and
+      // shows through the transparent canvas — skip the procedural floor + wall.
+      if (USE_IMAGE_BOARD) return;
       const {ctx,canvas}=this, m=this.wallMeta;
       const W=canvas.width, H=canvas.height;
       const floorY = Math.round(this.tyOff + this.oy*this.scale); // room floor line
@@ -851,13 +859,6 @@
       if (p.queue && p.queue.length) {
         const y = headTopY - CARRY_GAP - (p.carry ? 28 : 8);
         this.drawActionQueue(p.queue, sx, y);
-      }
-
-      const em=this.emotes[p.id];
-      if (em&&em.until>now) {
-        const by=headTopY-CARRY_GAP-26;
-        GFX.draw(ctx,'speech_bubble',sx,by,38,32);
-        this.glyph(em.emoji,sx,by-2,15);
       }
 
       this._labels.push({
