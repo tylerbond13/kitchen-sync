@@ -92,8 +92,26 @@
         if (drift > 2.5) player.seekTo(pos, true);
       }
       if (current.paused) player.pauseVideo();
-      else player.playVideo();
+      else { player.playVideo(); nudgePlay(current.videoId); }
     });
+  }
+
+  // First-track autoplay nudge: when a round promotes the first queued song,
+  // loadVideoById + playVideo sometimes leaves the player CUED/UNSTARTED (a
+  // YouTube autoplay quirk when playback isn't tied to a fresh tap) — the song
+  // would only start once you hit Next. Re-issue playVideo a few times until it
+  // actually reaches PLAYING, so the first queued song starts on its own.
+  function nudgePlay(videoId, tries) {
+    tries = tries || 0;
+    if (tries >= 5) return;
+    setTimeout(() => {
+      if (!current || current.videoId !== videoId || current.paused || !unlocked) return;
+      if (!player || !player.getPlayerState) return;
+      const st = player.getPlayerState();           // 1 = PLAYING, 3 = BUFFERING
+      if (st === 1 || st === 3) return;
+      player.playVideo();
+      nudgePlay(videoId, tries + 1);
+    }, 600);
   }
 
   setInterval(() => {

@@ -929,17 +929,38 @@ input[type="text"]:focus {
   position: absolute; inset: 0;
   background: rgba(45, 22, 52, 0.6);
   backdrop-filter: blur(6px);
-  display: grid; place-items: center;
+  /* Scrollable centered modal: flex + margin:auto on the box keeps it centred
+     when it fits, but lets you scroll to BOTH the top and bottom when the box
+     is taller than the viewport (the old grid/place-items:center clipped the
+     top on short mobile-landscape screens, so "Exit to Menu" was unreachable). */
+  display: flex;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px;
 }
 .pause-box {
+  margin: auto;
+  width: min(360px, 100%);
   background: var(--card);
   border-radius: 24px;
-  padding: 30px 40px;
+  padding: 22px 26px;
   text-align: center;
   display: flex; flex-direction: column; gap: 12px;
   box-shadow: 0 16px 48px rgba(45, 22, 52, 0.25);
   border: 1.5px solid rgba(255, 111, 174, 0.15);
 }
+/* YouTube console embedded in the pause menu — flat (no nested card chrome) */
+.pause-music {
+  background: transparent;
+  box-shadow: none;
+  padding: 12px 0 0;
+  margin-top: 4px;
+  text-align: left;
+  border-top: 1.5px solid rgba(255, 111, 174, 0.18);
+}
+.pause-music .music-title { margin-bottom: 10px; font-weight: 800; }
+.pause-music .music-results { max-height: 30vh; }
+.pause-music .music-queue { max-height: 26vh; overflow: auto; }
 
 .game-hint {
   text-align: center; font-size: 13px; font-weight: 700;
@@ -1275,7 +1296,8 @@ input[type="text"]:focus {
       <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
       <div class="hud-buttons">
         <button class="btn-icon" id="btn-autochop" title="Auto-chop" hidden>🔪</button>
-        <button class="btn-icon" id="btn-music-game" title="Music">🎵</button>
+        <button class="btn-icon" id="btn-open-music" title="Add / queue YouTube music">🎶</button>
+        <button class="btn-icon" id="btn-music-game" title="Mute music">🎵</button>
         <button class="btn-icon" id="btn-mute" title="Sound effects">🔊</button>
         <button class="btn-icon" id="btn-pause" title="Pause">⏸️</button>
       </div>
@@ -1299,6 +1321,18 @@ input[type="text"]:focus {
           <button class="btn btn-primary" id="btn-resume">Resume</button>
           <button class="btn btn-secondary" id="btn-restart">Restart Level</button>
           <button class="btn btn-secondary" id="btn-exit-lobby">Exit to Menu</button>
+          <div class="card music-card pause-music">
+            <div class="card-title music-title">
+              <span>🎵 Level Music</span>
+              <span class="music-now" id="gm-now">Queue empty</span>
+            </div>
+            <form class="music-search" id="gm-search">
+              <input id="gm-input" type="text" maxlength="80" placeholder="Search YouTube" autocomplete="off" enterkeyhint="search">
+              <button class="music-search-btn" id="gm-btn" type="submit" title="Search">🔎</button>
+            </form>
+            <div class="music-results" id="gm-results" hidden></div>
+            <div class="music-queue" id="gm-queue"></div>
+          </div>
         </div>
       </div>
       <div class="rotate-nudge" id="rotate-nudge" aria-hidden="true">

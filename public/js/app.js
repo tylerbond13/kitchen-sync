@@ -92,8 +92,11 @@
   function show(name) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
     $(`screen-${name}`).classList.add('active');
-    // Acrostics everywhere except live rounds; Caketown while cooking.
-    if (window.KSMusic) KSMusic.play(name === 'game' ? 'game' : 'menu');
+    // Menu music ("Acrostics") is the only default soundtrack — in rounds it
+    // stays on so the kitchen isn't silent, but the in-game "Caketown" track is
+    // auto-muted by default. The crew radio (YouTube) is the intended in-round
+    // audio: when a track is queued it suspends the menu music (see below).
+    if (window.KSMusic) KSMusic.play('menu');
     lockLandscape();
   }
 
@@ -188,7 +191,6 @@
   let iAmHost = false;
   let curStatic = null; // current round's static state (theme, star goals, ...)
   let musicState = { radio: null, queue: [], now: Date.now() };
-  let musicSearchSeq = 0;
 
   if (window.KSRadio) {
     KSRadio.init({
@@ -501,17 +503,21 @@
     if (window.KSRadio) KSRadio.toggleMute(); // onChange re-renders the bar
   };
 
-  function renderMusic(payload = musicState) {
-    renderRadioBar();
-    const titleEl = $('music-now');
-    const queueEl = $('music-queue');
-    if (!titleEl || !queueEl) return;
+  // The same crew-radio console renders in two places: the lobby card and the
+  // in-game pause menu (`gm-` ids). Each searches independently (its own seq).
+  const MUSIC_PANELS = [
+    { form: 'music-search', input: 'music-search-input', btn: 'music-search-btn',
+      results: 'music-results', queue: 'music-queue', now: 'music-now', seq: 0 },
+    { form: 'gm-search', input: 'gm-input', btn: 'gm-btn',
+      results: 'gm-results', queue: 'gm-queue', now: 'gm-now', seq: 0 },
+  ];
 
-    const current = payload.radio || null;
-    const queue = payload.queue || [];
+  function renderMusicPanel(p, current, queue) {
+    const titleEl = $(p.now);
+    const queueEl = $(p.queue);
+    if (!titleEl || !queueEl) return;
     titleEl.textContent = current ? 'Now playing' : queue.length ? `${queue.length} queued` : 'Queue empty';
     queueEl.innerHTML = '';
-
     if (current) queueEl.appendChild(musicRow(current, 'Now', { current: true }));
     if (!current && !queue.length) {
       const empty = document.createElement('div');
@@ -525,17 +531,24 @@
     });
   }
 
-  async function searchMusic() {
-    const input = $('music-search-input');
-    const resultsEl = $('music-results');
-    const btn = $('music-search-btn');
+  function renderMusic(payload = musicState) {
+    renderRadioBar();
+    const current = payload.radio || null;
+    const queue = payload.queue || [];
+    for (const p of MUSIC_PANELS) renderMusicPanel(p, current, queue);
+  }
+
+  async function searchMusic(p) {
+    const input = $(p.input);
+    const resultsEl = $(p.results);
+    const btn = $(p.btn);
     if (!input || !resultsEl || !btn) return;
     const q = input.value.trim();
     if (q.length < 2) {
       toast('Search needs at least 2 letters.');
       return;
     }
-    const seq = ++musicSearchSeq;
+    const seq = ++p.seq;
     btn.disabled = true;
     resultsEl.hidden = false;
     resultsEl.innerHTML = '<div class="music-empty">Searching...</div>';
@@ -543,7 +556,7 @@
       const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Search failed');
-      if (seq !== musicSearchSeq) return;
+      if (seq !== p.seq) return;
       const results = data.results || [];
       resultsEl.innerHTML = '';
       if (!results.length) {
@@ -552,20 +565,33 @@
       }
       for (const track of results) resultsEl.appendChild(musicRow(track, '', { addTrack: track }));
     } catch (err) {
-      if (seq === musicSearchSeq) resultsEl.innerHTML = `<div class="music-empty">${escapeHtml(err.message || 'Search failed')}</div>`;
+      if (seq === p.seq) resultsEl.innerHTML = `<div class="music-empty">${escapeHtml(err.message || 'Search failed')}</div>`;
     } finally {
-      if (seq === musicSearchSeq) btn.disabled = false;
+      if (seq === p.seq) btn.disabled = false;
     }
   }
 
-  const musicSearchForm = $('music-search');
-  if (musicSearchForm) {
-    musicSearchForm.addEventListener('submit', (e) => {
+  for (const p of MUSIC_PANELS) {
+    const form = $(p.form);
+    if (!form) continue;
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
       SFX.tap();
       if (window.KSRadio) KSRadio.unlock();
-      searchMusic();
+      searchMusic(p);
     });
+  }
+
+  // Sidebar "🎶" opens the pause menu (where the music console lives) and drops
+  // focus on its search box — reachable mid-round even with nothing playing.
+  const btnOpenMusic = $('btn-open-music');
+  if (btnOpenMusic) {
+    btnOpenMusic.onclick = () => {
+      SFX.tap();
+      if (window.KSRadio) KSRadio.unlock();
+      socket.emit('pause', true);
+      setTimeout(() => { const i = $('gm-input'); if (i) i.focus(); }, 60);
+    };
   }
 
   // ---------- lobby ----------
