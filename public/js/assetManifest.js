@@ -90,6 +90,7 @@
     { key: 'bono', name: 'Bono' },
     { key: 'kim_kardashian', name: 'Kim Kardashian' },
     { key: 'justin_bieber', name: 'Justin Bieber' },
+    { key: 'judge_judy', name: 'Judge Judy' },
   ];
 
   window.ASSETS = {
@@ -169,6 +170,9 @@
     bono: { path: HD + 'ks-char-bono.png' },
     kim_kardashian: { path: HD + 'ks-char-kim-kardashian.png' },
     justin_bieber: { path: HD + 'ks-char-justin-bieber.png' },
+    // Placeholder avatar until a real render lands — swap to
+    // HD + 'ks-char-judge-judy.png' once the image is generated.
+    judge_judy: { path: HD + 'ks-char-judge-judy.svg' },
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.

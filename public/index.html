@@ -378,10 +378,22 @@ input[type="text"]:focus {
 /* ============ Chef picker ============ */
 .chef-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Bigger portraits: ~2 columns on phones, more on wide screens, never
+     overflowing — the cells flex between 150px and 1fr. */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 10px;
   margin-bottom: 14px;
 }
+.chef-section-head {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 14px; font-weight: 900; color: var(--ink);
+  margin: 14px 2px 2px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid rgba(255, 111, 174, 0.18);
+}
+.chef-section-head:first-child { margin-top: 0; }
+.chef-section-emoji { font-size: 17px; }
 .chef-cell {
   font: inherit;
   min-width: 0;
@@ -402,8 +414,8 @@ input[type="text"]:focus {
 }
 .chef-cell img {
   width: 100%;
-  max-width: 96px;
-  height: 100px;
+  max-width: 100%;
+  height: 186px;            /* ~1.9x the old 100px — portraits read much bigger */
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 4px 6px rgba(45, 22, 52, 0.18));
@@ -1455,6 +1467,7 @@ input[type="text"]:focus {
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/sound.js"></script>
+  <script src="/js/voices.js"></script>
   <script src="/js/music.js"></script>
   <script src="/js/radio.js"></script>
   <script src="/js/art.js"></script>
