@@ -857,6 +857,7 @@ class Game {
       starThresholds: this.starGoals,
       autoChopAllowed: this.autoChopAllowed,
       seed: this.seed,
+      decor: this.level.decor || null,   // 'cake' → ambient cake-world decor layer
       // The level's dish menu (deduped, in pool order) — drives the first-time
       // tutorial pop-up so a new player can see what to cook and how.
       recipes: [...new Set(this.level.orders.recipes)].map((id) => ({

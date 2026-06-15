@@ -433,7 +433,7 @@ const LEVELS = [
   // 1 flour, 2 sugar, 3 strawberry, 4 matcha, 5 blueberry.
   {
     id: 'cake-sweet-beginnings',
-    n: 15, section: 'cake', theme: 'diner', beta: true,
+    n: 15, section: 'cake', theme: 'diner', beta: true, decor: 'cake',
     name: 'Sweet Beginnings',
     blurb: 'Chop, mix, bake, ice & garnish. Three dream cakes — the full bakery.',
     emoji: '🎂',

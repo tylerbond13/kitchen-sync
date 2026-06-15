@@ -84,6 +84,22 @@
   // Grid char → station image key. Digits 1-9 are ingredient crates and render
   // as a counter block with the ingredient sprite on top (via level.crates).
   const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink', M:'mixing_bowl', I:'icing_dispenser', G:'garnish_counter' };
+
+  // Cake World ambient decor (drawn by pushCakeDecor when level.decor==='cake').
+  // kind 'rug' = flat floor underlay (drawn first); 'prop' = floor-anchored
+  // fixture (depth-sorted, may animate); 'float' = ambient flier on top of
+  // everything (animates + gently bobs). `frames` cycles at `fps`.
+  const CAKE_DECOR = [
+    { kind:'rug',  key:'cw_rug_round',     gx:5,   gy:4.05, w:170 },
+    { kind:'prop', key:'cw_display_stand', gx:6,   gy:0.1,  w:120 },
+    { kind:'prop', fps:2.4, gx:8.7, gy:4.7, w:80, frames:['cw_mascot_1','cw_mascot_2','cw_mascot_3','cw_mascot_4'] },
+    { kind:'prop', key:'cw_wall_sconce',   gx:0.15, gy:1.2, w:36 },
+    { kind:'prop', key:'cw_wall_sconce',   gx:10.85, gy:1.2, w:36 },
+    { kind:'float', fps:9,   gx:2.6, gy:1.0, w:30, lift:52, bob:7, phase:0,   frames:['cw_bee_1','cw_bee_2','cw_bee_3'] },
+    { kind:'float', fps:9,   gx:7.5, gy:0.8, w:26, lift:64, bob:6, phase:1.7, frames:['cw_bee_1','cw_bee_2','cw_bee_3'] },
+    { kind:'float', fps:5.5, gx:4.4, gy:1.4, w:36, lift:46, bob:10, phase:0.6, frames:['cw_butterfly_1','cw_butterfly_2','cw_butterfly_3'] },
+    { kind:'float', fps:5.5, gx:9.2, gy:1.7, w:32, lift:58, bob:8, phase:2.3, frames:['cw_butterfly_1','cw_butterfly_2','cw_butterfly_3'] },
+  ];
   // Customer pool (grandma_rose benched for now). The order is shuffled per
   // round from the server's seed so every kitchen sees the same random cast.
   const CUSTOMER_KEYS = ['influencer','workhorse','socialite','kid',
@@ -643,6 +659,31 @@
       };
       desk('decor_vase', 0, 20);
       desk('decor_utensils', lvl.w-1, 16);
+      if (lvl.decor === 'cake') this.pushCakeDecor(queue);
+    }
+
+    // Cake World ambient decor — rugs under the floor, fixtures depth-sorted,
+    // and animated bees/butterflies bobbing above the whole scene.
+    pushCakeDecor(queue) {
+      const now = performance.now();
+      const frameKey = (d) => {
+        if (!d.frames) return d.key;
+        const i = Math.floor(now / (1000 / (d.fps || 4)) + (d.phase || 0)) % d.frames.length;
+        return d.frames[i];
+      };
+      for (const d of CAKE_DECOR) {
+        const [sx, sy] = this.project(d.gx, d.gy);
+        if (d.kind === 'rug') {
+          queue.push({ screenY: -1e6, draw: () => GFX.draw(this.ctx, d.key, sx, sy + TILE_HEIGHT * 0.2, d.w, d.w) });
+        } else if (d.kind === 'prop') {
+          const key = frameKey(d);
+          queue.push({ screenY: sy, draw: () => GFX.drawAnchored(this.ctx, key, sx, sy + TILE_HEIGHT / 2, d.w) });
+        } else if (d.kind === 'float') {
+          const key = frameKey(d);
+          const bob = Math.sin(now / 600 + (d.phase || 0)) * (d.bob || 0);
+          queue.push({ screenY: 1e6 + sy, draw: () => GFX.draw(this.ctx, key, sx, sy - (d.lift || 50) + bob, d.w, d.w) });
+        }
+      }
     }
 
     // ── Painted scene: wall illustration + glossy checker floor ──────────────

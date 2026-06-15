@@ -332,6 +332,21 @@
     decor_vase:     { path: HD + 'ks-flower-vase.png' },
     decor_utensils: { path: HD + 'ks-utensil-cup.png' },
 
+    // ── Cake World decor layer (ambient charm — drawn by pushDecor) ──────────
+    cw_bee_1:       { path: CW + 'cw-bee-1.png' },
+    cw_bee_2:       { path: CW + 'cw-bee-2.png' },
+    cw_bee_3:       { path: CW + 'cw-bee-3.png' },
+    cw_butterfly_1: { path: CW + 'cw-butterfly-1.png' },
+    cw_butterfly_2: { path: CW + 'cw-butterfly-2.png' },
+    cw_butterfly_3: { path: CW + 'cw-butterfly-3.png' },
+    cw_mascot_1:    { path: CW + 'cw-mascot-1.png' },
+    cw_mascot_2:    { path: CW + 'cw-mascot-2.png' },
+    cw_mascot_3:    { path: CW + 'cw-mascot-3.png' },
+    cw_mascot_4:    { path: CW + 'cw-mascot-4.png' },
+    cw_rug_round:   { path: CW + 'cw-rug-round.png', flat: true },
+    cw_display_stand:{ path: CW + 'cw-display-stand.png', flat: true },
+    cw_wall_sconce: { path: CW + 'cw-wall-sconce.png', flat: true },
+
     // ── UI on the canvas ────────────────────────────────────────────────────
     speech_bubble: { path: HD + 'ks-ui-bubble.png' },
     heart:         { path: HD + 'ks-ui-heart.png' },
