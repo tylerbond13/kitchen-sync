@@ -220,6 +220,10 @@
     strawberry: { path: HD + 'ks-strawberry.png' },
     banana:     { path: HD + 'ks-banana.png' },
     bun:        { path: HD + 'ks-bun.png' },
+    // Cake World pantry art (additive — replaces the emoji placeholders for the
+    // beta cake level). sugar/matcha art not generated yet → still emoji.
+    flour:      { path: CW + 'ks-cw-ing-flour.png' },
+    blueberry:  { path: CW + 'ks-cw-ing-blueberry.png' },
     rice:       { path: HD + 'ks-rice.png' },
     seaweed:    { path: HD + 'ks-seaweed.png' },
     dough:      { path: HD + 'ks-dough.png' },

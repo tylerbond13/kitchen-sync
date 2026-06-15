@@ -52,14 +52,35 @@ A big batch landed. Status as of the latest asset sweep (140 source files):
 | Cooling rack | `ks-cw-cooling-rack-cake-layers` | ✅ arrived · not wired |
 | Ornate benches (1/2/3) | `ks-cw-ornate-bench-{single,double,triple}` | ✅ arrived · not wired (multi-tile, no slot) |
 
-**Still missing:**
+### 🎉 Big polished batch arrived (≈86 assets × front/L/R = 258 files)
+
+A full production set landed and is **in the source folder** (not all wired yet):
+
+- **Station state variants** — `*-empty` / `*-active` (and mixer `-full`) for
+  oven, cutting/prep, dishwashing, delivery, ingredient-dispenser, **mixer**.
+  These enable *stateful* rendering (idle vs working) — a render upgrade, not a
+  drop-in swap, so wiring them is its own task.
+- **Ingredient sprites** — flour, eggs, strawberries, blueberries, raspberries,
+  carrots, chocolate, chocolate chunks/curls, cream dollops, honeycomb, petals,
+  flowers, rose-frosting, sprinkles, almonds. (flour + blueberry now **wired** on
+  this branch, replacing emoji; the rest are ready to wire.)
+- **Crates** for most of the above ingredients.
+- **Cake fail states** — burnt round/slice/tiered, collapsed/failed.
+- **UI** — coin, heart, star, timer, menu/pause buttons; order-card frames
+  (completed/urgent/wide), small ticket frame; status bubbles (patience /
+  impatient).
+- **FX** — clean sparkle, finished starburst, wash bubbles.
+- **Tile overlays** — hover / selected / valid / invalid placement; floor blockers.
+- **Decor + animation frames** — bee/butterfly/mascot idle 1–4, rugs, wall
+  sconce/trim/corner, rose wallpaper panel, cooling-rack empty/active.
+
+**Genuinely still missing:**
 
 | Asset | Why |
 |---|---|
-| **Garnish counter** | No dedicated garnish/topper-caddy station yet. Could repurpose an ornate bench, but a proper one is cleaner. |
-| **Stove / range** | For glaze & ganache (Espresso/Galaxy, L3+). No cake-world range exists — `stove`/`pot` still use the old HD art. Needs *simmering* + *about-to-burn* states. |
-| **Batter blobs** | One tinted blob per cake shown in the bowl / going in the oven (pink, green, purple, …). Simple. |
-| **Icing-colour swatches + topper icons** | Small UI chips for the dispenser readout, colour button, and order tickets. |
+| **Garnish counter** | Still no dedicated garnish/topper-caddy station. (`ingredient-dispenser` and `icing-color-selector` exist, but not a garnish counter.) Could repurpose an ornate bench. |
+| **Stove / range** | For glaze & ganache (Espresso/Galaxy). No cake-world range — `stove`/`pot` still use old HD art. Needs *simmering* + *about-to-burn* states. |
+| **sugar / matcha** ingredient art | Beta cakes use them; no sprite yet → still emoji. |
 
 ## 🍰 Cake art (the stars — most love here)
 
