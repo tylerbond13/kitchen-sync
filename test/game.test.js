@@ -750,3 +750,28 @@ test('cake world Phase 3 infra: icing tags a baked cake, order matches when iced
   game.interact(p, 'ice-1');
   assert.ok(game.events.slice(n2).some((e) => e.type === 'reject'), 'non-cake rejected');
 });
+
+test('cake world Phase 3 infra: garnish needs an iced cake, then tops it', () => {
+  const game = makeGame('cake-sweet-beginnings');
+  const p = game.players.p1;
+  game.stations['ice-1'] = { type: 'ice', colour: 'pink' };
+  game.stations['gar-1'] = { type: 'garnish', topper: 'rose_petal' };
+
+  // garnish BEFORE icing is rejected (enforces bake -> ice -> garnish order)
+  p.carry = { kind: 'plate', contents: [{ kind: 'dish', id: 'rose_cake' }] };
+  let n = game.events.length;
+  game.interact(p, 'gar-1');
+  assert.ok(game.events.slice(n).some((e) => e.type === 'reject'), 'cannot garnish an un-iced cake');
+  assert.equal(p.carry.contents[0].topper, undefined);
+
+  // ice it, then garnish succeeds and folds the topper into the token
+  game.interact(p, 'ice-1');
+  game.interact(p, 'gar-1');
+  assert.equal(p.carry.contents[0].topper, 'rose_petal');
+  assert.equal(itemToken(p.carry.contents[0]), 'rose_cake.dish#pink+rose_petal');
+
+  // garnishing again is rejected (only once)
+  n = game.events.length;
+  game.interact(p, 'gar-1');
+  assert.ok(game.events.slice(n).some((e) => e.type === 'reject'), 'double-garnish rejected');
+});

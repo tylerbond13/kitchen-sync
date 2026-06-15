@@ -66,7 +66,13 @@ mattering — see "Level ramp".)
 - Render: `STATION_KEY.I = 'icing_dispenser'`; art `ks-cw-icing-color-selector`
   (already arrived) is the obvious sprite.
 
-### 2. Garnish Counter — tile `G` (type `garnish`)
+### 2. Garnish Counter — tile `G` (type `garnish`) — ✅ engine built (branch, form (a))
+
+> **Status:** the `garnish` station + `interact` `'garnish'` case are built and
+> tested. It uses the **station-stocked** form (a): one tap applies the counter's
+> topper to an *iced* cake (rejects un-iced / already-garnished / non-cake),
+> enforcing bake→ice→garnish. The player-carried-topper form (b) remains the open
+> design choice; not wired into any level yet.
 
 - `parseLayout()`: `{ type: 'garnish' }`.
 - `interact()` new case `'garnish'`: applies the cake's required topper. Two

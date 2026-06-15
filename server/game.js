@@ -17,7 +17,7 @@ const BURN_WARNING_EVERY = 1;
 const VIP_CHANCE = 0.15;
 const MAX_ACTION_QUEUE = 8;
 
-const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T', SINK: 'K', ICING: 'I' };
+const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T', SINK: 'K', ICING: 'I', GARNISH: 'G' };
 // S pan, O pot, V oven, M mixing bowl (Cake World). All are 'cook' stations; the
 // tool gates which COOK_COMBOS apply. The mixer never burns (huge burnAfter).
 const TOOL_FOR = { S: 'pan', O: 'pot', V: 'oven', M: 'mixer' };
@@ -42,8 +42,9 @@ function contentsOf(item) {
   return item.kind === 'plate' || item.kind === 'stack' ? item.contents : [item];
 }
 
-// the baked cake the player is holding (loose, or inside a plate/stack), if any
-function iceableCake(carry) {
+// the cake the player is holding (loose, or inside a plate/stack), if any —
+// used by both the icing dispenser and the garnish counter
+function carriedCake(carry) {
   if (!carry) return null;
   const isCake = (it) => it && it.kind === 'dish' && /_cake$/.test(it.id);
   if (isCake(carry)) return carry;
@@ -162,6 +163,10 @@ class Game {
           // cake. Colour is fixed per level for now (a remote colour button is a
           // later, design-gated step). No live level uses 'I' yet.
           this.stations[key] = { type: 'ice', colour: this.level.icing || 'pink' };
+        } else if (c === TILE.GARNISH) {
+          // Cake World garnish counter: applies a topper to an iced cake.
+          // Station-stocked topper for now. No live level uses 'G' yet.
+          this.stations[key] = { type: 'garnish', topper: this.level.topper || 'sprinkles' };
         } else if (/[1-9]/.test(c)) {
           this.stations[key] = { type: 'crate', ing: this.level.crates[c] };
         }
@@ -511,10 +516,24 @@ class Game {
       case 'ice': {
         // Stamp the dispenser's colour onto a baked cake the player carries
         // (loose, or on a plate/stack). Already-iced or non-cake → reject.
-        const cake = iceableCake(p.carry);
+        const cake = carriedCake(p.carry);
         if (cake && !cake.icing) {
           cake.icing = s.colour;
           this.emit('ice', { ...at, colour: s.colour });
+        } else {
+          this.emit('reject', at);
+        }
+        break;
+      }
+      case 'garnish': {
+        // Apply the counter's topper to an ICED cake (enforces bake→ice→garnish).
+        // Station-stocked form (simplest); a player-carried-topper variant is a
+        // later, design-gated option. Un-iced / already-garnished / non-cake →
+        // reject.
+        const cake = carriedCake(p.carry);
+        if (cake && cake.icing && !cake.topper) {
+          cake.topper = s.topper;
+          this.emit('garnish', { ...at, topper: s.topper });
         } else {
           this.emit('reject', at);
         }
