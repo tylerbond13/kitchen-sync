@@ -29,18 +29,50 @@ These exist in `public/assets/images/cake-world/` and are wired or wire-ready:
 - Board background (herringbone parquet + frosting trim) and the cake-gradient
   screen backdrop.
 
-## 🧁 Station art still needed (Phase 2–3 blockers)
+## 🧁 Station art — arrived vs. still needed
 
-| Asset | Notes |
+A big batch landed. Status as of the latest asset sweep (140 source files):
+
+| Station | Source asset | Status |
+|---|---|---|
+| Oven | `ks-cw-dual-cake-oven-station` | ✅ arrived · **live** (wired to `oven`) |
+| Cutting/prep board | `ks-cw-cutting-prep-station` | ✅ arrived · **live** (wired to `chopping_board`) |
+| Serving window | `ks-cw-delivery-arch-counter` | ✅ arrived · **live** (wired to `serve_window`) |
+| Counter | `ks-cw-empty-single-countertop` | ✅ arrived · **live** (wired to `counter`) |
+| Plate stack | `ks-cw-stack-dishes` | ✅ arrived · **live** |
+| Clean plate | `ks-cw-single-dish` | ✅ arrived · **live** |
+| Trash | `ks-cw-trash-can` | ✅ arrived · **live** |
+| Sink | `ks-cw-dishwashing-station` | ✅ arrived · **live** |
+| **Mixing bowl** | `ks-cw-mixing-bowl-spoon` | ✅ arrived · **wired (branch)** as `mixing_bowl` |
+| **Icing dispenser / colour selector** | `ks-cw-icing-color-selector` | ✅ arrived · not wired (Phase 3 mechanic) |
+| Ingredient dispenser | `ks-cw-ingredient-dispenser-station` | ✅ arrived · alt crate/counter, not wired |
+| Curved ingredient counter | `ks-cw-curved-ingredient-counter` | ✅ arrived · not wired |
+| Side cabinet (mini) | `ks-cw-side-cabinet-mini-station` | ✅ arrived · not wired |
+| Display stand / pedestal | `ks-cw-display-stand`, `ks-cw-cake-pedestal-stand` | ✅ arrived · not wired (cosmetic `D`) |
+| Cooling rack | `ks-cw-cooling-rack-cake-layers` | ✅ arrived · not wired |
+| Ornate benches (1/2/3) | `ks-cw-ornate-bench-{single,double,triple}` | ✅ arrived · not wired (multi-tile, no slot) |
+
+**Still missing:**
+
+| Asset | Why |
 |---|---|
-| **Mixing bowl / stand mixer** | Ornate gold stand mixer or footed bowl. Needs an *empty* state and ideally a *full-of-batter* state (or we tint a generic batter blob on top). Front/L/R. |
-| **Icing dispenser** | The piping-bottle console from the vision render (the 3 coloured bottles + gold piping gun). Needs **per-colour** tints OR a neutral base we recolour in-engine. Decide via [open-questions.md](open-questions.md). |
-| **Icing-colour button** | The big round "ICING COLOR" console/button from the vision art (the flower-shaped control panel on the right). One sprite; lit state optional. |
-| **Garnish counter** | A decoration counter/marble slab with a little caddy of toppers. Front/L/R. |
-| **Stove / range** | For glaze & ganache (L3+). Ornate gold range with a saucepan; needs a *simmering* and a *boiling-over/burning* variant. |
-| **Display stand (with cakes)** | Have the empty case; want versions showing the level's hero cakes inside. |
+| **Garnish counter** | No dedicated garnish/topper-caddy station yet. Could repurpose an ornate bench, but a proper one is cleaner. |
+| **Stove / range** | For glaze & ganache (Espresso/Galaxy, L3+). No cake-world range exists — `stove`/`pot` still use the old HD art. Needs *simmering* + *about-to-burn* states. |
+| **Batter blobs** | One tinted blob per cake shown in the bowl / going in the oven (pink, green, purple, …). Simple. |
+| **Icing-colour swatches + topper icons** | Small UI chips for the dispenser readout, colour button, and order tickets. |
 
 ## 🍰 Cake art (the stars — most love here)
+
+**Arrived already** (need a recipe assignment — *your aesthetic call*, see below):
+`ks-cw-cake-tiered-decorated` (hero tiered cake), `ks-cw-cake-berry-slice`,
+`ks-cw-cake-berry-tart`, `ks-cw-cake-petal-slice`, `ks-cw-plain-cake-layers`
+(un-iced sponge), `ks-cw-cooling-rack-cake-layers`.
+
+> **Decision needed — cake → recipe mapping.** The engine (branch) currently
+> renders the 3 beta cakes (Rose / Matcha / Galaxy) as emoji placeholders on
+> purpose. To use the art above, tell me which PNG is which recipe (e.g.
+> petal-slice → Rose, berry-slice → Galaxy, …). That's a pure look decision, so
+> it's parked for you rather than guessed.
 
 For each of the five cakes we need, at minimum:
 

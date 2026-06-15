@@ -66,9 +66,12 @@ demo-able and beautiful.
   ingredient/cake art (the pipeline from the first re-skin already exists). The
   existing salad/burger mechanics still run underneath. *Output: Level 1 looks
   like Cake World even before new mechanics land.*
-- **Phase 2 — Mixing Bowl + bake chain.** Add the `mix` verb and a Mixing-Bowl
-  station; make the first cake (Royal Ruby Rose) fully playable: chop → mix →
-  bake → plate → serve. *Output: one real cake, end-to-end.*
+- **Phase 2 — Mixing Bowl + bake chain. ✅ BUILT (this branch, not live).** The
+  `mixer` tool + Mixing-Bowl tile `M`, mix→bake combos, and 3 cakes (Rose /
+  Matcha / Galaxy) playable chop → mix → bake → plate → serve, in a beta "Cake
+  World" level. 44/44 tests green; additive (existing levels untouched). Cakes
+  render as emoji until the cake-art→recipe mapping is chosen. *Output: real
+  cakes, end-to-end.*
 - **Phase 3 — Icing + garnish + customization.** Add the Icing Dispenser
   (coloured, remote-button controlled) and Garnish Counter. Introduce the
   icing-colour / topper variants that make orders customizable. *Output: the
@@ -87,7 +90,8 @@ Each phase is independently shippable and keeps the build green.
 
 - [x] Branch created (`cake-world-revamp`)
 - [x] First design pass written (these docs)
+- [x] Phase 2 engine built (Mixing Bowl + bake chain, 3 cakes, beta level, tests)
 - [ ] Aesthetic signed off
-- [ ] 5 cakes + customization signed off
-- [ ] Grid signed off
-- [ ] Asset list finalized & handed to image-gen
+- [ ] Cake-art → recipe mapping chosen (see [assets-to-generate.md](assets-to-generate.md))
+- [ ] Phase 3 design decisions answered ([open-questions.md](open-questions.md): icing colour, garnish, plating)
+- [ ] Beta level deployed live (your call) / first level revamped
