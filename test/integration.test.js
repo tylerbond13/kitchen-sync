@@ -73,7 +73,9 @@ test('two players: create, join, play a round, progress persists', async () => {
   const j1 = await emitAck(tyler, 'join', { code, profile: pTyler });
   assert.ok(j1.ok);
   assert.equal(j1.lobby.hostId, 'u-tyler');
-  assert.equal(j1.lobby.levels.filter((l) => l.unlocked).length, 1, 'only level 1 unlocked');
+  // beta levels (Cake World) are always open, so they're exempt from the
+  // normal star-gated progression check.
+  assert.equal(j1.lobby.levels.filter((l) => l.unlocked && !l.beta).length, 1, 'only level 1 unlocked');
 
   const lobbyUpdate = waitForWhere(tyler, 'lobby', (state) => state.players.length === 2);
   const j2 = await emitAck(sib, 'join', { code: code.toLowerCase(), profile: pSib });

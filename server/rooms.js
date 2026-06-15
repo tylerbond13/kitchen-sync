@@ -16,10 +16,11 @@ function levelList(crew) {
   return LEVELS.map((lvl, i) => {
     const prog = crew.progress[lvl.id] || { stars: 0, bestScore: 0 };
     const prevId = i > 0 ? LEVELS[i - 1].id : null;
-    const unlocked = adminCrew || i === 0 || (crew.progress[prevId] || {}).stars >= 1;
+    // beta levels (e.g. Cake World) are always open so they're easy to try.
+    const unlocked = adminCrew || lvl.beta || i === 0 || (crew.progress[prevId] || {}).stars >= 1;
     return {
       id: lvl.id, n: lvl.n, name: lvl.name, blurb: lvl.blurb, emoji: lvl.emoji,
-      section: lvl.section || 'diner',
+      section: lvl.section || 'diner', beta: !!lvl.beta,
       stars: prog.stars, bestScore: prog.bestScore, unlocked,
       thresholds: lvl.stars,
     };
