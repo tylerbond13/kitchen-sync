@@ -38,11 +38,16 @@
   // diamonds. Squashing them toward the tile keeps their footprint inside
   // the flat square until front-facing art is swapped in.
   const ISO_FIX     = { squash: 0.88, dy: 3 };
-  const CHEF_H     = 62;                  // chef sprite height (world px)
-  const CUSTOMER_H = 80;                  // customer sprite height (world px) —
-                                          // intentionally larger than the chef
-  const CARRY_GAP  = 40;                  // held item floats exactly this many
-                                          // px above the chef's head
+  const CHEF_H     = 118;                 // chef sprite height (world px) — ~1.9x
+                                          // the original 62 so chefs read big &
+                                          // characterful (the charm of the game)
+  const CUSTOMER_H = 132;                 // customer sprite height (world px) —
+                                          // ~1.65x the original 80; intentionally
+                                          // larger than the chef, but the queue
+                                          // overlaps less than the chef scale so
+                                          // the waiting line stays readable
+  const CARRY_GAP  = 52;                  // held item floats this many px above
+                                          // the chef's head (scaled with CHEF_H)
   const SPRITE_FILL = 0.84;               // stations render at 84% of their
                                           // tile width — visual "air" between
                                           // counters; grid coords unchanged
@@ -384,9 +389,13 @@
     // the line grows downward, centered against the room's depth.
     queueSlot(i) {
       const { w, h } = this.lvl;
+      const QGAP = 1.35;                         // vertical tiles between waiting
+                                                 // customers — >1 so the (now
+                                                 // larger) sprites don't clump
       const col = w + 0.7;                       // one tile beyond the right wall
-      const top = Math.max(0, (h - QUEUE_DEPTH) / 2); // center the line vertically
-      return { x: col, y: top + 0.5 + i };
+      const span = QGAP * (QUEUE_DEPTH - 1);
+      const top = Math.max(0, (h - span) / 2);   // center the taller line vertically
+      return { x: col, y: top + 0.5 + i * QGAP };
     }
 
     customerKeyForOrder(order) {

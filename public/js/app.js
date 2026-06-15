@@ -137,8 +137,28 @@
   });
 
   // ---------- chef + avatar picker ----------
+  // Natural groupings so the long roster reads as labelled sections instead of
+  // one giant blob. Anyone not listed falls into "More Stars" at the end, so
+  // new chefs never silently vanish.
+  const CHEF_SECTIONS = [
+    { name: 'House Specials',        emoji: '🏠', keys: ['chef','grandma_rose','workhorse','kid','camp_counselor','influencer','socialite'] },
+    { name: 'Sitcom Stars',          emoji: '📺', keys: ['jerry_seinfeld','elaine_benes','cosmo_kramer','george_costanza','betty_white','blanche_devereaux','dorothy_zbornak','lorelai_gilmore','rory_gilmore','lucy_ricardo','ricky_ricardo','carrie_bradshaw','angela_lansbury','barney'] },
+    { name: 'Daytime TV',            emoji: '⚖️', keys: ['judge_judy','oprah_winfrey','dr_phil'] },
+    { name: 'Music Legends',         emoji: '🎤', keys: ['sinatra','elvis_presley','john_lennon','dolly','cher','celine_dion','elton_john','bono','shania_twain'] },
+    { name: 'Pop & Hitmakers',       emoji: '🎸', keys: ['taylor_swift','britney','lady_gaga','katy_perry','kanye_west','drake','justin_bieber','robyn'] },
+    { name: 'The Eagles',            emoji: '🦅', keys: ['joe_walsh','don_henley','glenn_frey'] },
+    { name: 'Movie Icons',           emoji: '🎬', keys: ['marilyn_monroe','tom_cruise','brad_pitt','bill_murray','julie_andrews','judy','the_dude','walter_sobchak','buddy_the_elf','wadsworth'] },
+    { name: 'Politics & Royals',     emoji: '🏛️', keys: ['obama','joe_biden','kamala_harris','donald_trump','george_washington','princess_diana','queen_elizabeth_ii'] },
+    { name: 'Trailblazers',          emoji: '🔬', keys: ['stephen_hawking','greta_thunberg'] },
+    { name: 'Sports Legends',        emoji: '🏀', keys: ['michael_jordan','shaquille_oneal'] },
+    { name: 'Reality & Pop Culture', emoji: '📱', keys: ['kim_kardashian','kris_jenner','snooki'] },
+    { name: 'Cartoons & Games',      emoji: '🎮', keys: ['bart_simpson','marge_simpson','sonic_hedgehog'] },
+  ];
+
   const chefGrid = $('chef-grid');
-  CHEFS.forEach((chef) => {
+  const chefByKey = new Map(CHEFS.map((c) => [c.key, c]));
+
+  function makeChefCell(chef) {
     const cell = document.createElement('button');
     cell.className = 'chef-cell';
     cell.type = 'button';
@@ -149,10 +169,37 @@
       saveProfile();
       refreshPicker();
       SFX.unlock(); SFX.tap();
+      if (window.KSVoices) KSVoices.playSelect(chef.key);   // character's voice clip, if any
       sendHello();
+      // Picking a chef sits deep in a long grid — bring the action buttons up
+      // so you don't have to scroll to the very bottom to start a kitchen.
+      const actions = document.querySelector('#screen-home .home-actions');
+      if (actions) actions.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
-    chefGrid.appendChild(cell);
-  });
+    return cell;
+  }
+
+  function addChefSectionHead(section) {
+    const h = document.createElement('div');
+    h.className = 'chef-section-head';
+    h.innerHTML = `<span class="chef-section-emoji">${section.emoji}</span>${escapeHtml(section.name)}`;
+    chefGrid.appendChild(h);
+  }
+
+  (function renderChefSections() {
+    const placed = new Set();
+    for (const section of CHEF_SECTIONS) {
+      const members = section.keys.map((k) => chefByKey.get(k)).filter(Boolean);
+      if (!members.length) continue;
+      addChefSectionHead(section);
+      for (const chef of members) { chefGrid.appendChild(makeChefCell(chef)); placed.add(chef.key); }
+    }
+    const leftovers = CHEFS.filter((c) => !placed.has(c.key));
+    if (leftovers.length) {
+      addChefSectionHead({ name: 'More Stars', emoji: '⭐' });
+      for (const chef of leftovers) chefGrid.appendChild(makeChefCell(chef));
+    }
+  })();
 
   $('name-input').value = profile.name;
   $('name-input').addEventListener('change', () => {
@@ -763,7 +810,89 @@
     updateMuteBtn();
     $('btn-pause').style.display = '';
     renderRadioBar();
+    maybeShowTutorial(staticState);
   }
+
+  // ── First-time, per-level tutorial pop-up ─────────────────────────────────
+  // Shown once per level per device (localStorage). Pages through the level's
+  // dish menu — each card reuses the in-game order ticket (so players learn to
+  // read tickets too) plus a numbered "how to make it" step list.
+  const TUT_KEY = (id) => `ks-tut-v1-${id}`;
+  let tutPages = [];
+  let tutIdx = 0;
+
+  function stepLabel(token) {
+    const [id, state] = token.split('.');
+    const nice = id.replace(/_/g, ' ');
+    if (state === 'chopped') return `Chop the ${nice}`;
+    if (state === 'cooked')  return `Cook the ${nice}`;
+    if (state === 'dish')    return `Cook ${nice.replace(/^soup /, '')} on the stove`;
+    return `Grab the ${nice}`;
+  }
+
+  function recipeCardHtml(r) {
+    const order = { recipe: r.recipe, needs: r.needs, name: r.name, emoji: r.emoji, id: r.recipe, vip: false };
+    const ticket = (window.KSRender && KSRender.ticketRecipeHtml)
+      ? KSRender.ticketRecipeHtml(order, null)
+      : `<div class="ticket-name">${escapeHtml(r.name)}</div>`;
+    const chain = (window.KSRender && KSRender.prepChainHtml) || (() => '');
+    let n = 0;
+    const steps = r.needs.map((tok) => {
+      n++;
+      return `<div class="tutorial-step"><span class="step-n">${n}</span>${chain(tok)}<span>${escapeHtml(stepLabel(tok))}</span></div>`;
+    });
+    n++;
+    const finale = r.handheld
+      ? 'Build it in your hands & serve at the window 🪟'
+      : 'Plate it 🍽️ & serve at the window 🪟';
+    steps.push(`<div class="tutorial-step"><span class="step-n">${n}</span><span class="chain">🪟</span><span>${finale}</span></div>`);
+    return `<div class="tutorial-card">
+      <div class="ticket">${ticket}</div>
+      <div class="tutorial-steps">${steps.join('')}</div>
+    </div>`;
+  }
+
+  function renderTutorialPage() {
+    const r = tutPages[tutIdx];
+    if (!r) return;
+    $('tutorial-body').innerHTML = recipeCardHtml(r);
+    $('tutorial-dots').innerHTML = tutPages.length > 1
+      ? tutPages.map((_, i) => `<span class="${i === tutIdx ? 'on' : ''}"></span>`).join('')
+      : '';
+    const last = tutIdx >= tutPages.length - 1;
+    $('btn-tutorial-next').textContent = last ? "Let's cook! 🍳" : 'Next →';
+  }
+
+  function closeTutorial(levelId) {
+    $('tutorial-overlay').hidden = true;
+    if (levelId) { try { localStorage.setItem(TUT_KEY(levelId), '1'); } catch (_) {} }
+  }
+
+  function maybeShowTutorial(staticState) {
+    const recipes = staticState && staticState.recipes;
+    if (!recipes || !recipes.length) return;
+    let seen = false;
+    try { seen = !!localStorage.getItem(TUT_KEY(staticState.levelId)); } catch (_) {}
+    if (seen) return;
+    tutPages = recipes;
+    tutIdx = 0;
+    $('tutorial-title').textContent = `🍳 ${staticState.name || 'New Kitchen'}`;
+    $('tutorial-sub').textContent = recipes.length > 1
+      ? `${recipes.length} dishes to learn — here's how:`
+      : "Here's how to make it:";
+    renderTutorialPage();
+    $('tutorial-overlay').hidden = false;
+  }
+
+  $('btn-tutorial-skip').onclick = () => {
+    SFX.tap();
+    closeTutorial(curStatic && curStatic.levelId);
+  };
+  $('btn-tutorial-next').onclick = () => {
+    SFX.tap();
+    if (tutIdx < tutPages.length - 1) { tutIdx++; renderTutorialPage(); }
+    else closeTutorial(curStatic && curStatic.levelId);
+  };
 
   const SOUND_FOR = {
     pickup: 'pickup', place: 'place', plate: 'plate', chopped: 'chopped',
@@ -851,6 +980,11 @@
       }
       if (ev.type === 'serve') {
         renderer.spawnServeJuice(ev.x, ev.y, ev.points, ev.vip);
+        // The chef who delivered shouts a random clip from their soundboard.
+        if (window.KSVoices) {
+          const server = state.players.find((p) => p.id === ev.playerId);
+          if (server) KSVoices.playDelivery(server.chef || 'chef');
+        }
       }
     }
   });

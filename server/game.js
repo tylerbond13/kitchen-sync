@@ -802,6 +802,15 @@ class Game {
       starThresholds: this.starGoals,
       autoChopAllowed: this.autoChopAllowed,
       seed: this.seed,
+      // The level's dish menu (deduped, in pool order) — drives the first-time
+      // tutorial pop-up so a new player can see what to cook and how.
+      recipes: [...new Set(this.level.orders.recipes)].map((id) => ({
+        recipe: id,
+        name: RECIPES[id].name,
+        emoji: RECIPES[id].emoji,
+        needs: RECIPES[id].needs,
+        handheld: !!RECIPES[id].handheld,
+      })),
     };
   }
 
