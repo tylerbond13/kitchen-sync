@@ -38,6 +38,12 @@ const ING = {
   pineapple:  { name: 'Pineapple',  emoji: '🍍' },
   strawberry: { name: 'Strawberry', emoji: '🍓' },
   banana:     { name: 'Banana',     emoji: '🍌' },
+  // ── Cake World pantry (emoji are placeholders; real art lives in
+  //    assets/images/cake-world/ and is wired in assetManifest.js) ──
+  flour:      { name: 'Flour',      emoji: '🌾' },
+  sugar:      { name: 'Sugar',      emoji: '🧂' },
+  matcha:     { name: 'Matcha',     emoji: '🍵' },
+  blueberry:  { name: 'Blueberry',  emoji: '🫐' },
 };
 
 const DISHES = {
@@ -47,6 +53,11 @@ const DISHES = {
   stew:        { name: 'Hearty Stew', emoji: '🥘' },
   cocoa:       { name: 'Hot Cocoa',   emoji: '☕' },
   juice:       { name: 'Smoothie',    emoji: '🍹' },
+  // ── Cake World: a baked cake is a "dish" (like pizza), produced by the oven
+  //    from a batter. Icing/garnish are a later phase (open design questions).
+  rose_cake:   { name: 'Rose Cake',   emoji: '🎂' },
+  matcha_cake: { name: 'Matcha Cake', emoji: '🍰' },
+  galaxy_cake: { name: 'Galaxy Cake', emoji: '🎂' },
 };
 
 const RECIPES = {
@@ -65,6 +76,10 @@ const RECIPES = {
   juice:        { name: 'Smoothie',     emoji: '🍹', needs: ['juice.dish'], points: 90 },
   poke:         { name: 'Poke Bowl',    emoji: '🥗', needs: ['rice.cooked', 'fish.chopped', 'cucumber.chopped'], points: 110 },
   fish_taco:    { name: 'Fish Taco',    emoji: '🌮', needs: ['tortilla.raw', 'fish.chopped', 'lettuce.chopped'], points: 100, handheld: true },
+  // ── Cake World (Phase 2: chop -> mix -> bake -> plate -> serve) ──
+  rose_cake:    { name: 'Rose Cake',    emoji: '🌹', needs: ['rose_cake.dish'],   points: 90 },
+  matcha_cake:  { name: 'Matcha Cake',  emoji: '🍵', needs: ['matcha_cake.dish'], points: 90 },
+  galaxy_cake:  { name: 'Galaxy Cake',  emoji: '🌌', needs: ['galaxy_cake.dish'], points: 100 },
 };
 
 // What appliances can cook: a multiset of input tokens -> output.
@@ -80,11 +95,21 @@ const COOK_COMBOS = [
   { tool: 'pot',  inputs: ['milk.raw', 'cocoa.chopped'],                      out: { kind: 'dish', id: 'cocoa' },                  time: 6,  burnAfter: 10 },
   // beach
   { tool: 'pot',  inputs: ['pineapple.chopped', 'strawberry.chopped', 'banana.chopped'], out: { kind: 'dish', id: 'juice' },       time: 5,  burnAfter: 9 },
+  // ── Cake World — the Mixing Bowl (tool 'mixer') combines pantry + prepped
+  //    fruit into a batter; the oven bakes the batter into a cake. Mixers never
+  //    burn (huge burnAfter), so a batter waits patiently to be carried off.
+  { tool: 'mixer', inputs: ['flour.raw', 'sugar.raw', 'strawberry.chopped'], out: { kind: 'item', id: 'rose_batter',   state: 'raw' }, time: 3, burnAfter: 999 },
+  { tool: 'mixer', inputs: ['flour.raw', 'sugar.raw', 'matcha.raw'],         out: { kind: 'item', id: 'matcha_batter', state: 'raw' }, time: 3, burnAfter: 999 },
+  { tool: 'mixer', inputs: ['flour.raw', 'sugar.raw', 'blueberry.chopped'],  out: { kind: 'item', id: 'galaxy_batter', state: 'raw' }, time: 3, burnAfter: 999 },
+  { tool: 'oven',  inputs: ['rose_batter.raw'],   out: { kind: 'dish', id: 'rose_cake' },   time: 8, burnAfter: 11 },
+  { tool: 'oven',  inputs: ['matcha_batter.raw'], out: { kind: 'dish', id: 'matcha_cake' }, time: 8, burnAfter: 11 },
+  { tool: 'oven',  inputs: ['galaxy_batter.raw'], out: { kind: 'dish', id: 'galaxy_cake' }, time: 8, burnAfter: 11 },
 ];
 
 const CHOPPABLE = new Set([
   'lettuce', 'tomato', 'cucumber', 'cheese', 'onion', 'fish', 'patty',
   'potato', 'carrot', 'cocoa', 'pineapple', 'strawberry', 'banana',
+  'blueberry',
 ]);
 
 // Kitchen Shop upgrades — persist per crew, bought with banked score coins.
@@ -101,6 +126,7 @@ const SECTIONS = [
   { id: 'diner',  name: 'The Family Diner',  emoji: '🍳', blurb: 'Where it all begins.' },
   { id: 'winter', name: 'Winter Wonderland', emoji: '❄️', blurb: 'Cozy food for cold days.' },
   { id: 'beach',  name: 'Beach Club',        emoji: '🏖️', blurb: 'Sun, sand, and smoothies.' },
+  { id: 'cake',   name: 'Cake World',        emoji: '🎂', blurb: 'Bake the dream cakes. (Beta)' },
 ];
 
 const LEVELS = [
@@ -395,6 +421,30 @@ const LEVELS = [
       '.KT.PW#W.P.',
     ],
     orders: { recipes: ['fish_taco', 'poke', 'poke'], every: 14, ttl: 80, maxOpen: 4 },
+  },
+
+  // ============ CAKE WORLD (Beta) ============
+  // Phase 2 of the revamp (see docs/cake-world/): the mix -> bake chain on the
+  // new Mixing Bowl (M) + oven (V). Icing/garnish come later. Crate digits:
+  // 1 flour, 2 sugar, 3 strawberry, 4 matcha, 5 blueberry.
+  {
+    id: 'cake-sweet-beginnings',
+    n: 15, section: 'cake', theme: 'diner',
+    name: 'Sweet Beginnings',
+    blurb: 'Chop, mix, bake. Three dream cakes — learn the bakery ropes.',
+    emoji: '🎂',
+    duration: 170,
+    stars: [200, 420, 660],
+    crates: { 1: 'flour', 2: 'sugar', 3: 'strawberry', 4: 'matcha', 5: 'blueberry' },
+    layout: [
+      '.1B2B3.4.5.',
+      '#.........#',
+      'M....#....V',
+      'M....#....V',
+      'P.........P',
+      '.T...W#W.P.',
+    ],
+    orders: { recipes: ['rose_cake', 'matcha_cake', 'galaxy_cake'], every: 16, ttl: 82, maxOpen: 4 },
   },
 ];
 

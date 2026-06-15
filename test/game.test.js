@@ -660,3 +660,60 @@ test('game ends at time zero with star thresholds', () => {
   assert.equal(res.levelId, 'salad-days');
   assert.equal(res.players.length, 1);
 });
+
+test('cake world: mixer makes batter, oven bakes it, cake serves', () => {
+  const game = makeGame('cake-sweet-beginnings');
+  const p = game.players.p1;
+  const mixer = stationKey(game, 'cook', (s) => s.tool === 'mixer');
+  const oven  = stationKey(game, 'cook', (s) => s.tool === 'oven');
+
+  // load the Rose Cake batter: flour + sugar + chopped strawberry
+  p.carry = { id: 'flour', state: 'raw' };          game.interact(p, mixer);
+  p.carry = { id: 'sugar', state: 'raw' };           game.interact(p, mixer);
+  p.carry = { id: 'strawberry', state: 'chopped' };  game.interact(p, mixer);
+  assert.equal(game.stations[mixer].state, 'cooking', 'mixer starts on the full combo');
+
+  game.tick(3.2);
+  assert.equal(game.stations[mixer].state, 'done', 'mixing finished');
+  game.tick(40);
+  assert.equal(game.stations[mixer].state, 'done', 'mixers never burn');
+  game.interact(p, mixer);
+  assert.deepEqual(p.carry, { id: 'rose_batter', state: 'raw' }, 'batter picked up');
+
+  // bake the batter into a Rose Cake dish
+  game.interact(p, oven);
+  assert.equal(p.carry, null);
+  assert.equal(game.stations[oven].state, 'cooking', 'oven starts baking the batter');
+  game.tick(8.2);
+  assert.equal(game.stations[oven].state, 'done');
+  game.interact(p, oven);
+  assert.deepEqual(p.carry, { kind: 'dish', id: 'rose_cake' }, 'baked cake picked up');
+
+  // plate + serve a matching Rose Cake order
+  p.carry = { kind: 'plate', contents: [p.carry] };
+  game.orders = [{ id: 1, recipe: 'rose_cake', vip: false, ttl: 80, ttlMax: 80 }];
+  const before = game.score;
+  game.interact(p, stationKey(game, 'serve'));
+  assert.equal(p.carry, null, 'cake delivered at the window');
+  assert.equal(game.orders.length, 0);
+  assert.ok(game.score > before, `serving the cake scored (${game.score})`);
+});
+
+test('matcha and galaxy batters bake into their own cakes', () => {
+  const game = makeGame('cake-sweet-beginnings');
+  const p = game.players.p1;
+  const mixer = stationKey(game, 'cook', (s) => s.tool === 'mixer');
+  const oven  = stationKey(game, 'cook', (s) => s.tool === 'oven');
+
+  // matcha cake needs no chopping (matcha is a raw powder)
+  p.carry = { id: 'flour', state: 'raw' };   game.interact(p, mixer);
+  p.carry = { id: 'sugar', state: 'raw' };    game.interact(p, mixer);
+  p.carry = { id: 'matcha', state: 'raw' };   game.interact(p, mixer);
+  game.tick(3.2);
+  game.interact(p, mixer);
+  assert.deepEqual(p.carry, { id: 'matcha_batter', state: 'raw' });
+  game.interact(p, oven);
+  game.tick(8.2);
+  game.interact(p, oven);
+  assert.deepEqual(p.carry, { kind: 'dish', id: 'matcha_cake' });
+});

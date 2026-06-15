@@ -18,7 +18,9 @@ const VIP_CHANCE = 0.15;
 const MAX_ACTION_QUEUE = 8;
 
 const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T', SINK: 'K' };
-const TOOL_FOR = { S: 'pan', O: 'pot', V: 'oven' };
+// S pan, O pot, V oven, M mixing bowl (Cake World). All are 'cook' stations; the
+// tool gates which COOK_COMBOS apply. The mixer never burns (huge burnAfter).
+const TOOL_FOR = { S: 'pan', O: 'pot', V: 'oven', M: 'mixer' };
 
 function itemToken(item) {
   if (!item) return null;

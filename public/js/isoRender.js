@@ -66,19 +66,23 @@
     cheese:'🧀',onion:'🧅',rice:'🍚',fish:'🐟',seaweed:'🌿',dough:'🫓',
     potato:'🥔',carrot:'🥕',milk:'🥛',cocoa:'🍫',tortilla:'🌮',
     pineapple:'🍍',strawberry:'🍓',banana:'🍌',
+    // Cake World pantry (emoji placeholders until art is assigned)
+    flour:'🌾',sugar:'🧂',matcha:'🍵',blueberry:'🫐',
   };
   const CHOPPED_EMOJI = { fish:'🍣' };
   const COOKED_EMOJI  = { patty:'🍖' };
   const DISH_EMOJI = {
     soup_onion:'🥣',soup_tomato:'🍲',pizza:'🍕',burned:'🪨',
     stew:'🥘',cocoa:'☕',juice:'🍹',
+    // Cake World cakes (emoji placeholders until cake art is mapped)
+    rose_cake:'🎂',matcha_cake:'🍰',galaxy_cake:'🎂',
   };
 
   const PLAYER_COLORS = ['#FF6FAE','#5BADDE','#3DC9A0','#C09BFF','#FFD23F','#FF8251','#48D4C0','#9474E0'];
 
   // Grid char → station image key. Digits 1-9 are ingredient crates and render
   // as a counter block with the ingredient sprite on top (via level.crates).
-  const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink' };
+  const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink', M:'mixing_bowl' };
   // Customer pool (grandma_rose benched for now). The order is shuffled per
   // round from the server's seed so every kitchen sees the same random cast.
   const CUSTOMER_KEYS = ['influencer','workhorse','socialite','kid',
