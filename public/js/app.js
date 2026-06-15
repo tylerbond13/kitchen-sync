@@ -826,7 +826,11 @@
     const nice = id.replace(/_/g, ' ');
     if (state === 'chopped') return `Chop the ${nice}`;
     if (state === 'cooked')  return `Cook the ${nice}`;
-    if (state === 'dish')    return `Cook ${nice.replace(/^soup /, '')} on the stove`;
+    if (state === 'dish') {
+      // Cake World: cakes are mixed then baked, not simmered on the stove.
+      if (/_cake$/.test(id)) return `Mix & bake the ${nice.replace(/ cake$/, '')} cake`;
+      return `Cook ${nice.replace(/^soup /, '')} on the stove`;
+    }
     return `Grab the ${nice}`;
   }
 
