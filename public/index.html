@@ -962,6 +962,67 @@ input[type="text"]:focus {
 .pause-music .music-results { max-height: 30vh; }
 .pause-music .music-queue { max-height: 26vh; overflow: auto; }
 
+/* ============ First-time tutorial pop-up ============ */
+.tutorial-overlay {
+  position: absolute; inset: 0;
+  background: rgba(45, 22, 52, 0.62);
+  backdrop-filter: blur(6px);
+  display: flex; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 14px; z-index: 6;
+}
+.tutorial-box {
+  margin: auto;
+  width: min(420px, 100%);
+  background: var(--card);
+  border-radius: 24px;
+  padding: 20px 22px 16px;
+  box-shadow: 0 16px 48px rgba(45, 22, 52, 0.28);
+  border: 1.5px solid rgba(255, 111, 174, 0.18);
+  animation: tut-pop .26s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes tut-pop { from { opacity: 0; transform: scale(.92) translateY(8px); } to { opacity: 1; transform: none; } }
+.tutorial-head { text-align: center; margin-bottom: 12px; }
+.tutorial-title { font-size: 21px; font-weight: 900; color: var(--ink); }
+.tutorial-sub { font-size: 13px; font-weight: 700; color: var(--ink-soft); margin-top: 2px; }
+.tutorial-body { display: flex; flex-direction: column; gap: 12px; }
+.tutorial-card {
+  background: var(--cream);
+  border-radius: 18px;
+  padding: 14px;
+  border: 1.5px solid rgba(255, 111, 174, 0.12);
+  animation: tut-pop .2s ease;
+}
+/* the dish ticket reused from the game, enlarged for the tutorial */
+.tutorial-card .ticket-dish-img { width: 64px; height: 64px; }
+.tutorial-card .ticket-name { font-size: 16px; font-weight: 900; white-space: normal; overflow: visible; text-overflow: clip; }
+.tutorial-card .ticket-ingredients { gap: 8px; margin-top: 6px; }
+.tutorial-card .ticket-mini-img, .tutorial-card .ticket-mini svg.art { width: 30px; height: 30px; }
+.tutorial-steps { margin-top: 12px; display: flex; flex-direction: column; gap: 9px; }
+.tutorial-step {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13.5px; font-weight: 700; color: var(--ink);
+}
+.tutorial-step .step-n {
+  flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 12px; font-weight: 900;
+  background: var(--bubblegum); color: #fff;
+}
+.tutorial-step .chain { display: inline-flex; align-items: center; gap: 3px; font-size: 19px; }
+.tutorial-step .chain i { color: var(--ink-soft); font-style: normal; font-size: 13px; padding: 0 1px; }
+.tutorial-step .chain svg.art, .tutorial-step .chain img { width: 24px; height: 24px; vertical-align: middle; }
+.tutorial-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-top: 16px;
+}
+.tutorial-skip { color: var(--ink-soft); font-weight: 800; padding: 8px 6px; }
+.tutorial-next { flex: 0 0 auto; padding: 11px 20px; }
+.tutorial-dots { display: flex; gap: 6px; }
+.tutorial-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255, 111, 174, 0.28); transition: background .15s, transform .15s;
+}
+.tutorial-dots span.on { background: var(--bubblegum); transform: scale(1.25); }
+
 .game-hint {
   text-align: center; font-size: 13px; font-weight: 700;
   color: var(--ink-soft); min-height: 18px;
@@ -1332,6 +1393,20 @@ input[type="text"]:focus {
             </form>
             <div class="music-results" id="gm-results" hidden></div>
             <div class="music-queue" id="gm-queue"></div>
+          </div>
+        </div>
+      </div>
+      <div class="tutorial-overlay" id="tutorial-overlay" hidden>
+        <div class="tutorial-box">
+          <div class="tutorial-head">
+            <div class="tutorial-title" id="tutorial-title">How to cook</div>
+            <div class="tutorial-sub" id="tutorial-sub">Here's what you'll be making:</div>
+          </div>
+          <div class="tutorial-body" id="tutorial-body"></div>
+          <div class="tutorial-foot">
+            <button class="btn-link tutorial-skip" id="btn-tutorial-skip" type="button">Skip</button>
+            <div class="tutorial-dots" id="tutorial-dots"></div>
+            <button class="btn btn-primary tutorial-next" id="btn-tutorial-next" type="button">Next →</button>
           </div>
         </div>
       </div>

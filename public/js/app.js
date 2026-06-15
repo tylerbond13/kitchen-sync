@@ -767,7 +767,89 @@
     updateMuteBtn();
     $('btn-pause').style.display = '';
     renderRadioBar();
+    maybeShowTutorial(staticState);
   }
+
+  // ── First-time, per-level tutorial pop-up ─────────────────────────────────
+  // Shown once per level per device (localStorage). Pages through the level's
+  // dish menu — each card reuses the in-game order ticket (so players learn to
+  // read tickets too) plus a numbered "how to make it" step list.
+  const TUT_KEY = (id) => `ks-tut-v1-${id}`;
+  let tutPages = [];
+  let tutIdx = 0;
+
+  function stepLabel(token) {
+    const [id, state] = token.split('.');
+    const nice = id.replace(/_/g, ' ');
+    if (state === 'chopped') return `Chop the ${nice}`;
+    if (state === 'cooked')  return `Cook the ${nice}`;
+    if (state === 'dish')    return `Cook ${nice.replace(/^soup /, '')} on the stove`;
+    return `Grab the ${nice}`;
+  }
+
+  function recipeCardHtml(r) {
+    const order = { recipe: r.recipe, needs: r.needs, name: r.name, emoji: r.emoji, id: r.recipe, vip: false };
+    const ticket = (window.KSRender && KSRender.ticketRecipeHtml)
+      ? KSRender.ticketRecipeHtml(order, null)
+      : `<div class="ticket-name">${escapeHtml(r.name)}</div>`;
+    const chain = (window.KSRender && KSRender.prepChainHtml) || (() => '');
+    let n = 0;
+    const steps = r.needs.map((tok) => {
+      n++;
+      return `<div class="tutorial-step"><span class="step-n">${n}</span>${chain(tok)}<span>${escapeHtml(stepLabel(tok))}</span></div>`;
+    });
+    n++;
+    const finale = r.handheld
+      ? 'Build it in your hands & serve at the window 🪟'
+      : 'Plate it 🍽️ & serve at the window 🪟';
+    steps.push(`<div class="tutorial-step"><span class="step-n">${n}</span><span class="chain">🪟</span><span>${finale}</span></div>`);
+    return `<div class="tutorial-card">
+      <div class="ticket">${ticket}</div>
+      <div class="tutorial-steps">${steps.join('')}</div>
+    </div>`;
+  }
+
+  function renderTutorialPage() {
+    const r = tutPages[tutIdx];
+    if (!r) return;
+    $('tutorial-body').innerHTML = recipeCardHtml(r);
+    $('tutorial-dots').innerHTML = tutPages.length > 1
+      ? tutPages.map((_, i) => `<span class="${i === tutIdx ? 'on' : ''}"></span>`).join('')
+      : '';
+    const last = tutIdx >= tutPages.length - 1;
+    $('btn-tutorial-next').textContent = last ? "Let's cook! 🍳" : 'Next →';
+  }
+
+  function closeTutorial(levelId) {
+    $('tutorial-overlay').hidden = true;
+    if (levelId) { try { localStorage.setItem(TUT_KEY(levelId), '1'); } catch (_) {} }
+  }
+
+  function maybeShowTutorial(staticState) {
+    const recipes = staticState && staticState.recipes;
+    if (!recipes || !recipes.length) return;
+    let seen = false;
+    try { seen = !!localStorage.getItem(TUT_KEY(staticState.levelId)); } catch (_) {}
+    if (seen) return;
+    tutPages = recipes;
+    tutIdx = 0;
+    $('tutorial-title').textContent = `🍳 ${staticState.name || 'New Kitchen'}`;
+    $('tutorial-sub').textContent = recipes.length > 1
+      ? `${recipes.length} dishes to learn — here's how:`
+      : "Here's how to make it:";
+    renderTutorialPage();
+    $('tutorial-overlay').hidden = false;
+  }
+
+  $('btn-tutorial-skip').onclick = () => {
+    SFX.tap();
+    closeTutorial(curStatic && curStatic.levelId);
+  };
+  $('btn-tutorial-next').onclick = () => {
+    SFX.tap();
+    if (tutIdx < tutPages.length - 1) { tutIdx++; renderTutorialPage(); }
+    else closeTutorial(curStatic && curStatic.levelId);
+  };
 
   const SOUND_FOR = {
     pickup: 'pickup', place: 'place', plate: 'plate', chopped: 'chopped',
