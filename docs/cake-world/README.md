@@ -16,6 +16,7 @@ edited; treat each open question as a live decision.
 | [stations-and-board.md](stations-and-board.md) | The 9 station types, how each maps onto the existing engine, and a concrete Level-1 grid. |
 | [recipes.md](recipes.md) | The 5 signature cakes as buildable token recipes, the state machine, and the icing-colour + topper customization layer. |
 | [assets-to-generate.md](assets-to-generate.md) | The shopping list for the image-gen tool — exactly what to make, in what style, at what size. |
+| [phase3-plan.md](phase3-plan.md) | Ready-to-code spec for icing + garnish + colour, mapped onto the built Phase 2 engine. |
 | [open-questions.md](open-questions.md) | Decisions we need from you, plus the co-op synergy & "juice"/animation backlog. |
 
 Source material that fed these docs: `cake-recipes-tb-v1.md` (your notes), the
