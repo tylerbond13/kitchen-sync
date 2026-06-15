@@ -150,6 +150,10 @@
       refreshPicker();
       SFX.unlock(); SFX.tap();
       sendHello();
+      // Picking a chef sits deep in a long grid — bring the action buttons up
+      // so you don't have to scroll to the very bottom to start a kitchen.
+      const actions = document.querySelector('#screen-home .home-actions');
+      if (actions) actions.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
     chefGrid.appendChild(cell);
   });
