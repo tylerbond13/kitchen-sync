@@ -17,6 +17,7 @@
 (function () {
   const HD = 'assets/images/hd/';
   const FLAT = 'assets/images/flat/';
+  const CW = 'assets/images/cake-world/';   // Cake World re-skin (ornate, pastel)
 
   window.KS_CHEFS = [
     { key: 'chef', name: 'Chef' },
@@ -173,17 +174,22 @@
     // `flat: true` = straight-on art, renderer skips its iso squash.
     // Keys without a front-facing HD render yet use hand-built SVG stand-ins
     // (assets/images/flat/) — swap each back to its .png as regens land.
-    counter:        { path: HD + 'ks-countertop.png', flat: true },
-    chopping_board: { path: HD + 'ks-chopping-block.png', flat: true },
-    oven:           { path: HD + 'ks-industrial-baking-oven.png' },
+    // Cake World furniture (ornate pastel re-skin) — all straight-on front
+    // views, so flat:true skips the renderer's iso squash. stove/pot keep
+    // their HD art (no cake-world equivalent yet).
+    counter:        { path: CW + 'ks-cw-counter.png', flat: true },
+    chopping_board: { path: CW + 'ks-cw-chopping-board.png', flat: true },
+    oven:           { path: CW + 'ks-cw-oven.png', flat: true },
     stove:          { path: HD + 'ks-stove-pan.png' },
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
     pot:            { path: HD + 'ks-stockpot.png' },
-    plate_stack:    { path: HD + 'ks-plate-stack.png', flat: true },
-    serve_window:   { path: HD + 'ks-delivery-counter.png', flat: true, scale: 1.05 },
-    trash:          { path: HD + 'ks-trash-can.png', flat: true, scale: 0.88 },
-    sink:           { path: HD + 'ks-sink.png', flat: true },
-    sink_dirty:     { path: HD + 'ks-sink-dirty.png', flat: true },
+    plate_stack:    { path: CW + 'ks-cw-plate-stack.png', flat: true },
+    serve_window:   { path: CW + 'ks-cw-serve-window.png', flat: true },
+    trash:          { path: CW + 'ks-cw-trash.png', flat: true, scale: 0.88 },
+    // No dirty-sink variant in the cake-world set — reuse the station art and
+    // let drawBlock's bubble + dirty count badge signal the dirty state.
+    sink:           { path: CW + 'ks-cw-sink.png', flat: true },
+    sink_dirty:     { path: CW + 'ks-cw-sink.png', flat: true },
 
     // ── Ingredient crates ────────────────────────────────────────────────────
     // Front-facing HD crates where they exist; everything else gets the
@@ -235,7 +241,7 @@
     rice_cooked:        { path: HD + 'ks-rice-cooked.png' },
 
     // ── Plates & dishes ─────────────────────────────────────────────────────
-    plate:        { path: HD + 'ks-plate-clean.png' },
+    plate:        { path: CW + 'ks-cw-plate.png' },
     plate_dirty:  { path: HD + 'ks-plate-dirty.png' },
     dish_salad:        { path: HD + 'ks-dish-salad.png' },
     dish_big_salad:    { path: HD + 'ks-dish-big-salad.png' },
