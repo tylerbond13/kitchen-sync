@@ -717,3 +717,36 @@ test('matcha and galaxy batters bake into their own cakes', () => {
   game.interact(p, oven);
   assert.deepEqual(p.carry, { kind: 'dish', id: 'matcha_cake' });
 });
+
+test('cake world Phase 3 infra: icing tags a baked cake, order matches when iced', () => {
+  const game = makeGame('cake-sweet-beginnings');
+  const p = game.players.p1;
+  // inject an icing dispenser (no live level uses 'I' yet)
+  game.stations['ice-1'] = { type: 'ice', colour: 'pink' };
+
+  // plain baked cake is unchanged by the token folding (backward compatible)
+  const bare = { kind: 'dish', id: 'rose_cake' };
+  assert.equal(itemToken(bare), 'rose_cake.dish');
+
+  // ice a cake sitting on a plate
+  p.carry = { kind: 'plate', contents: [{ kind: 'dish', id: 'rose_cake' }] };
+  game.interact(p, 'ice-1');
+  assert.equal(p.carry.contents[0].icing, 'pink', 'cake iced pink');
+  assert.equal(itemToken(p.carry.contents[0]), 'rose_cake.dish#pink', 'colour folds into the token');
+
+  // an icing-requiring recipe only matches the iced cake
+  const iced = ['rose_cake.dish#pink'];
+  assert.ok(multisetEqual(p.carry.contents.map(itemToken), iced), 'iced cake matches an iced recipe');
+  assert.ok(!multisetEqual(['rose_cake.dish'], iced), 'an un-iced cake would not match');
+
+  // icing again is rejected (already iced)
+  const n = game.events.length;
+  game.interact(p, 'ice-1');
+  assert.ok(game.events.slice(n).some((e) => e.type === 'reject'), 'double-ice rejected');
+
+  // non-cake is rejected
+  p.carry = { kind: 'plate', contents: [{ id: 'lettuce', state: 'chopped' }] };
+  const n2 = game.events.length;
+  game.interact(p, 'ice-1');
+  assert.ok(game.events.slice(n2).some((e) => e.type === 'reject'), 'non-cake rejected');
+});

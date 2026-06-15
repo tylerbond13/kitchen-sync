@@ -17,7 +17,7 @@ const BURN_WARNING_EVERY = 1;
 const VIP_CHANCE = 0.15;
 const MAX_ACTION_QUEUE = 8;
 
-const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T', SINK: 'K' };
+const TILE = { FLOOR: '.', COUNTER: '#', BOARD: 'B', PAN: 'S', POT: 'O', OVEN: 'V', PLATES: 'P', SERVE: 'W', TRASH: 'T', SINK: 'K', ICING: 'I' };
 // S pan, O pot, V oven, M mixing bowl (Cake World). All are 'cook' stations; the
 // tool gates which COOK_COMBOS apply. The mixer never burns (huge burnAfter).
 const TOOL_FOR = { S: 'pan', O: 'pot', V: 'oven', M: 'mixer' };
@@ -25,13 +25,30 @@ const TOOL_FOR = { S: 'pan', O: 'pot', V: 'oven', M: 'mixer' };
 function itemToken(item) {
   if (!item) return null;
   if (item.kind === 'plate' || item.kind === 'stack') return null;
-  if (item.kind === 'dish') return `${item.id}.dish`;
+  if (item.kind === 'dish') {
+    // Cake World (Phase 3 infra): icing/topper tags fold into the token so order
+    // matching stays a plain multiset compare. Plain dishes are unchanged, e.g.
+    // `pizza.dish`; a finished cake reads `rose_cake.dish#pink+rose_petal`.
+    let t = `${item.id}.dish`;
+    if (item.icing)  t += `#${item.icing}`;
+    if (item.topper) t += `+${item.topper}`;
+    return t;
+  }
   return `${item.id}.${item.state}`;
 }
 
 // a plain item is its own contents; plates/stacks carry theirs
 function contentsOf(item) {
   return item.kind === 'plate' || item.kind === 'stack' ? item.contents : [item];
+}
+
+// the baked cake the player is holding (loose, or inside a plate/stack), if any
+function iceableCake(carry) {
+  if (!carry) return null;
+  const isCake = (it) => it && it.kind === 'dish' && /_cake$/.test(it.id);
+  if (isCake(carry)) return carry;
+  if (carry.kind === 'plate' || carry.kind === 'stack') return carry.contents.find(isCake) || null;
+  return null;
 }
 
 function multisetEqual(a, b) {
@@ -140,6 +157,11 @@ class Game {
           this.stations[key] = { type: 'trash' };
         } else if (c === TILE.SINK) {
           this.stations[key] = { type: 'sink', dirty: 0, progress: 0 };
+        } else if (c === TILE.ICING) {
+          // Cake World icing dispenser: stamps its current colour onto a baked
+          // cake. Colour is fixed per level for now (a remote colour button is a
+          // later, design-gated step). No live level uses 'I' yet.
+          this.stations[key] = { type: 'ice', colour: this.level.icing || 'pink' };
         } else if (/[1-9]/.test(c)) {
           this.stations[key] = { type: 'crate', ing: this.level.crates[c] };
         }
@@ -484,6 +506,18 @@ class Game {
       }
       case 'sink': {
         this.emit(s.dirty > 0 ? 'go' : 'reject', at); // washing happens by standing here
+        break;
+      }
+      case 'ice': {
+        // Stamp the dispenser's colour onto a baked cake the player carries
+        // (loose, or on a plate/stack). Already-iced or non-cake → reject.
+        const cake = iceableCake(p.carry);
+        if (cake && !cake.icing) {
+          cake.icing = s.colour;
+          this.emit('ice', { ...at, colour: s.colour });
+        } else {
+          this.emit('reject', at);
+        }
         break;
       }
       case 'serve': {

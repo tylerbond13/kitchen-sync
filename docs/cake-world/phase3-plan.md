@@ -51,7 +51,12 @@ mattering — see "Level ramp".)
 
 ## New stations
 
-### 1. Icing Dispenser — tile `I` (type `ice`)
+### 1. Icing Dispenser — tile `I` (type `ice`) — ✅ engine built (branch)
+
+> **Status:** the `itemToken` icing/topper tagging, the `ice` station type + the
+> `interact` `'ice'` case (fixed per-level colour) are implemented and tested
+> (`test/game.test.js` → "Phase 3 infra"). It's not in any level yet — wiring it
+> into a level + recipes is the design-gated step (clean-plate? colours?).
 
 - `parseLayout()`: `else if (c === 'I') this.stations[key] = { type: 'ice', colour: level.icing || 'pink' }`.
 - `interact()` new case `'ice'`: if the player carries a plate/stack whose cake
