@@ -44,6 +44,9 @@ const ING = {
   sugar:      { name: 'Sugar',      emoji: '🧂' },
   matcha:     { name: 'Matcha',     emoji: '🍵' },
   blueberry:  { name: 'Blueberry',  emoji: '🫐' },
+  eggs:       { name: 'Eggs',       emoji: '🥚' },
+  chocolate:  { name: 'Chocolate',  emoji: '🍫' },
+  honeycomb:  { name: 'Honeycomb',  emoji: '🍯' },
 };
 
 const DISHES = {
@@ -55,9 +58,9 @@ const DISHES = {
   juice:       { name: 'Smoothie',    emoji: '🍹' },
   // ── Cake World: a baked cake is a "dish" (like pizza), produced by the oven
   //    from a batter. Icing/garnish are a later phase (open design questions).
-  rose_cake:   { name: 'Rose Cake',   emoji: '🎂' },
-  matcha_cake: { name: 'Matcha Cake', emoji: '🍰' },
-  galaxy_cake: { name: 'Galaxy Cake', emoji: '🎂' },
+  chocolate_cake: { name: 'Chocolate Cake', emoji: '🎂' },
+  carrot_cake:    { name: 'Carrot Cake',    emoji: '🍰' },
+  honeycomb_cake: { name: 'Honeycomb Cake', emoji: '🍰' },
 };
 
 const RECIPES = {
@@ -77,9 +80,9 @@ const RECIPES = {
   poke:         { name: 'Poke Bowl',    emoji: '🥗', needs: ['rice.cooked', 'fish.chopped', 'cucumber.chopped'], points: 110 },
   fish_taco:    { name: 'Fish Taco',    emoji: '🌮', needs: ['tortilla.raw', 'fish.chopped', 'lettuce.chopped'], points: 100, handheld: true },
   // ── Cake World (Phase 2: chop -> mix -> bake -> plate -> serve) ──
-  rose_cake:    { name: 'Rose Cake',    emoji: '🌹', needs: ['rose_cake.dish'],   points: 90 },
-  matcha_cake:  { name: 'Matcha Cake',  emoji: '🍵', needs: ['matcha_cake.dish'], points: 90 },
-  galaxy_cake:  { name: 'Galaxy Cake',  emoji: '🌌', needs: ['galaxy_cake.dish'], points: 100 },
+  chocolate_cake: { name: 'Chocolate Cake', emoji: '🍫', needs: ['chocolate_cake.dish'], points: 100 },
+  carrot_cake:    { name: 'Carrot Cake',    emoji: '🥕', needs: ['carrot_cake.dish'],    points: 90 },
+  honeycomb_cake: { name: 'Honeycomb Cake', emoji: '🍯', needs: ['honeycomb_cake.dish'], points: 100 },
 };
 
 // What appliances can cook: a multiset of input tokens -> output.
@@ -98,18 +101,18 @@ const COOK_COMBOS = [
   // ── Cake World — the Mixing Bowl (tool 'mixer') combines pantry + prepped
   //    fruit into a batter; the oven bakes the batter into a cake. Mixers never
   //    burn (huge burnAfter), so a batter waits patiently to be carried off.
-  { tool: 'mixer', inputs: ['flour.raw', 'sugar.raw', 'strawberry.chopped'], out: { kind: 'item', id: 'rose_batter',   state: 'raw' }, time: 3, burnAfter: 999 },
-  { tool: 'mixer', inputs: ['flour.raw', 'sugar.raw', 'matcha.raw'],         out: { kind: 'item', id: 'matcha_batter', state: 'raw' }, time: 3, burnAfter: 999 },
-  { tool: 'mixer', inputs: ['flour.raw', 'sugar.raw', 'blueberry.chopped'],  out: { kind: 'item', id: 'galaxy_batter', state: 'raw' }, time: 3, burnAfter: 999 },
-  { tool: 'oven',  inputs: ['rose_batter.raw'],   out: { kind: 'dish', id: 'rose_cake' },   time: 8, burnAfter: 11 },
-  { tool: 'oven',  inputs: ['matcha_batter.raw'], out: { kind: 'dish', id: 'matcha_cake' }, time: 8, burnAfter: 11 },
-  { tool: 'oven',  inputs: ['galaxy_batter.raw'], out: { kind: 'dish', id: 'galaxy_cake' }, time: 8, burnAfter: 11 },
+  { tool: 'mixer', inputs: ['flour.raw', 'eggs.raw', 'chocolate.chopped'], out: { kind: 'item', id: 'chocolate_batter', state: 'raw' }, time: 3, burnAfter: 999 },
+  { tool: 'mixer', inputs: ['flour.raw', 'eggs.raw', 'carrot.chopped'],    out: { kind: 'item', id: 'carrot_batter',    state: 'raw' }, time: 3, burnAfter: 999 },
+  { tool: 'mixer', inputs: ['flour.raw', 'eggs.raw', 'honeycomb.chopped'], out: { kind: 'item', id: 'honeycomb_batter', state: 'raw' }, time: 3, burnAfter: 999 },
+  { tool: 'oven',  inputs: ['chocolate_batter.raw'], out: { kind: 'dish', id: 'chocolate_cake' }, time: 8, burnAfter: 11 },
+  { tool: 'oven',  inputs: ['carrot_batter.raw'],    out: { kind: 'dish', id: 'carrot_cake' },    time: 8, burnAfter: 11 },
+  { tool: 'oven',  inputs: ['honeycomb_batter.raw'], out: { kind: 'dish', id: 'honeycomb_cake' }, time: 8, burnAfter: 11 },
 ];
 
 const CHOPPABLE = new Set([
   'lettuce', 'tomato', 'cucumber', 'cheese', 'onion', 'fish', 'patty',
   'potato', 'carrot', 'cocoa', 'pineapple', 'strawberry', 'banana',
-  'blueberry',
+  'blueberry', 'chocolate', 'honeycomb',
 ]);
 
 // Kitchen Shop upgrades — persist per crew, bought with banked score coins.
@@ -435,7 +438,7 @@ const LEVELS = [
     emoji: '🎂',
     duration: 170,
     stars: [200, 420, 660],
-    crates: { 1: 'flour', 2: 'sugar', 3: 'strawberry', 4: 'matcha', 5: 'blueberry' },
+    crates: { 1: 'flour', 2: 'eggs', 3: 'chocolate', 4: 'carrot', 5: 'honeycomb' },
     layout: [
       '.1B2B3.4.5.',
       '#.........#',
@@ -444,7 +447,7 @@ const LEVELS = [
       'P.........P',
       '.T...W#W.P.',
     ],
-    orders: { recipes: ['rose_cake', 'matcha_cake', 'galaxy_cake'], every: 16, ttl: 82, maxOpen: 4 },
+    orders: { recipes: ['chocolate_cake', 'carrot_cake', 'honeycomb_cake'], every: 16, ttl: 82, maxOpen: 4 },
   },
 ];
 

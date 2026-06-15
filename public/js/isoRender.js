@@ -66,16 +66,17 @@
     cheese:'🧀',onion:'🧅',rice:'🍚',fish:'🐟',seaweed:'🌿',dough:'🫓',
     potato:'🥔',carrot:'🥕',milk:'🥛',cocoa:'🍫',tortilla:'🌮',
     pineapple:'🍍',strawberry:'🍓',banana:'🍌',
-    // Cake World pantry (emoji placeholders until art is assigned)
+    // Cake World pantry (emoji fallback; most have real art via the manifest)
     flour:'🌾',sugar:'🧂',matcha:'🍵',blueberry:'🫐',
+    eggs:'🥚',chocolate:'🍫',honeycomb:'🍯',
   };
   const CHOPPED_EMOJI = { fish:'🍣' };
   const COOKED_EMOJI  = { patty:'🍖' };
   const DISH_EMOJI = {
     soup_onion:'🥣',soup_tomato:'🍲',pizza:'🍕',burned:'🪨',
     stew:'🥘',cocoa:'☕',juice:'🍹',
-    // Cake World cakes (emoji placeholders until cake art is mapped)
-    rose_cake:'🎂',matcha_cake:'🍰',galaxy_cake:'🎂',
+    // Cake World cakes (emoji fallback; real cake art via dish_* manifest keys)
+    chocolate_cake:'🎂',carrot_cake:'🍰',honeycomb_cake:'🍰',
   };
 
   const PLAYER_COLORS = ['#FF6FAE','#5BADDE','#3DC9A0','#C09BFF','#FFD23F','#FF8251','#48D4C0','#9474E0'];

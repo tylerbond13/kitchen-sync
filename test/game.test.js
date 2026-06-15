@@ -667,10 +667,10 @@ test('cake world: mixer makes batter, oven bakes it, cake serves', () => {
   const mixer = stationKey(game, 'cook', (s) => s.tool === 'mixer');
   const oven  = stationKey(game, 'cook', (s) => s.tool === 'oven');
 
-  // load the Rose Cake batter: flour + sugar + chopped strawberry
+  // load the Chocolate Cake batter: flour + eggs + chopped chocolate
   p.carry = { id: 'flour', state: 'raw' };          game.interact(p, mixer);
-  p.carry = { id: 'sugar', state: 'raw' };           game.interact(p, mixer);
-  p.carry = { id: 'strawberry', state: 'chopped' };  game.interact(p, mixer);
+  p.carry = { id: 'eggs', state: 'raw' };            game.interact(p, mixer);
+  p.carry = { id: 'chocolate', state: 'chopped' };   game.interact(p, mixer);
   assert.equal(game.stations[mixer].state, 'cooking', 'mixer starts on the full combo');
 
   game.tick(3.2);
@@ -678,20 +678,20 @@ test('cake world: mixer makes batter, oven bakes it, cake serves', () => {
   game.tick(40);
   assert.equal(game.stations[mixer].state, 'done', 'mixers never burn');
   game.interact(p, mixer);
-  assert.deepEqual(p.carry, { id: 'rose_batter', state: 'raw' }, 'batter picked up');
+  assert.deepEqual(p.carry, { id: 'chocolate_batter', state: 'raw' }, 'batter picked up');
 
-  // bake the batter into a Rose Cake dish
+  // bake the batter into a Chocolate Cake dish
   game.interact(p, oven);
   assert.equal(p.carry, null);
   assert.equal(game.stations[oven].state, 'cooking', 'oven starts baking the batter');
   game.tick(8.2);
   assert.equal(game.stations[oven].state, 'done');
   game.interact(p, oven);
-  assert.deepEqual(p.carry, { kind: 'dish', id: 'rose_cake' }, 'baked cake picked up');
+  assert.deepEqual(p.carry, { kind: 'dish', id: 'chocolate_cake' }, 'baked cake picked up');
 
-  // plate + serve a matching Rose Cake order
+  // plate + serve a matching Chocolate Cake order
   p.carry = { kind: 'plate', contents: [p.carry] };
-  game.orders = [{ id: 1, recipe: 'rose_cake', vip: false, ttl: 80, ttlMax: 80 }];
+  game.orders = [{ id: 1, recipe: 'chocolate_cake', vip: false, ttl: 80, ttlMax: 80 }];
   const before = game.score;
   game.interact(p, stationKey(game, 'serve'));
   assert.equal(p.carry, null, 'cake delivered at the window');
@@ -699,23 +699,28 @@ test('cake world: mixer makes batter, oven bakes it, cake serves', () => {
   assert.ok(game.score > before, `serving the cake scored (${game.score})`);
 });
 
-test('matcha and galaxy batters bake into their own cakes', () => {
+test('carrot and honeycomb batters bake into their own cakes', () => {
   const game = makeGame('cake-sweet-beginnings');
   const p = game.players.p1;
   const mixer = stationKey(game, 'cook', (s) => s.tool === 'mixer');
   const oven  = stationKey(game, 'cook', (s) => s.tool === 'oven');
 
-  // matcha cake needs no chopping (matcha is a raw powder)
-  p.carry = { id: 'flour', state: 'raw' };   game.interact(p, mixer);
-  p.carry = { id: 'sugar', state: 'raw' };    game.interact(p, mixer);
-  p.carry = { id: 'matcha', state: 'raw' };   game.interact(p, mixer);
-  game.tick(3.2);
-  game.interact(p, mixer);
-  assert.deepEqual(p.carry, { id: 'matcha_batter', state: 'raw' });
-  game.interact(p, oven);
-  game.tick(8.2);
-  game.interact(p, oven);
-  assert.deepEqual(p.carry, { kind: 'dish', id: 'matcha_cake' });
+  for (const [flavor, batter, cake] of [
+    ['carrot', 'carrot_batter', 'carrot_cake'],
+    ['honeycomb', 'honeycomb_batter', 'honeycomb_cake'],
+  ]) {
+    p.carry = { id: 'flour', state: 'raw' };          game.interact(p, mixer);
+    p.carry = { id: 'eggs', state: 'raw' };            game.interact(p, mixer);
+    p.carry = { id: flavor, state: 'chopped' };        game.interact(p, mixer);
+    game.tick(3.2);
+    game.interact(p, mixer);
+    assert.deepEqual(p.carry, { id: batter, state: 'raw' });
+    game.interact(p, oven);
+    game.tick(8.2);
+    game.interact(p, oven);
+    assert.deepEqual(p.carry, { kind: 'dish', id: cake });
+    p.carry = null;
+  }
 });
 
 test('cake world Phase 3 infra: icing tags a baked cake, order matches when iced', () => {
@@ -725,19 +730,19 @@ test('cake world Phase 3 infra: icing tags a baked cake, order matches when iced
   game.stations['ice-1'] = { type: 'ice', colour: 'pink' };
 
   // plain baked cake is unchanged by the token folding (backward compatible)
-  const bare = { kind: 'dish', id: 'rose_cake' };
-  assert.equal(itemToken(bare), 'rose_cake.dish');
+  const bare = { kind: 'dish', id: 'chocolate_cake' };
+  assert.equal(itemToken(bare), 'chocolate_cake.dish');
 
   // ice a cake sitting on a plate
-  p.carry = { kind: 'plate', contents: [{ kind: 'dish', id: 'rose_cake' }] };
+  p.carry = { kind: 'plate', contents: [{ kind: 'dish', id: 'chocolate_cake' }] };
   game.interact(p, 'ice-1');
   assert.equal(p.carry.contents[0].icing, 'pink', 'cake iced pink');
-  assert.equal(itemToken(p.carry.contents[0]), 'rose_cake.dish#pink', 'colour folds into the token');
+  assert.equal(itemToken(p.carry.contents[0]), 'chocolate_cake.dish#pink', 'colour folds into the token');
 
   // an icing-requiring recipe only matches the iced cake
-  const iced = ['rose_cake.dish#pink'];
+  const iced = ['chocolate_cake.dish#pink'];
   assert.ok(multisetEqual(p.carry.contents.map(itemToken), iced), 'iced cake matches an iced recipe');
-  assert.ok(!multisetEqual(['rose_cake.dish'], iced), 'an un-iced cake would not match');
+  assert.ok(!multisetEqual(['chocolate_cake.dish'], iced), 'an un-iced cake would not match');
 
   // icing again is rejected (already iced)
   const n = game.events.length;
@@ -758,7 +763,7 @@ test('cake world Phase 3 infra: garnish needs an iced cake, then tops it', () =>
   game.stations['gar-1'] = { type: 'garnish', topper: 'rose_petal' };
 
   // garnish BEFORE icing is rejected (enforces bake -> ice -> garnish order)
-  p.carry = { kind: 'plate', contents: [{ kind: 'dish', id: 'rose_cake' }] };
+  p.carry = { kind: 'plate', contents: [{ kind: 'dish', id: 'chocolate_cake' }] };
   let n = game.events.length;
   game.interact(p, 'gar-1');
   assert.ok(game.events.slice(n).some((e) => e.type === 'reject'), 'cannot garnish an un-iced cake');
@@ -768,7 +773,7 @@ test('cake world Phase 3 infra: garnish needs an iced cake, then tops it', () =>
   game.interact(p, 'ice-1');
   game.interact(p, 'gar-1');
   assert.equal(p.carry.contents[0].topper, 'rose_petal');
-  assert.equal(itemToken(p.carry.contents[0]), 'rose_cake.dish#pink+rose_petal');
+  assert.equal(itemToken(p.carry.contents[0]), 'chocolate_cake.dish#pink+rose_petal');
 
   // garnishing again is rejected (only once)
   n = game.events.length;

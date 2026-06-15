@@ -225,6 +225,9 @@
     // beta cake level). sugar/matcha art not generated yet → still emoji.
     flour:      { path: CW + 'ks-cw-ing-flour.png' },
     blueberry:  { path: CW + 'ks-cw-ing-blueberry.png' },
+    eggs:       { path: CW + 'ks-cw-ing-eggs.png' },
+    chocolate:  { path: CW + 'ks-cw-ing-chocolate.png' },
+    honeycomb:  { path: CW + 'ks-cw-ing-honeycomb.png' },
     rice:       { path: HD + 'ks-rice.png' },
     seaweed:    { path: HD + 'ks-seaweed.png' },
     dough:      { path: HD + 'ks-dough.png' },
@@ -267,6 +270,14 @@
     dish_poke:         { path: HD + 'ks-dish-poke.png' },
     dish_fish_taco:    { path: HD + 'ks-dish-fish-taco.png' },
     dish_burned:       { path: HD + 'ks-dish-burned.png' },
+    // ── Cake World finished cakes ───────────────────────────────────────────
+    // Cake art is berry/rose-themed; flavours map to the closest look for now
+    // (swap any path to re-theme a cake). The baked cake already reads as a
+    // fully-decorated cake, so no separate icing/garnish step is needed to look
+    // finished.
+    dish_chocolate_cake: { path: CW + 'ks-cw-cake-tiered.png' },
+    dish_carrot_cake:    { path: CW + 'ks-cw-cake-berry-tart.png' },
+    dish_honeycomb_cake: { path: CW + 'ks-cw-cake-berry-slice.png' },
 
     // ── Environment: walls + floors per theme ───────────────────────────────
     wall_diner:   { path: HD + 'ks-wall-diner.png',  nokey: true },
