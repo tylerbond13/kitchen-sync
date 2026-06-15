@@ -207,6 +207,12 @@
     crate_lettuce:    { path: HD + 'ks-lettuce-crate.png', flat: true },
     crate_tomato:     { path: HD + 'ks-tomato-crate.png', flat: true },
     crate_cucumber:   { path: HD + 'ks-cucumber-crate.png', flat: true },
+    // Cake World crates — ornate bins with the ingredient already inside.
+    crate_flour:      { path: CW + 'ks-cw-crate-flour.png', flat: true },
+    crate_eggs:       { path: CW + 'ks-cw-crate-eggs.png', flat: true },
+    crate_chocolate:  { path: CW + 'ks-cw-crate-chocolate.png', flat: true },
+    crate_carrot:     { path: CW + 'ks-cw-crate-carrot.png', flat: true },
+    crate_honeycomb:  { path: CW + 'ks-cw-crate-honeycomb.png', flat: true },
 
     // ── Ingredients: raw ─────────────────────────────────────────────────────
     lettuce:    { path: HD + 'ks-lettuce.png' },
