@@ -786,6 +786,9 @@
       let key = STATION_KEY[c] || 'counter';
       if (c==='S' && s && s.contents && (s.state==='cooking'||s.state==='burned')) key='stove_fire';
       if (c==='K' && s && s.dirty > 0) key='sink_dirty';
+      // Cake World: the mixing bowl shows its "full" art while it holds
+      // ingredients/batter (filling, mixing, or done).
+      if (c==='M' && s && s.contents && s.contents.length) key='mixing_bowl_full';
       let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, isoFixFor(key));
       if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL, isoFixFor(key)); }
       if (rect) this._hits.push({ ...rect, gx, gy, key, d: sy });

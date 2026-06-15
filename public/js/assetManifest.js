@@ -184,7 +184,8 @@
     counter:        { path: CW + 'ks-cw-counter.png', flat: true },
     chopping_board: { path: CW + 'ks-cw-chopping-board.png', flat: true },
     oven:           { path: CW + 'ks-cw-oven.png', flat: true },
-    mixing_bowl:    { path: CW + 'ks-cw-mixing-bowl.png', flat: true },  // Cake World: M station
+    mixing_bowl:      { path: CW + 'ks-cw-mixing-bowl.png', flat: true },       // Cake World: M station (idle)
+    mixing_bowl_full: { path: CW + 'ks-cw-mixing-bowl-full.png', flat: true },  // ...while holding ingredients/batter
     stove:          { path: HD + 'ks-stove-pan.png' },
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
     pot:            { path: HD + 'ks-stockpot.png' },
