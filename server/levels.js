@@ -80,9 +80,10 @@ const RECIPES = {
   poke:         { name: 'Poke Bowl',    emoji: '🥗', needs: ['rice.cooked', 'fish.chopped', 'cucumber.chopped'], points: 110 },
   fish_taco:    { name: 'Fish Taco',    emoji: '🌮', needs: ['tortilla.raw', 'fish.chopped', 'lettuce.chopped'], points: 100, handheld: true },
   // ── Cake World (Phase 2: chop -> mix -> bake -> plate -> serve) ──
-  chocolate_cake: { name: 'Chocolate Cake', emoji: '🍫', needs: ['chocolate_cake.dish'], points: 100 },
-  carrot_cake:    { name: 'Carrot Cake',    emoji: '🥕', needs: ['carrot_cake.dish'],    points: 90 },
-  honeycomb_cake: { name: 'Honeycomb Cake', emoji: '🍯', needs: ['honeycomb_cake.dish'], points: 100 },
+  // Full decorate loop: bake -> ICE (pink) -> GARNISH (sprinkles) -> serve.
+  chocolate_cake: { name: 'Chocolate Cake', emoji: '🍫', needs: ['chocolate_cake.dish#pink+sprinkles'], points: 120 },
+  carrot_cake:    { name: 'Carrot Cake',    emoji: '🥕', needs: ['carrot_cake.dish#pink+sprinkles'],    points: 110 },
+  honeycomb_cake: { name: 'Honeycomb Cake', emoji: '🍯', needs: ['honeycomb_cake.dish#pink+sprinkles'], points: 120 },
 };
 
 // What appliances can cook: a multiset of input tokens -> output.
@@ -434,20 +435,24 @@ const LEVELS = [
     id: 'cake-sweet-beginnings',
     n: 15, section: 'cake', theme: 'diner', beta: true,
     name: 'Sweet Beginnings',
-    blurb: 'Chop, mix, bake. Three dream cakes — learn the bakery ropes.',
+    blurb: 'Chop, mix, bake, ice & garnish. Three dream cakes — the full bakery.',
     emoji: '🎂',
-    duration: 170,
-    stars: [200, 420, 660],
+    duration: 190,
+    stars: [180, 380, 600],
+    icing: 'pink',     // the I station's fixed colour (a remote colour button is later)
+    topper: 'sprinkles', // the G station's stocked topper
     crates: { 1: 'flour', 2: 'eggs', 3: 'chocolate', 4: 'carrot', 5: 'honeycomb' },
+    // M mixer · V oven · I icing dispenser · G garnish counter · P plates ·
+    // W serve · T trash. Flow: chop → mix → bake → plate → ice → garnish → serve.
     layout: [
       '.1B2B3.4.5.',
       '#.........#',
-      'M....#....V',
-      'M....#....V',
+      'M....I....V',
+      'M....G....V',
       'P.........P',
       '.T...W#W.P.',
     ],
-    orders: { recipes: ['chocolate_cake', 'carrot_cake', 'honeycomb_cake'], every: 16, ttl: 82, maxOpen: 4 },
+    orders: { recipes: ['chocolate_cake', 'carrot_cake', 'honeycomb_cake'], every: 17, ttl: 95, maxOpen: 4 },
   },
 ];
 

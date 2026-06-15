@@ -186,6 +186,8 @@
     oven:           { path: CW + 'ks-cw-oven.png', flat: true },
     mixing_bowl:      { path: CW + 'ks-cw-mixing-bowl.png', flat: true },       // Cake World: M station (idle)
     mixing_bowl_full: { path: CW + 'ks-cw-mixing-bowl-full.png', flat: true },  // ...while holding ingredients/batter
+    icing_dispenser:  { path: CW + 'ks-cw-icing-dispenser.png', flat: true },   // Cake World: I station
+    garnish_counter:  { path: CW + 'ks-cw-garnish-counter.png', flat: true },   // Cake World: G station
     stove:          { path: HD + 'ks-stove-pan.png' },
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
     pot:            { path: HD + 'ks-stockpot.png' },
@@ -278,6 +280,9 @@
     dish_chocolate_cake: { path: CW + 'ks-cw-cake-tiered.png' },
     dish_carrot_cake:    { path: CW + 'ks-cw-cake-berry-tart.png' },
     dish_honeycomb_cake: { path: CW + 'ks-cw-cake-berry-slice.png' },
+    // A baked-but-undecorated cake (before icing) shows the plain sponge stack;
+    // once iced it switches to its finished decorated art (see itemKey).
+    cake_plain:          { path: CW + 'ks-cw-cake-plain.png' },
 
     // ── Environment: walls + floors per theme ───────────────────────────────
     wall_diner:   { path: HD + 'ks-wall-diner.png',  nokey: true },

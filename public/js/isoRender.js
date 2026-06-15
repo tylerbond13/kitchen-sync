@@ -83,7 +83,7 @@
 
   // Grid char → station image key. Digits 1-9 are ingredient crates and render
   // as a counter block with the ingredient sprite on top (via level.crates).
-  const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink', M:'mixing_bowl' };
+  const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink', M:'mixing_bowl', I:'icing_dispenser', G:'garnish_counter' };
   // Customer pool (grandma_rose benched for now). The order is shuffled per
   // round from the server's seed so every kitchen sees the same random cast.
   const CUSTOMER_KEYS = ['influencer','workhorse','socialite','kid',
@@ -208,7 +208,12 @@
   function itemKey(item){
     if(!item) return '__none__';
     if(item.kind==='plate') return 'plate';
-    if(item.kind==='dish')  return 'dish_'+item.id;          // dish_pizza, dish_burned, ...
+    if(item.kind==='dish'){
+      // Cake World: a baked-but-un-iced cake reads as the plain sponge stack;
+      // icing switches it to its finished decorated art.
+      if(/_cake$/.test(item.id) && !item.icing) return 'cake_plain';
+      return 'dish_'+item.id;          // dish_pizza, dish_burned, ...
+    }
     const id=item.id;
     if(item.state==='chopped'){
       if(id==='fish') return 'fish_chopped';

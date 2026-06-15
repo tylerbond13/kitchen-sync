@@ -689,12 +689,19 @@ test('cake world: mixer makes batter, oven bakes it, cake serves', () => {
   game.interact(p, oven);
   assert.deepEqual(p.carry, { kind: 'dish', id: 'chocolate_cake' }, 'baked cake picked up');
 
-  // plate + serve a matching Chocolate Cake order
+  // plate, then decorate: ice (pink) + garnish (sprinkles)
   p.carry = { kind: 'plate', contents: [p.carry] };
+  game.interact(p, stationKey(game, 'ice'));
+  assert.equal(p.carry.contents[0].icing, 'pink', 'iced pink at the dispenser');
+  game.interact(p, stationKey(game, 'garnish'));
+  assert.equal(p.carry.contents[0].topper, 'sprinkles', 'garnished with sprinkles');
+  assert.equal(itemToken(p.carry.contents[0]), 'chocolate_cake.dish#pink+sprinkles');
+
+  // serving an un-decorated cake would be rejected; the finished one scores
   game.orders = [{ id: 1, recipe: 'chocolate_cake', vip: false, ttl: 80, ttlMax: 80 }];
   const before = game.score;
   game.interact(p, stationKey(game, 'serve'));
-  assert.equal(p.carry, null, 'cake delivered at the window');
+  assert.equal(p.carry, null, 'decorated cake delivered at the window');
   assert.equal(game.orders.length, 0);
   assert.ok(game.score > before, `serving the cake scored (${game.score})`);
 });
