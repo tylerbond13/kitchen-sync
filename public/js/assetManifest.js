@@ -18,6 +18,8 @@
   const HD = 'assets/images/hd/';
   const FLAT = 'assets/images/flat/';
   const CW = 'assets/images/cake-world/';   // Cake World re-skin (ornate, pastel)
+  const cw = (file, extra = {}) => ({ path: CW + file, flat: true, ...extra });
+  const cwBackdrop = (file, extra = {}) => ({ path: CW + file, nokey: true, ...extra });
 
   window.KS_CHEFS = [
     { key: 'chef', name: 'Chef' },
@@ -95,11 +97,15 @@
 
   window.ASSETS = {
     // ── Player chefs ─────────────────────────────────────────────────────────
-    chef:           { path: HD + 'ks-chef-idle-front.png' },
-    chef_back:      { path: HD + 'ks-chef-idle-back.png' },     // for walk anim
+    chef:           cw('ks-cw-purple-mascot-idle-1-front-v1.png'),
+    chef_back:      cw('ks-cw-purple-mascot-idle-1-left-v1.png'), // for walk anim
 
     // ── Customers (queue rotates through all of them) ───────────────────────
     grandma_rose:   { path: HD + 'ks-char-grandma-rose.png' },
+    cake_customer_businesswoman: cw('ks-cw-customer-businesswoman-front-v1.png'),
+    cake_customer_blonde:        cw('ks-cw-customer-blonde-woman-front-v1.png'),
+    cake_customer_suited_man:    cw('ks-cw-customer-suited-man-front-v1.png'),
+    cake_customer_young_girl:    cw('ks-cw-customer-young-girl-front-v1.png'),
     workhorse:      { path: HD + 'ks-char-businessman.png' },
     influencer:     { path: HD + 'ks-char-influencer.png' },
     socialite:      { path: HD + 'ks-char-socialite.png' },
@@ -178,122 +184,130 @@
     // `flat: true` = straight-on art, renderer skips its iso squash.
     // Keys without a front-facing HD render yet use hand-built SVG stand-ins
     // (assets/images/flat/) — swap each back to its .png as regens land.
-    // Cake World furniture (ornate pastel re-skin) — all straight-on front
-    // views, so flat:true skips the renderer's iso squash. stove/pot keep
-    // their HD art (no cake-world equivalent yet).
-    counter:        { path: CW + 'ks-cw-counter.png', flat: true },
-    chopping_board: { path: CW + 'ks-cw-chopping-board.png', flat: true },
-    oven:           { path: CW + 'ks-cw-oven.png', flat: true },
-    mixing_bowl:      { path: CW + 'ks-cw-mixing-bowl.png', flat: true },       // Cake World: M station (idle)
-    mixing_bowl_full: { path: CW + 'ks-cw-mixing-bowl-full.png', flat: true },  // ...while holding ingredients/batter
-    icing_dispenser:  { path: CW + 'ks-cw-icing-dispenser.png', flat: true },   // Cake World: I station
-    garnish_counter:  { path: CW + 'ks-cw-garnish-counter.png', flat: true },   // Cake World: G station
-    stove:          { path: HD + 'ks-stove-pan.png' },
-    stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
-    pot:            { path: HD + 'ks-stockpot.png' },
-    plate_stack:    { path: CW + 'ks-cw-plate-stack.png', flat: true },
-    serve_window:   { path: CW + 'ks-cw-serve-window.png', flat: true },
-    trash:          { path: CW + 'ks-cw-trash.png', flat: true, scale: 0.88 },
-    // No dirty-sink variant in the cake-world set — reuse the station art and
-    // let drawBlock's bubble + dirty count badge signal the dirty state.
-    sink:           { path: CW + 'ks-cw-sink.png', flat: true },
-    sink_dirty:     { path: CW + 'ks-cw-sink.png', flat: true },
+    counter:        cw('ks-cw-empty-single-countertop-front-v1.png', { scale: 1.12 }),
+    chopping_board: cw('ks-cw-cutting-prep-station-front-v1.png', { scale: 1.16 }),
+    chopping_board_active: cw('ks-cw-cutting-prep-station-active-front-v1.png', { scale: 1.16 }),
+    oven:           cw('ks-cw-dual-cake-oven-station-front-v1.png', { scale: 1.26 }),
+    oven_active:    cw('ks-cw-dual-cake-oven-station-active-front-v1.png', { scale: 1.26 }),
+    mixing_bowl:      cw('ks-cw-mixer-empty-front-v1.png', { scale: 1.18 }),
+    mixing_bowl_full: cw('ks-cw-mixer-full-front-v1.png', { scale: 1.18 }),
+    icing_dispenser:  cw('ks-cw-icing-color-selector-front-v1.png', { scale: 1.12 }),
+    garnish_counter:  cw('ks-cw-curved-ingredient-counter-front-v1.png', { scale: 1.08 }),
+    stove:          cw('ks-cw-mixer-empty-front-v1.png', { scale: 1.18 }),
+    stove_full:     cw('ks-cw-mixer-full-front-v1.png', { scale: 1.18 }),
+    stove_fire:     cw('ks-cw-mixer-active-front-v1.png', { scale: 1.18 }),
+    pot:            cw('ks-cw-ingredient-dispenser-station-front-v1.png', { scale: 1.20 }),
+    pot_full:       cw('ks-cw-ingredient-dispenser-station-active-front-v1.png', { scale: 1.20 }),
+    pot_active:     cw('ks-cw-ingredient-dispenser-station-active-front-v1.png', { scale: 1.20 }),
+    plate_stack:    cw('ks-cw-stack-dishes-front-v1.png', { scale: 0.98 }),
+    serve_window:   cw('ks-cw-delivery-arch-counter-front-v1.png', { scale: 1.32 }),
+    serve_window_active: cw('ks-cw-delivery-arch-counter-active-front-v1.png', { scale: 1.32 }),
+    trash:          cw('ks-cw-trash-can-front-v1.png', { scale: 0.92 }),
+    sink:           cw('ks-cw-dishwashing-station-empty-front-v1.png', { scale: 1.16 }),
+    sink_dirty:     cw('ks-cw-dishwashing-station-active-front-v1.png', { scale: 1.16 }),
 
     // ── Ingredient crates ────────────────────────────────────────────────────
     // Front-facing HD crates where they exist; everything else gets the
     // generic flat crate and the renderer drops the raw ingredient sprite
     // into its open top.
-    crate:            { path: FLAT + 'crate.svg', flat: true },
-    crate_lettuce:    { path: HD + 'ks-lettuce-crate.png', flat: true },
-    crate_tomato:     { path: HD + 'ks-tomato-crate.png', flat: true },
-    crate_cucumber:   { path: HD + 'ks-cucumber-crate.png', flat: true },
-    // Cake World crates — ornate bins with the ingredient already inside.
-    crate_flour:      { path: CW + 'ks-cw-crate-flour.png', flat: true },
-    crate_eggs:       { path: CW + 'ks-cw-crate-eggs.png', flat: true },
-    crate_chocolate:  { path: CW + 'ks-cw-crate-chocolate.png', flat: true },
-    crate_carrot:     { path: CW + 'ks-cw-crate-carrot.png', flat: true },
-    crate_honeycomb:  { path: CW + 'ks-cw-crate-honeycomb.png', flat: true },
+    crate:            cw('ks-cw-curved-ingredient-counter-front-v1.png', { scale: 1.05 }),
+    crate_lettuce:    cw('ks-cw-crate-flowers-front-v1.png', { scale: 1.05 }),
+    crate_tomato:     cw('ks-cw-crate-strawberries-front-v1.png', { scale: 1.05 }),
+    crate_cucumber:   cw('ks-cw-crate-blueberries-front-v1.png', { scale: 1.05 }),
+    crate_bun:        cw('ks-cw-cooling-rack-cake-layers-front-v1.png', { scale: 1.08 }),
+    crate_patty:      cw('ks-cw-crate-chocolate-chunks-front-v1.png', { scale: 1.05 }),
+    crate_cheese:     cw('ks-cw-crate-cream-dollops-front-v1.png', { scale: 1.05 }),
+    crate_onion:      cw('ks-cw-crate-rose-frosting-front-v1.png', { scale: 1.05 }),
+    crate_rice:       cw('ks-cw-crate-flour-front-v1.png', { scale: 1.05 }),
+    crate_fish:       cw('ks-cw-crate-petals-front-v1.png', { scale: 1.05 }),
+    crate_seaweed:    cw('ks-cw-crate-sprinkles-front-v1.png', { scale: 1.05 }),
+    crate_dough:      cw('ks-cw-cooling-rack-cake-layers-front-v1.png', { scale: 1.08 }),
+    crate_potato:     cw('ks-cw-crate-almonds-front-v1.png', { scale: 1.05 }),
+    crate_carrot:     cw('ks-cw-crate-carrots-front-v1.png', { scale: 1.05 }),
+    crate_milk:       cw('ks-cw-crate-cream-dollops-front-v1.png', { scale: 1.05 }),
+    crate_cocoa:      cw('ks-cw-crate-chocolate-front-v1.png', { scale: 1.05 }),
+    crate_tortilla:   cw('ks-cw-crate-honeycomb-front-v1.png', { scale: 1.05 }),
+    crate_pineapple:  cw('ks-cw-crate-raspberries-front-v1.png', { scale: 1.05 }),
+    crate_strawberry: cw('ks-cw-crate-strawberries-front-v1.png', { scale: 1.05 }),
+    crate_banana:     cw('ks-cw-crate-honeycomb-front-v1.png', { scale: 1.05 }),
+    crate_flour:      cw('ks-cw-crate-flour-front-v1.png', { scale: 1.05 }),
+    crate_eggs:       cw('ks-cw-crate-eggs-front-v1.png', { scale: 1.05 }),
+    crate_chocolate:  cw('ks-cw-crate-chocolate-front-v1.png', { scale: 1.05 }),
+    crate_carrot:     cw('ks-cw-crate-carrots-front-v1.png', { scale: 1.05 }),
+    crate_honeycomb:  cw('ks-cw-crate-honeycomb-front-v1.png', { scale: 1.05 }),
 
     // ── Ingredients: raw ─────────────────────────────────────────────────────
-    lettuce:    { path: HD + 'ks-lettuce.png' },
-    tomato:     { path: HD + 'ks-tomato.png' },
-    cucumber:   { path: HD + 'ks-cucumber.png' },
-    cheese:     { path: HD + 'ks-cheese.png' },
-    onion:      { path: HD + 'ks-onion.png' },
-    fish:       { path: HD + 'ks-fish.png' },
-    patty:      { path: HD + 'ks-patty.png' },
-    potato:     { path: HD + 'ks-potato.png' },
-    carrot:     { path: HD + 'ks-carrot.png' },
-    cocoa:      { path: HD + 'ks-cocoa.png' },
-    pineapple:  { path: HD + 'ks-pineapple.png' },
-    strawberry: { path: HD + 'ks-strawberry.png' },
-    banana:     { path: HD + 'ks-banana.png' },
-    bun:        { path: HD + 'ks-bun.png' },
-    // Cake World pantry art (additive — replaces the emoji placeholders for the
-    // beta cake level). sugar/matcha art not generated yet → still emoji.
-    flour:      { path: CW + 'ks-cw-ing-flour.png' },
-    blueberry:  { path: CW + 'ks-cw-ing-blueberry.png' },
-    eggs:       { path: CW + 'ks-cw-ing-eggs.png' },
-    chocolate:  { path: CW + 'ks-cw-ing-chocolate.png' },
-    honeycomb:  { path: CW + 'ks-cw-ing-honeycomb.png' },
-    rice:       { path: HD + 'ks-rice.png' },
-    seaweed:    { path: HD + 'ks-seaweed.png' },
-    dough:      { path: HD + 'ks-dough.png' },
-    milk:       { path: HD + 'ks-milk.png' },
-    tortilla:   { path: HD + 'ks-tortilla.png' },
+    lettuce:    cw('ks-cw-ingredient-flowers-front-v1.png'),
+    tomato:     cw('ks-cw-ingredient-strawberries-front-v1.png'),
+    cucumber:   cw('ks-cw-ingredient-blueberries-front-v1.png'),
+    cheese:     cw('ks-cw-ingredient-cream-dollops-front-v1.png'),
+    onion:      cw('ks-cw-ingredient-rose-frosting-front-v1.png'),
+    fish:       cw('ks-cw-ingredient-petals-front-v1.png'),
+    patty:      cw('ks-cw-ingredient-chocolate-chunks-front-v1.png'),
+    potato:     cw('ks-cw-ingredient-almonds-front-v1.png'),
+    carrot:     cw('ks-cw-ingredient-carrots-front-v1.png'),
+    cocoa:      cw('ks-cw-ingredient-chocolate-front-v1.png'),
+    pineapple:  cw('ks-cw-ingredient-raspberries-right-v1.png'),
+    strawberry: cw('ks-cw-ingredient-strawberries-front-v1.png'),
+    banana:     cw('ks-cw-ingredient-honeycomb-front-v1.png'),
+    bun:        cw('ks-cw-plain-cake-layers-front-v1.png'),
+    rice:       cw('ks-cw-ingredient-flour-front-v1.png'),
+    seaweed:    cw('ks-cw-ingredient-sprinkles-front-v1.png'),
+    dough:      cw('ks-cw-plain-cake-layers-front-v1.png'),
+    milk:       cw('ks-cw-ingredient-cream-dollops-front-v1.png'),
+    tortilla:   cw('ks-cw-ingredient-honeycomb-front-v1.png'),
+    flour:      cw('ks-cw-ingredient-flour-front-v1.png'),
+    blueberry:  cw('ks-cw-ingredient-blueberries-front-v1.png'),
+    eggs:       cw('ks-cw-ingredient-eggs-front-v1.png'),
+    chocolate:  cw('ks-cw-ingredient-chocolate-front-v1.png'),
+    honeycomb:  cw('ks-cw-ingredient-honeycomb-front-v1.png'),
 
     // ── Ingredients: chopped / cooked ───────────────────────────────────────
     // deplate: these two renders arrived ON a white plate — key it out so
     // chopped food never reads as already plated.
-    lettuce_chopped:    { path: HD + 'ks-lettuce-chopped.png', deplate: true },
-    tomato_chopped:     { path: HD + 'ks-tomato-chopped.png', deplate: true },
-    cucumber_chopped:   { path: HD + 'ks-cucumber-chopped.png' },
-    cheese_chopped:     { path: HD + 'ks-cheese-chopped.png' },
-    onion_chopped:      { path: HD + 'ks-onion-chopped.png' },
-    fish_chopped:       { path: HD + 'ks-fish-chopped.png' },
-    patty_chopped:      { path: HD + 'ks-patty-chopped.png' },
-    potato_chopped:     { path: HD + 'ks-potato-chopped.png' },
-    carrot_chopped:     { path: HD + 'ks-carrot-chopped.png' },
-    cocoa_chopped:      { path: HD + 'ks-cocoa-chopped.png' },
-    pineapple_chopped:  { path: HD + 'ks-pineapple-chopped.png' },
-    strawberry_chopped: { path: HD + 'ks-strawberry-chopped.png' },
-    banana_chopped:     { path: HD + 'ks-banana-chopped.png' },
-    patty_cooked:       { path: HD + 'ks-patty-cooked.png' },
-    rice_cooked:        { path: HD + 'ks-rice-cooked.png' },
+    lettuce_chopped:    cw('ks-cw-bowl-flowers-front-v1.png'),
+    tomato_chopped:     cw('ks-cw-bowl-strawberries-front-v1.png'),
+    cucumber_chopped:   cw('ks-cw-bowl-blueberries-front-v1.png'),
+    cheese_chopped:     cw('ks-cw-bowl-rose-frosting-front-v1.png'),
+    onion_chopped:      cw('ks-cw-bowl-rose-frosting-front-v1.png'),
+    fish_chopped:       cw('ks-cw-bowl-flowers-front-v1.png'),
+    patty_chopped:      cw('ks-cw-bowl-chocolate-curls-front-v1.png'),
+    potato_chopped:     cw('ks-cw-bowl-sprinkles-front-v1.png'),
+    carrot_chopped:     cw('ks-cw-bowl-raspberries-front-v1.png'),
+    cocoa_chopped:      cw('ks-cw-bowl-chocolate-curls-front-v1.png'),
+    pineapple_chopped:  cw('ks-cw-bowl-raspberries-front-v1.png'),
+    strawberry_chopped: cw('ks-cw-bowl-strawberries-front-v1.png'),
+    banana_chopped:     cw('ks-cw-bowl-sprinkles-front-v1.png'),
+    patty_cooked:       cw('ks-cw-cake-berry-slice-front-v1.png'),
+    rice_cooked:        cw('ks-cw-plain-cake-layers-front-v1.png'),
 
     // ── Plates & dishes ─────────────────────────────────────────────────────
-    plate:        { path: CW + 'ks-cw-plate.png' },
-    plate_dirty:  { path: HD + 'ks-plate-dirty.png' },
-    dish_salad:        { path: HD + 'ks-dish-salad.png' },
-    dish_big_salad:    { path: HD + 'ks-dish-big-salad.png' },
-    dish_burger:       { path: HD + 'ks-dish-burger.png' },
-    dish_cheeseburger: { path: HD + 'ks-dish-cheeseburger.png' },
-    dish_soup_onion:   { path: HD + 'ks-dish-soup-onion.png' },
-    dish_soup_tomato:  { path: HD + 'ks-dish-soup-tomato.png' },
-    dish_sushi:        { path: HD + 'ks-dish-sushi.png' },
-    dish_pizza:        { path: HD + 'ks-dish-pizza.png' },
-    dish_stew:         { path: HD + 'ks-dish-stew.png' },
-    dish_cocoa:        { path: HD + 'ks-dish-cocoa.png' },
-    dish_juice:        { path: HD + 'ks-dish-juice.png' },
-    dish_poke:         { path: HD + 'ks-dish-poke.png' },
-    dish_fish_taco:    { path: HD + 'ks-dish-fish-taco.png' },
-    dish_burned:       { path: HD + 'ks-dish-burned.png' },
-    // ── Cake World finished cakes ───────────────────────────────────────────
-    // Cake art is berry/rose-themed; flavours map to the closest look for now
-    // (swap any path to re-theme a cake). The baked cake already reads as a
-    // fully-decorated cake, so no separate icing/garnish step is needed to look
-    // finished.
-    dish_chocolate_cake: { path: CW + 'ks-cw-cake-tiered.png' },
-    dish_carrot_cake:    { path: CW + 'ks-cw-cake-berry-tart.png' },
-    dish_honeycomb_cake: { path: CW + 'ks-cw-cake-berry-slice.png' },
-    // A baked-but-undecorated cake (before icing) shows the plain sponge stack;
-    // once iced it switches to its finished decorated art (see itemKey).
-    cake_plain:          { path: CW + 'ks-cw-cake-plain.png' },
+    plate:        cw('ks-cw-single-dish-front-v1.png'),
+    plate_dirty:  cw('ks-cw-dirty-single-dish-front-v1.png'),
+    dish_salad:        cw('ks-cw-cake-petal-slice-front-v1.png'),
+    dish_big_salad:    cw('ks-cw-cake-berry-tart-front-v1.png'),
+    dish_burger:       cw('ks-cw-cake-berry-slice-front-v1.png'),
+    dish_cheeseburger: cw('ks-cw-cake-tiered-decorated-front-v1.png'),
+    dish_soup_onion:   cw('ks-cw-cake-petal-slice-front-v1.png'),
+    dish_soup_tomato:  cw('ks-cw-cake-berry-tart-front-v1.png'),
+    dish_sushi:        cw('ks-cw-cake-pedestal-stand-front-v1.png'),
+    dish_pizza:        cw('ks-cw-cake-tiered-decorated-front-v1.png'),
+    dish_stew:         cw('ks-cw-cake-berry-tart-front-v1.png'),
+    dish_cocoa:        cw('ks-cw-cake-petal-slice-front-v1.png'),
+    dish_juice:        cw('ks-cw-cake-berry-slice-front-v1.png'),
+    dish_poke:         cw('ks-cw-cake-berry-tart-front-v1.png'),
+    dish_fish_taco:    cw('ks-cw-cake-pedestal-stand-front-v1.png'),
+    dish_burned:       cw('ks-cw-cake-burnt-tiered-front-v1.png'),
+    dish_chocolate_cake: cw('ks-cw-cake-tiered-decorated-front-v1.png'),
+    dish_carrot_cake:    cw('ks-cw-cake-berry-tart-front-v1.png'),
+    dish_honeycomb_cake: cw('ks-cw-cake-berry-slice-front-v1.png'),
+    cake_plain:          cw('ks-cw-plain-cake-layers-front-v1.png'),
 
     // ── Environment: walls + floors per theme ───────────────────────────────
-    wall_diner:   { path: HD + 'ks-wall-diner.png',  nokey: true },
-    wall_winter:  { path: HD + 'ks-wall-winter.png', nokey: true },
-    wall_beach:   { path: HD + 'ks-wall-beach.png',  nokey: true },
+    wall_diner:   cwBackdrop('ks-cake-background1.png'),
+    wall_winter:  cwBackdrop('ks-cake-background1.png'),
+    wall_beach:   cwBackdrop('ks-cake-background1.png'),
+    wall_cake_shop: cwBackdrop('ks-cake-background1.png'),
     floor_tile:     'assets/images/env/floor_sq_a.svg',
     floor_tile_alt: 'assets/images/env/floor_sq_b.svg',
 
@@ -329,8 +343,8 @@
                           wallAnchor: { wall:'back', pos: 6.4, height: 0, width: 52 } },
 
     // ── Desk clutter ────────────────────────────────────────────────────────
-    decor_vase:     { path: HD + 'ks-flower-vase.png' },
-    decor_utensils: { path: HD + 'ks-utensil-cup.png' },
+    decor_vase:     cw('ks-cw-floral-wall-sconce-front-v1.png'),
+    decor_utensils: cw('ks-cw-icing-color-selector-front-v1.png'),
 
     // ── Cake World decor layer (ambient charm — drawn by pushDecor) ──────────
     cw_bee_1:       { path: CW + 'cw-bee-1.png' },
@@ -348,10 +362,13 @@
     cw_wall_sconce: { path: CW + 'cw-wall-sconce.png', flat: true },
 
     // ── UI on the canvas ────────────────────────────────────────────────────
-    speech_bubble: { path: HD + 'ks-ui-bubble.png' },
-    heart:         { path: HD + 'ks-ui-heart.png' },
+    speech_bubble: cw('ks-cw-status-bubble-patience-front-v1.png'),
+    heart:         cw('ks-cw-ui-heart-front-v1.png'),
     heart_empty:   'assets/images/ui/heart_empty.svg',
     ui_crown:      { path: HD + 'ks-ui-crown.png' },
-    ui_coin:       { path: HD + 'ks-ui-coin.png' },
+    ui_coin:       cw('ks-cw-ui-coin-front-v1.png'),
+    ui_timer:      cw('ks-cw-ui-timer-front-v1.png'),
+    ui_star:       cw('ks-cw-ui-star-front-v1.png'),
+    ui_pause:      cw('ks-cw-ui-pause-button-front-v1.png'),
   };
 })();
