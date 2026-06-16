@@ -1484,6 +1484,22 @@ input[type="text"]:focus {
   <div id="connection-banner" class="connection-banner" hidden>Reconnecting…</div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Sound on by default — runs BEFORE the audio modules read their state.
+    // Clears any previously-saved mute exactly once, so devices that toggled
+    // sound off before now start unmuted; afterward the 🔊/🎵 toggles work as
+    // normal. Bump VERSION to force the reset to run again.
+    (function () {
+      try {
+        var KEY = 'ks-sound-default-on', VERSION = '1';
+        if (localStorage.getItem(KEY) !== VERSION) {
+          localStorage.removeItem('ks-muted');        // SFX + soundboard voices
+          localStorage.removeItem('ks-music-muted');  // background music
+          localStorage.setItem(KEY, VERSION);
+        }
+      } catch (e) { /* no storage (private mode) — sound defaults on anyway */ }
+    })();
+  </script>
   <script src="/js/sound.js"></script>
   <script src="/js/voices.js"></script>
   <script src="/js/music.js"></script>
