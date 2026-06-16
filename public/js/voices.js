@@ -1,22 +1,21 @@
-// Character voice clips: plays a per-character sound on selection and a random
-// one when that chef delivers a meal. Clips live in
-//   public/assets/audio/voices/<charKey>/[<category>/]*.{mp3,m4a,ogg,wav}
-// and are indexed by scripts/gen-voices.js into voices/manifest.json. No files
-// yet? Every call below is a graceful no-op, so nothing breaks.
+// Soundboard clips: plays a random clip on character select and on every meal
+// delivery. Clips live in public/assets/audio/soundboard-clips/ and are listed
+// (flat) in that folder's manifest.json (regenerate with `npm run voices`).
+// No clips? Every call below is a graceful no-op, so nothing breaks.
 (function () {
-  const BASE = 'assets/audio/voices/';
-  let manifest = {};
+  const BASE = 'assets/audio/soundboard-clips/';
+  let pool = [];           // array of filenames
   let unlocked = false;
-  let el = null;           // single shared voice channel (a new clip cuts the last)
+  let el = null;           // single shared channel (a new clip cuts the last)
   let lastAt = 0;
 
   fetch('/' + BASE + 'manifest.json')
-    .then((r) => (r.ok ? r.json() : {}))
-    .then((m) => { manifest = m || {}; })
+    .then((r) => (r.ok ? r.json() : []))
+    .then((list) => { pool = Array.isArray(list) ? list : []; })
     .catch(() => { /* no manifest yet — stay silent */ });
 
-  // Voices are sound-effects: honour the SFX mute toggle, and wait for the
-  // first user gesture (autoplay policy) before any clip can play.
+  // Clips are sound-effects: honour the SFX mute toggle, and wait for the first
+  // user gesture (browser autoplay policy) before any clip can play.
   function audible() {
     if (!unlocked) return false;
     if (window.SFX && SFX.isMuted && SFX.isMuted()) return false;
@@ -26,35 +25,18 @@
     if (!el) { el = new Audio(); el.preload = 'auto'; }
     return el;
   }
-  function pick(list) {
-    return list && list.length ? list[(Math.random() * list.length) | 0] : null;
-  }
-  // Prefer a named category if the soundboard is organised (e.g. a "greeting"
-  // clip on select, a "catchphrase" on delivery); otherwise pull from `all`.
-  function clipFor(charKey, prefer) {
-    const entry = manifest[charKey];
-    if (!entry) return null;
-    if (prefer && entry.categories) {
-      for (const name of prefer) {
-        const c = pick(entry.categories[name]);
-        if (c) return c;
-      }
-    }
-    return pick(entry.all);
-  }
-  function play(charKey, prefer) {
-    if (!audible()) return;
-    const rel = clipFor(charKey, prefer);
-    if (!rel) return;
+  function playRandom() {
+    if (!audible() || !pool.length) return;
     const now = Date.now();
-    if (now - lastAt < 120) return;   // de-dupe rapid-fire deliveries
+    if (now - lastAt < 120) return;   // de-dupe rapid-fire triggers
     lastAt = now;
+    const name = pool[(Math.random() * pool.length) | 0];
     try {
       const a = channel();
       a.pause();
-      a.src = '/' + BASE + rel;
+      a.src = '/' + BASE + encodeURIComponent(name);   // names may have spaces/()
       a.currentTime = 0;
-      a.volume = 0.9;
+      a.volume = 0.95;
       a.play().catch(() => {});
     } catch (_) { /* best-effort */ }
   }
@@ -63,14 +45,12 @@
   document.addEventListener('pointerdown', unlock, { once: true });
   document.addEventListener('touchstart', unlock, { once: true });
 
+  // A random clip plays on character select AND on every delivery. The chefKey
+  // arg is ignored (the pool is global) but kept so existing call sites work.
   window.KSVoices = {
-    // Does this character have any clips loaded?
-    has(charKey) { const e = manifest[charKey]; return !!(e && e.all && e.all.length); },
-    // Played when a player picks this chef in the lobby.
-    playSelect(charKey) { play(charKey, ['greeting', 'hello', 'select', 'intro']); },
-    // Played when this chef delivers a meal at the window.
-    playDelivery(charKey) { play(charKey, ['delivery', 'serve', 'happy', 'catchphrase']); },
-    // Generic random clip.
-    play(charKey) { play(charKey, null); },
+    has() { return pool.length > 0; },
+    playSelect() { playRandom(); },
+    playDelivery() { playRandom(); },
+    play() { playRandom(); },
   };
 })();
