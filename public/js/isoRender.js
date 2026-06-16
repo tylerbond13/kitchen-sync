@@ -57,20 +57,23 @@
   const CHOPPED_EMOJI = { fish:'🍣' };
   const COOKED_EMOJI  = { patty:'🍖' };
   const DISH_EMOJI = {
-    soup_onion:'🥣',soup_tomato:'🍲',pizza:'🍕',burned:'🪨',
-    stew:'🥘',cocoa:'☕',juice:'🍹',
+    soup_onion:'🍰',soup_tomato:'🫐',pizza:'🎂',burned:'🪨',
+    stew:'🍯',cocoa:'🍫',juice:'🍓',
   };
 
-  const PLAYER_COLORS = ['#FF6FAE','#5BADDE','#3DC9A0','#C09BFF','#FFD23F','#FF8251','#48D4C0','#9474E0'];
+  const PLAYER_COLORS = ['#FF9FC8','#7FCFCB','#F0C15A','#B58AD8','#D94D74','#6A4ECF','#F3CFA0','#9ED9C6'];
 
   // Grid char → station image key. Digits 1-9 are ingredient crates and render
   // as a counter block with the ingredient sprite on top (via level.crates).
   const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink' };
   // Customer pool (grandma_rose benched for now). The order is shuffled per
   // round from the server's seed so every kitchen sees the same random cast.
-  const CUSTOMER_KEYS = ['influencer','workhorse','socialite','kid',
-    'barney','betty_white','camp_counselor','dolly','judy','sinatra','wadsworth',
-    'obama','britney'];
+  const CUSTOMER_KEYS = [
+    'cake_customer_businesswoman',
+    'cake_customer_blonde',
+    'cake_customer_suited_man',
+    'cake_customer_young_girl',
+  ];
 
   // Tiny seeded PRNG (mulberry32) — deterministic across every client.
   function mulberry32(a) {
@@ -95,31 +98,31 @@
   // at mismatched angles).
   const THEMES = {
     diner: {
-      surroundA:'#F4D9E6', surroundB:'#C98BB0',          // soft framed backdrop
-      wallTop:'#D7F2EA', wallBot:'#B4E3D4',               // upper wall gradient
-      ledge:'#C98A5E', ledgeShadow:'#A66E45',             // wooden picture rail
-      tile:'#F4F8F5', tileGrout:'#CFE2DA', baseboard:'#A7D2C5', // subway wainscot
-      floorA:'#F0E3D0', floorB:'#E8D3BF', grout:'#E2CFB8',// warm checker floor (low-contrast)
-      sky:['#BFE6FF','#E9F6FF'], skyGround:'#9FD6A8',     // window scene
-      accent:'#FF6FAE',
+      surroundA:'#E4BFE8', surroundB:'#9ED9C6',
+      wallTop:'#E4BFE8', wallBot:'#BCEFE0',
+      ledge:'#F0C15A', ledgeShadow:'#A86A22',
+      tile:'#FFF0D6', tileGrout:'#F7B6D4', baseboard:'#F0C15A',
+      floorA:'#F7B6D4', floorB:'#C6A3E2', grout:'#F0C15A',
+      sky:['#E4BFE8','#BCEFE0'], skyGround:'#9ED9C6',
+      accent:'#FF9FC8',
     },
     winter: {
-      surroundA:'#DCE6F6', surroundB:'#8E9FD0',
-      wallTop:'#EAF3FB', wallBot:'#CFE2F2',
-      ledge:'#8FA8C0', ledgeShadow:'#6F89A4',
-      tile:'#F7FAFD', tileGrout:'#DCE8F2', baseboard:'#ABC4DC',
-      floorA:'#EDF2F8', floorB:'#DCE6F0', grout:'#D4E0EB',
-      sky:['#CFE6FA','#EEF7FE'], skyGround:'#E8F2FA',
-      accent:'#7C8FE0',
+      surroundA:'#E4BFE8', surroundB:'#9ED9C6',
+      wallTop:'#E4BFE8', wallBot:'#BCEFE0',
+      ledge:'#F0C15A', ledgeShadow:'#A86A22',
+      tile:'#FFF0D6', tileGrout:'#F7B6D4', baseboard:'#F0C15A',
+      floorA:'#F7B6D4', floorB:'#C6A3E2', grout:'#F0C15A',
+      sky:['#E4BFE8','#BCEFE0'], skyGround:'#9ED9C6',
+      accent:'#FF9FC8',
     },
     beach: {
-      surroundA:'#CFF1E8', surroundB:'#5FBFA8',
-      wallTop:'#DFF7F0', wallBot:'#BEEBDD',
-      ledge:'#D8B27E', ledgeShadow:'#B8915E',
-      tile:'#F3FBF8', tileGrout:'#CFEDE2', baseboard:'#A7DCCB',
-      floorA:'#F1E7CB', floorB:'#E5D4AF', grout:'#DCCDA9',
-      sky:['#9FE0F0','#E6FAFB'], skyGround:'#F2E2B0',
-      accent:'#2FC8A0',
+      surroundA:'#E4BFE8', surroundB:'#9ED9C6',
+      wallTop:'#E4BFE8', wallBot:'#BCEFE0',
+      ledge:'#F0C15A', ledgeShadow:'#A86A22',
+      tile:'#FFF0D6', tileGrout:'#F7B6D4', baseboard:'#F0C15A',
+      floorA:'#F7B6D4', floorB:'#C6A3E2', grout:'#F0C15A',
+      sky:['#E4BFE8','#BCEFE0'], skyGround:'#9ED9C6',
+      accent:'#FF9FC8',
     },
   };
 
@@ -130,9 +133,9 @@
   // glossy checker so the play floor can be as deep as the grid needs. floorA/B
   // are the saturated checker colours sampled to match the wall art.
   const WALL_META = {
-    diner:  { key:'wall_diner',  floorLine:0.80, floorA:'#F7EBD0', floorB:'#CC7B4C', deep:'#8E4F2E' },
-    winter: { key:'wall_winter', floorLine:0.84, floorA:'#EFEBDA', floorB:'#A6C6E2', deep:'#6E96BC' },
-    beach:  { key:'wall_beach',  floorLine:0.85, floorA:'#F3E8CE', floorB:'#67C3BE', deep:'#3C9A95' },
+    diner:  { key:'wall_cake_shop', floorLine:1, floorA:'#F7B6D4', floorB:'#C6A3E2', deep:'#5A3664' },
+    winter: { key:'wall_cake_shop', floorLine:1, floorA:'#F7B6D4', floorB:'#C6A3E2', deep:'#5A3664' },
+    beach:  { key:'wall_cake_shop', floorLine:1, floorA:'#F7B6D4', floorB:'#C6A3E2', deep:'#5A3664' },
   };
 
   // ── Customer face SVG (used by the HTML ticket strip, not the canvas) ──────
@@ -254,6 +257,7 @@
   }
 
   function miniIngredientHtml(id) {
+    if (window.ASSETS && window.ASSETS[id]) return assetImgHtml(id, ING_EMOJI[id] || '❓', 'ticket-mini-img');
     const svg = window.KSArt && KSArt.svg(`${id}.raw`);
     if (svg) return svg;
     return assetImgHtml(id, ING_EMOJI[id] || '❓', 'ticket-mini-img');
@@ -656,13 +660,46 @@
       const ws=ctx.createLinearGradient(0,floorY-10,0,floorY+12);
       ws.addColorStop(0,'rgba(0,0,0,0)'); ws.addColorStop(1,'rgba(20,8,16,0.20)');
       ctx.fillStyle=ws; ctx.fillRect(0,floorY-10,W,22);
+
+      this.drawBoardFrame();
+    }
+
+    drawBoardFrame() {
+      const {ctx,lvl}=this;
+      const x = Math.round(this.txOff + (this.ox - 12) * this.scale);
+      const y = Math.round(this.tyOff + (this.oy - 14) * this.scale);
+      const w = Math.round((lvl.w * TILE_WIDTH + 24) * this.scale);
+      const h = Math.round((lvl.h * TILE_HEIGHT + 26) * this.scale);
+      const r = Math.max(16, Math.round(20 * this.scale));
+      if (w <= 0 || h <= 0) return;
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(58,36,64,0.26)';
+      ctx.shadowBlur = Math.max(10, 18 * this.scale);
+      ctx.shadowOffsetY = Math.max(2, 4 * this.scale);
+      ctx.fillStyle = 'rgba(255,246,234,0.10)';
+      this.rrC(ctx, x, y, w, h, r);
+      ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+      const strokeW = Math.max(3, 5 * this.scale);
+      ctx.lineWidth = strokeW;
+      ctx.strokeStyle = '#A86A22';
+      this.rrC(ctx, x + strokeW * 0.5, y + strokeW * 0.5, w - strokeW, h - strokeW, Math.max(4, r - strokeW));
+      ctx.stroke();
+      ctx.lineWidth = Math.max(1.5, 2.2 * this.scale);
+      ctx.strokeStyle = '#F0C15A';
+      this.rrC(ctx, x + strokeW, y + strokeW, w - strokeW * 2, h - strokeW * 2, Math.max(4, r - strokeW * 1.4));
+      ctx.stroke();
+      ctx.restore();
     }
 
     // Cached glossy checkerboard pattern in the theme's real floor colours —
     // saturated, polished cells with a top-left gloss highlight, soft inner
     // shade, and grout. Built once per theme (device-pixel sized).
     floorPattern() {
-      if (this._floorPat && this._floorPatKey===this.themeName) return this._floorPat;
+      const patKey = `${this.themeName}:${Math.round(this.scale * 1000)}`;
+      if (this._floorPat && this._floorPatKey===patKey) return this._floorPat;
       const m=this.wallMeta;
       const S=Math.max(40, Math.round(TILE_WIDTH*this.scale*0.92)); // cell px
       const c=document.createElement('canvas'); c.width=c.height=S*2;
@@ -674,13 +711,17 @@
         g.addColorStop(0.45,'rgba(255,255,255,0.06)');
         g.addColorStop(1,'rgba(0,0,0,0.16)');
         x.fillStyle=g; x.fillRect(cx,cy,S,S);
-        x.strokeStyle='rgba(0,0,0,0.14)'; x.lineWidth=Math.max(1.5,S*0.03);
+        x.fillStyle='rgba(255,246,234,0.42)';
+        x.beginPath(); x.arc(cx+S*0.76,cy+S*0.22,Math.max(1,S*0.025),0,Math.PI*2); x.fill();
+        x.fillStyle='rgba(255,234,246,0.35)';
+        x.beginPath(); x.arc(cx+S*0.22,cy+S*0.72,Math.max(1,S*0.018),0,Math.PI*2); x.fill();
+        x.strokeStyle='rgba(90,54,100,0.18)'; x.lineWidth=Math.max(1.5,S*0.03);
         x.strokeRect(cx+0.75,cy+0.75,S-1.5,S-1.5);
       };
       cell(0,0,m.floorA); cell(S,0,m.floorB);
       cell(0,S,m.floorB); cell(S,S,m.floorA);
       this._floorPat=this.ctx.createPattern(c,'repeat');
-      this._floorPatKey=this.themeName;
+      this._floorPatKey=patKey;
       return this._floorPat;
     }
 
@@ -758,7 +799,10 @@
       // Stations with state-variant art swap sprites live. Every drawn rect
       // registers as a precise hit region for reverse-depth click picking.
       let key = STATION_KEY[c] || 'counter';
-      if (c==='S' && s && s.contents && (s.state==='cooking'||s.state==='burned')) key='stove_fire';
+      if (c==='B' && s && s.item && s.item.state === 'raw') key='chopping_board_active';
+      if (c==='S' && s && s.contents) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'stove_fire' : 'stove_full';
+      if (c==='O' && s && s.contents) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'pot_active' : 'pot_full';
+      if (c==='V' && s && s.contents) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'oven_active' : 'oven';
       if (c==='K' && s && s.dirty > 0) key='sink_dirty';
       let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, isoFixFor(key));
       if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL, isoFixFor(key)); }

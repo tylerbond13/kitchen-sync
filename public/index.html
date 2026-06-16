@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Kitchen Sync — Cook together, apart</title>
   <meta name="description" content="A real-time co-op cooking game for your phone. Join with a code, cook with your crew.">
-  <meta name="theme-color" content="#FF6FAE">
+  <meta name="theme-color" content="#FF9FC8">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -19,29 +19,29 @@
 /* ============ Kitchen Sync — Candy Kitchen design system ============ */
 :root {
   /* Candy palette */
-  --bubblegum: #FF6FAE;
-  --bubblegum-deep: #D94F8C;
+  --bubblegum: #FF9FC8;
+  --bubblegum-deep: #D94D74;
   --bubblegum-glow: rgba(255, 111, 174, 0.38);
-  --sherbet: #FF8251;
-  --sherbet-deep: #D95F32;
-  --mint: #3DC9A0;
-  --mint-deep: #26A882;
-  --lavender: #C09BFF;
-  --lav-deep: #9474E0;
-  --gold: #FFD23F;
-  --gold-deep: #E8B800;
-  --sky: #5BADDE;
+  --sherbet: #F05A75;
+  --sherbet-deep: #C7355F;
+  --mint: #9ED9C6;
+  --mint-deep: #7FCFCB;
+  --lavender: #C6A3E2;
+  --lav-deep: #7350B7;
+  --gold: #F0C15A;
+  --gold-deep: #A86A22;
+  --sky: #7FCFCB;
 
   /* Surfaces */
-  --cream: #FFF8FC;
-  --cream-deep: #FFE4F0;
-  --peach-bg: #FFF3EC;
-  --card: #FFFFFF;
-  --card-shine: linear-gradient(160deg, #fff 0%, #FFF5FA 100%);
+  --cream: #FFF6EA;
+  --cream-deep: #FFEAF6;
+  --peach-bg: #FFF0D6;
+  --card: #FFF6EA;
+  --card-shine: linear-gradient(160deg, #FFF6EA 0%, #FFEAF6 100%);
 
   /* Text */
-  --ink: #2D1634;
-  --ink-soft: #9070A8;
+  --ink: #3A2440;
+  --ink-soft: #5A3664;
 
   /* Shadows */
   --shadow: 0 8px 28px rgba(180, 60, 130, 0.13);
@@ -58,12 +58,10 @@ html, body { height: 100%; overscroll-behavior: none; }
 
 body {
   font-family: ui-rounded, -apple-system, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
-  background: #FFF8FC;
+  background: #E4BFE8;
   background-image:
-    radial-gradient(ellipse at 15% 10%, #FFD6EC 0%, transparent 50%),
-    radial-gradient(ellipse at 85% 15%, #FFE8D4 0%, transparent 45%),
-    radial-gradient(ellipse at 50% 90%, #E8D4FF 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 80%, #D4EEFF 0%, transparent 40%);
+    linear-gradient(180deg, rgba(181,138,216,0.92) 0%, rgba(228,191,232,0.72) 44%, rgba(188,239,224,0.72) 100%),
+    repeating-linear-gradient(90deg, rgba(255,246,234,0.16) 0 18px, rgba(255,234,246,0.12) 18px 36px);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   user-select: none;
@@ -168,7 +166,7 @@ body {
 .logo h1 {
   font-size: 46px;
   font-weight: 900;
-  letter-spacing: -2px;
+  letter-spacing: 0;
   margin-top: 2px;
   background: linear-gradient(130deg, #FF6FAE 0%, #FF9A6C 40%, #FFD23F 70%, #FF6FAE 100%);
   background-size: 200% auto;
@@ -495,13 +493,24 @@ input[type="text"]:focus {
 #screen-game { padding: calc(var(--sat) + 8px) 8px calc(var(--sab) + 8px); gap: 8px; }
 .game-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .hud-pill {
-  background: var(--card);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(180deg, #FFF6EA 0%, #FFEAF6 100%);
   border-radius: 16px;
-  padding: 10px 14px;
+  padding: 9px 13px;
   font-weight: 800; font-size: 16px;
-  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  box-shadow: 0 4px 14px rgba(90, 54, 100, 0.12), inset 0 0 0 1px rgba(255,255,255,0.64);
   font-variant-numeric: tabular-nums;
-  border: 1.5px solid rgba(255, 111, 174, 0.10);
+  border: 1.5px solid rgba(240, 193, 90, 0.74);
+}
+.hud-icon {
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 1px 2px rgba(90, 54, 100, 0.18));
 }
 .hud-timer.low { color: var(--sherbet); animation: pulse .8s infinite; }
 @keyframes pulse { 50% { transform: scale(1.07); } }
@@ -516,7 +525,7 @@ input[type="text"]:focus {
   overflow-x: auto;
   overscroll-behavior-x: contain;
   padding: 1px 2px 5px;
-  min-height: 84px;
+  min-height: 94px;
   scroll-snap-type: x proximity;
 }
 .orders-strip:empty {
@@ -526,24 +535,32 @@ input[type="text"]:focus {
 .orders-strip::-webkit-scrollbar { display: none; }
 .ticket {
   flex: 0 0 auto;
-  /* cozy warm card so the ticket reads as part of the kitchen, not a web UI */
-  background: linear-gradient(180deg, #FFFDF8 0%, #FFF3E6 100%);
-  border-radius: 22px;
-  box-shadow: 0 5px 16px rgba(150, 95, 55, 0.16), inset 0 0 0 1px rgba(255,255,255,0.55);
-  padding: 7px 9px 6px;
-  width: 196px;
+  background:
+    url("/assets/images/cake-world/ks-cw-order-card-frame-wide-front-v1.png") center / 100% 100% no-repeat,
+    linear-gradient(180deg, #FFF6EA 0%, #FFEAF6 100%);
+  border-radius: 18px;
+  box-shadow: 0 7px 18px rgba(90, 54, 100, 0.16), 0 1px 0 rgba(255,255,255,0.75) inset;
+  padding: 13px 15px 12px 18px;
+  width: 212px;
   animation: ticket-in .3s ease-out;
-  /* warm woody rim instead of the cold pink hairline */
-  border: 1.5px solid rgba(176, 116, 74, 0.30);
-  border-top: 4px solid var(--mint);
+  border: 0;
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-columns: 54px minmax(0, 1fr);
   grid-template-rows: 1fr auto;
   gap: 5px 8px;
   scroll-snap-align: start;
 }
-.ticket.warn { border-top-color: var(--gold); }
-.ticket.urgent { border-top-color: var(--sherbet); animation: ticket-shake .4s infinite; }
+.ticket.warn {
+  background-image:
+    url("/assets/images/cake-world/ks-cw-order-card-frame-urgent-front-v1.png"),
+    linear-gradient(180deg, #FFF6EA 0%, #FFEAF6 100%);
+}
+.ticket.urgent {
+  background-image:
+    url("/assets/images/cake-world/ks-cw-order-card-frame-urgent-front-v1.png"),
+    linear-gradient(180deg, #FFF6EA 0%, #FFEAF6 100%);
+  animation: ticket-shake .4s infinite;
+}
 @keyframes ticket-in { from { transform: translateY(-16px); opacity: 0; } }
 @keyframes ticket-shake { 25% { transform: rotate(1.4deg); } 75% { transform: rotate(-1.4deg); } }
 
@@ -554,8 +571,8 @@ input[type="text"]:focus {
   min-width: 0;
 }
 .ticket-dish-img {
-  width: 52px;
-  height: 52px;
+  width: 54px;
+  height: 54px;
   object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(80, 30, 60, 0.12));
 }
@@ -656,9 +673,10 @@ input[type="text"]:focus {
   line-height: 0.95;
 }
 .ticket.vip {
-  border-top-color: var(--gold);
-  background: linear-gradient(180deg, #FFF6D6 0%, #FFF3E6 70%);
-  box-shadow: 0 0 0 1.5px var(--gold), 0 5px 16px rgba(150, 95, 55, 0.18);
+  background-image:
+    url("/assets/images/cake-world/ks-cw-order-card-frame-wide-front-v1.png"),
+    linear-gradient(180deg, #FFF6D6 0%, #FFF0D6 70%);
+  box-shadow: 0 0 0 1.5px var(--gold), 0 7px 18px rgba(150, 95, 55, 0.18);
 }
 
 /* ============ Rush banner & star progress ============ */
@@ -900,10 +918,10 @@ input[type="text"]:focus {
   flex: 1;
   border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(180, 60, 130, 0.18), 0 2px 8px rgba(180,60,130,0.10);
-  background: #F0D8F0;
+  box-shadow: 0 10px 34px rgba(58, 36, 64, 0.22), 0 2px 8px rgba(168,106,34,0.16);
+  background: linear-gradient(180deg, #E4BFE8 0%, #BCEFE0 100%);
   min-height: 0;
-  border: 2px solid rgba(255, 111, 174, 0.15);
+  border: 2px solid rgba(240, 193, 90, 0.82);
 }
 #game-canvas { width: 100%; height: 100%; display: block; touch-action: none; }
 
@@ -973,8 +991,8 @@ input[type="text"]:focus {
   border: 1.5px solid rgba(255, 111, 174, 0.10);
 }
 .award .aw-emoji { font-size: 24px; }
-.ticket-bar { grid-column: 1 / -1; height: 5px; background: var(--cream-deep); border-radius: 3px; overflow: hidden; }
-.ticket-bar i { display: block; height: 100%; background: var(--mint); border-radius: 3px; }
+.ticket-bar { grid-column: 1 / -1; height: 6px; background: rgba(255,234,246,0.84); border-radius: 4px; overflow: hidden; }
+.ticket-bar i { display: block; height: 100%; background: linear-gradient(90deg, #BCEFE0 0%, #F7B6D4 100%); border-radius: 4px; }
 .ticket.warn .ticket-bar i { background: var(--gold); }
 .ticket.urgent .ticket-bar i { background: var(--sherbet); }
 

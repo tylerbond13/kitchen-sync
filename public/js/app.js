@@ -9,6 +9,16 @@
     return typeof ent === 'string' || !!(ent && ent.path);
   }
 
+  function assetPath(key) {
+    const ent = window.ASSETS && window.ASSETS[key];
+    return typeof ent === 'string' ? ent : ent && ent.path;
+  }
+
+  function uiIcon(key, fallback) {
+    const path = assetPath(key);
+    return path ? `<img class="hud-icon" src="/${path}" alt="" draggable="false">` : fallback;
+  }
+
   function chefChoice(key) {
     return CHEFS.find((c) => c.key === key) || CHEFS[0];
   }
@@ -755,12 +765,12 @@
     // HUD
     const m = Math.floor(state.t / 60), s = state.t % 60;
     const timerEl = $('hud-timer');
-    timerEl.textContent = `⏱ ${m}:${String(s).padStart(2, '0')}`;
+    timerEl.innerHTML = `${uiIcon('ui_timer', '⏱')}<span>${m}:${String(s).padStart(2, '0')}</span>`;
     timerEl.classList.toggle('low', state.t <= 20 && state.phase === 'playing');
-    $('hud-score').textContent = `🪙 ${state.score}`;
+    $('hud-score').innerHTML = `${uiIcon('ui_coin', '🪙')}<span>${state.score}</span>`;
     const platesEl = $('hud-plates');
     const cleanPlates = state.plates === null || state.plates === undefined ? '∞' : state.plates;
-    platesEl.textContent = `🍽️ ${cleanPlates}`;
+    platesEl.innerHTML = `${uiIcon('plate', '🍽️')}<span>${cleanPlates}</span>`;
     platesEl.classList.toggle('empty', state.plates === 0);
     platesEl.title = state.incomingDirty
       ? `${cleanPlates} clean plates · ${state.incomingDirty} dirty returning`

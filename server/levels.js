@@ -41,30 +41,30 @@ const ING = {
 };
 
 const DISHES = {
-  soup_onion:  { name: 'Onion Soup',  emoji: '🥣' },
-  soup_tomato: { name: 'Tomato Soup', emoji: '🍲' },
-  pizza:       { name: 'Pizza',       emoji: '🍕' },
-  stew:        { name: 'Hearty Stew', emoji: '🥘' },
-  cocoa:       { name: 'Hot Cocoa',   emoji: '☕' },
-  juice:       { name: 'Smoothie',    emoji: '🍹' },
+  soup_onion:  { name: 'Rose Cream Cake', emoji: '🍰' },
+  soup_tomato: { name: 'Berry Glaze Cake', emoji: '🫐' },
+  pizza:       { name: 'Royal Ruby Rose', emoji: '🎂' },
+  stew:        { name: 'Golden Honeycomb', emoji: '🍯' },
+  cocoa:       { name: 'Midnight Cocoa Cake', emoji: '🍫' },
+  juice:       { name: 'Berry Jewel Slice', emoji: '🍓' },
 };
 
 const RECIPES = {
-  salad:        { name: 'Garden Salad', emoji: '🥗', needs: ['lettuce.chopped', 'tomato.chopped'], points: 60 },
-  big_salad:    { name: 'Chef Salad',   emoji: '🥙', needs: ['lettuce.chopped', 'tomato.chopped', 'cucumber.chopped'], points: 90 },
-  burger:       { name: 'Burger',       emoji: '🍔', needs: ['bun.raw', 'patty.cooked'], points: 80, handheld: true },
-  cheeseburger: { name: 'Cheeseburger', emoji: '🍔', needs: ['bun.raw', 'patty.cooked', 'cheese.chopped'], points: 110, handheld: true },
-  soup_onion:   { name: 'Onion Soup',   emoji: '🥣', needs: ['soup_onion.dish'], points: 100 },
-  soup_tomato:  { name: 'Tomato Soup',  emoji: '🍲', needs: ['soup_tomato.dish'], points: 100 },
-  sushi:        { name: 'Sushi',        emoji: '🍣', needs: ['rice.cooked', 'fish.chopped', 'seaweed.raw'], points: 110 },
-  pizza:        { name: 'Pizza',        emoji: '🍕', needs: ['pizza.dish'], points: 120 },
+  salad:        { name: 'Petal Cake',   emoji: '🌸', needs: ['lettuce.chopped', 'tomato.chopped'], points: 60 },
+  big_salad:    { name: 'Berries Cake', emoji: '🫐', needs: ['lettuce.chopped', 'tomato.chopped', 'cucumber.chopped'], points: 90 },
+  burger:       { name: 'Honey Slice',  emoji: '🍯', needs: ['bun.raw', 'patty.cooked'], points: 80, handheld: true },
+  cheeseburger: { name: 'Luxe Cake',    emoji: '🎂', needs: ['bun.raw', 'patty.cooked', 'cheese.chopped'], points: 110, handheld: true },
+  soup_onion:   { name: 'Rose Cream Cake', emoji: '🍰', needs: ['soup_onion.dish'], points: 100 },
+  soup_tomato:  { name: 'Berry Glaze Cake', emoji: '🫐', needs: ['soup_tomato.dish'], points: 100 },
+  sushi:        { name: 'Petal Display Cake', emoji: '🌸', needs: ['rice.cooked', 'fish.chopped', 'seaweed.raw'], points: 110 },
+  pizza:        { name: 'Royal Ruby Rose', emoji: '🎂', needs: ['pizza.dish'], points: 120 },
   // winter
-  stew:         { name: 'Hearty Stew',  emoji: '🥘', needs: ['stew.dish'], points: 110 },
-  cocoa:        { name: 'Hot Cocoa',    emoji: '☕', needs: ['cocoa.dish'], points: 80 },
+  stew:         { name: 'Golden Honeycomb', emoji: '🍯', needs: ['stew.dish'], points: 110 },
+  cocoa:        { name: 'Midnight Cocoa Cake', emoji: '🍫', needs: ['cocoa.dish'], points: 80 },
   // beach
-  juice:        { name: 'Smoothie',     emoji: '🍹', needs: ['juice.dish'], points: 90 },
-  poke:         { name: 'Poke Bowl',    emoji: '🥗', needs: ['rice.cooked', 'fish.chopped', 'cucumber.chopped'], points: 110 },
-  fish_taco:    { name: 'Fish Taco',    emoji: '🌮', needs: ['tortilla.raw', 'fish.chopped', 'lettuce.chopped'], points: 100, handheld: true },
+  juice:        { name: 'Berry Jewel Slice', emoji: '🍓', needs: ['juice.dish'], points: 90 },
+  poke:         { name: 'Blueberry Galaxy', emoji: '🌌', needs: ['rice.cooked', 'fish.chopped', 'cucumber.chopped'], points: 110 },
+  fish_taco:    { name: 'Honey Petal Tart', emoji: '🍯', needs: ['tortilla.raw', 'fish.chopped', 'lettuce.chopped'], points: 100, handheld: true },
 };
 
 // What appliances can cook: a multiset of input tokens -> output.
