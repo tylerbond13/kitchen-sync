@@ -102,11 +102,10 @@
   function show(name) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
     $(`screen-${name}`).classList.add('active');
-    // Menu music ("Acrostics") is the only default soundtrack — in rounds it
-    // stays on so the kitchen isn't silent, but the in-game "Caketown" track is
-    // auto-muted by default. The crew radio (YouTube) is the intended in-round
-    // audio: when a track is queued it suspends the menu music (see below).
-    if (window.KSMusic) KSMusic.play('menu');
+    // Sound is on by default: the kitchen plays its own "Caketown" track, every
+    // other screen plays the menu theme ("Acrostics"). A queued crew-radio
+    // (YouTube) track still suspends whichever soundtrack is due (see below).
+    if (window.KSMusic) KSMusic.play(name === 'game' ? 'game' : 'menu');
     lockLandscape();
   }
 
