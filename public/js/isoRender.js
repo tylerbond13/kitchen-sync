@@ -846,6 +846,23 @@
     }
 
     // ── Blocks (counters, stations, crates) + whatever sits on them ──────────
+    // Stations/counters face into the room based on which wall they sit on:
+    //   top/back wall (gy 0) → front   ·   left wall (gx 0) → face right
+    //   right wall (gx w-1)  → face left ·  bottom wall / interior → front
+    // Uses the directional sprite variant (<key>_left / <key>_right) when it
+    // exists, otherwise falls back to the straight front image.
+    faceKey(key, gx, gy) {
+      const w = this.lvl.w;
+      let dir = null;
+      if (gy === 0) dir = null;             // top/back wall → front
+      else if (gx === 0) dir = 'right';     // against the left wall → face right
+      else if (gx === w - 1) dir = 'left';  // against the right wall → face left
+      // bottom wall and interior tiles stay front-facing
+      if (!dir) return key;
+      const variant = `${key}_${dir}`;
+      return GFX.has(variant) ? variant : key;
+    }
+
     drawBlock(c, gx, gy, sx, sy, now) {
       const {ctx}=this;
       const TW=TILE_WIDTH, TH=TILE_HEIGHT;
@@ -858,7 +875,7 @@
       // Crates: per-ingredient art if the manifest has it, otherwise the
       // flat generic crate with the raw ingredient sprite in its open top.
       if (ing) {
-        const cKey = GFX.has('crate_'+ing) ? 'crate_'+ing : 'crate';
+        const cKey = this.faceKey(GFX.has('crate_'+ing) ? 'crate_'+ing : 'crate', gx, gy);
         const rect = GFX.drawAnchored(ctx, cKey, sx, baseY - 1, TW*SPRITE_FILL, isoFixFor(cKey));
         if (rect) {
           if (cKey === 'crate') this.drawBare({ id: ing, state: 'raw' }, sx, rect.y + rect.h*0.30, 16);
@@ -883,6 +900,7 @@
       // Cake World: the mixing bowl shows its "full" art while it holds
       // ingredients/batter (filling, mixing, or done).
       if (c==='M' && s && s.contents && s.contents.length) key='mixing_bowl_full';
+      key = this.faceKey(key, gx, gy);
       let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, isoFixFor(key));
       if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL, isoFixFor(key)); }
       if (rect) this._hits.push({ ...rect, gx, gy, key, d: sy });
