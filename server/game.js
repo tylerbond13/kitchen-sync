@@ -87,7 +87,10 @@ class Game {
     this.cookMult = u.turbo_stove ? 0.85 : 1;
     this.dishBot = !!u.dish_bot;
     this.autoChopAllowed = !!u.auto_chopper;
-    this.autoChop = this.autoChopAllowed && !!opts.autoChop;
+    // Owning the Auto-Chopper keeps it on for the whole round — it's a pure
+    // speed boost the crew paid for, so there's no in-game toggle. The legacy
+    // opts.autoChop / 'autochop' socket switch is ignored.
+    this.autoChop = this.autoChopAllowed;
 
     this.players = {};
     let i = 0;
