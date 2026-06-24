@@ -1018,8 +1018,10 @@
       this.glyph(itemEmoji(item),x,y,size); // only if even the placeholder is missing
     }
     drawStack(stack,x,y,size){
-      GFX.draw(this.ctx,'plate',x,y,size*1.9,size*1.1);
-      stack.contents.forEach((it,i)=>this.drawBare(it,x,y-size*0.12-i*size*0.18,size*0.7));
+      // A "stack" is a handheld combo (bun + patty, fish taco, etc.) — the
+      // bun/tortilla IS the vessel, so render the items directly with NO plate
+      // underneath. Plates only appear once a real plate has been grabbed.
+      stack.contents.forEach((it,i)=>this.drawBare(it,x,y-i*size*0.2,size*0.9));
     }
     drawPlate(plate,x,y,size){
       GFX.draw(this.ctx,'plate',x,y,size*1.9,size*1.1);
