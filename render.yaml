@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: kitchen-sync
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit

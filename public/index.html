@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Kitchen Sync — Cook together, apart</title>
+  <meta name="description" content="A real-time co-op cooking game for your phone. Join with a code, cook with your crew.">
+  <meta name="theme-color" content="#FF6FAE">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kitchen Sync">
+  <meta property="og:title" content="Kitchen Sync">
+  <meta property="og:description" content="Cook together, apart. Join my kitchen!">
+  <style>
+/* ============ Kitchen Sync — Candy Kitchen design system ============ */
+:root {
+  /* Candy palette */
+  --bubblegum: #FF6FAE;
+  --bubblegum-deep: #D94F8C;
+  --bubblegum-glow: rgba(255, 111, 174, 0.38);
+  --sherbet: #FF8251;
+  --sherbet-deep: #D95F32;
+  --mint: #3DC9A0;
+  --mint-deep: #26A882;
+  --lavender: #C09BFF;
+  --lav-deep: #9474E0;
+  --gold: #FFD23F;
+  --gold-deep: #E8B800;
+  --sky: #5BADDE;
+
+  /* Surfaces */
+  --cream: #FFF8FC;
+  --cream-deep: #FFE4F0;
+  --peach-bg: #FFF3EC;
+  --card: #FFFFFF;
+  --card-shine: linear-gradient(160deg, #fff 0%, #FFF5FA 100%);
+
+  /* Text */
+  --ink: #2D1634;
+  --ink-soft: #9070A8;
+
+  /* Shadows */
+  --shadow: 0 8px 28px rgba(180, 60, 130, 0.13);
+  --shadow-card: 0 4px 20px rgba(180, 60, 130, 0.10), 0 1px 4px rgba(180,60,130,0.07);
+  --radius: 22px;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+
+html, body { height: 100%; overscroll-behavior: none; }
+
+body {
+  font-family: ui-rounded, -apple-system, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+  background: #FFF8FC;
+  background-image:
+    radial-gradient(ellipse at 15% 10%, #FFD6EC 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 15%, #FFE8D4 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 90%, #E8D4FF 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 80%, #D4EEFF 0%, transparent 40%);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+/* ============ Floating background emojis (home screen only) ============ */
+.home-floaties {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.home-floaties span {
+  position: absolute;
+  bottom: -64px;
+  left: var(--x);
+  font-size: var(--sz, 28px);
+  opacity: 0;
+  animation: floaty-rise var(--dur) ease-in-out infinite var(--delay);
+  will-change: transform, opacity;
+}
+@keyframes floaty-rise {
+  0%   { transform: translateY(0)      rotate(0deg)   scale(0.7); opacity: 0; }
+  8%   { opacity: 0.55; }
+  88%  { opacity: 0.45; }
+  100% { transform: translateY(-110vh) rotate(340deg) scale(1.1); opacity: 0; }
+}
+
+/* Twinkling stars */
+.sparkle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  font-size: var(--sz, 14px);
+  left: var(--x);
+  top: var(--y);
+  opacity: 0;
+  animation: twinkle var(--dur) ease-in-out infinite var(--delay);
+  will-change: transform, opacity;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+  40%, 60%  { opacity: 0.7; transform: scale(1.2) rotate(20deg); }
+}
+
+/* ============ Screens ============ */
+.screen {
+  display: none;
+  min-height: 100dvh;
+  padding: calc(var(--sat) + 12px) 16px calc(var(--sab) + 16px);
+}
+.screen.active { display: flex; flex-direction: column; }
+
+.narrow-wrap, .home-wrap, .lobby-wrap {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+.home-wrap { justify-content: center; flex: 1; }
+
+/* ============ Logo ============ */
+.logo { text-align: center; padding: 16px 0 4px; }
+.logo-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.logo-glow-ring {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,111,174,0.35) 0%, transparent 70%);
+  animation: glow-pulse 2.8s ease-in-out infinite;
+}
+@keyframes glow-pulse {
+  0%, 100% { transform: scale(1);   opacity: 0.7; }
+  50%       { transform: scale(1.2); opacity: 1;   }
+}
+.logo-pan {
+  font-size: 72px;
+  line-height: 1;
+  display: inline-block;
+  animation: pan-bob 2.8s ease-in-out infinite;
+  filter: drop-shadow(0 6px 18px rgba(255, 111, 174, 0.45)) drop-shadow(0 4px 8px rgba(59,46,42,.2));
+  position: relative;
+  z-index: 1;
+}
+@keyframes pan-bob {
+  0%, 100% { transform: rotate(-7deg) translateY(0px); }
+  50%       { transform: rotate(5deg)  translateY(-8px); }
+}
+.logo h1 {
+  font-size: 46px;
+  font-weight: 900;
+  letter-spacing: -2px;
+  margin-top: 2px;
+  background: linear-gradient(130deg, #FF6FAE 0%, #FF9A6C 40%, #FFD23F 70%, #FF6FAE 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: logo-shimmer 5s linear infinite;
+}
+@keyframes logo-shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+.tagline {
+  color: var(--ink-soft);
+  font-weight: 700;
+  margin-top: 2px;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
+
+/* ============ Cards ============ */
+.card {
+  background: var(--card);
+  background-image: var(--card-shine);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 18px;
+  border: 1.5px solid rgba(255, 111, 174, 0.10);
+}
+.card-title {
+  font-weight: 800;
+  font-size: 15px;
+  margin-bottom: 12px;
+  letter-spacing: .2px;
+  color: var(--ink);
+}
+.field-label {
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--bubblegum);
+  display: block;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+.profile-card .field-label { margin-top: 14px; }
+.profile-card .field-label:first-child { margin-top: 0; }
+.muted  { color: var(--ink-soft); }
+.small  { font-size: 13px; }
+.fineprint { text-align: center; color: var(--ink-soft); font-size: 12px; }
+
+input[type="text"] {
+  width: 100%;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 14px 16px;
+  border: 2px solid var(--cream-deep);
+  border-radius: 16px;
+  background: var(--cream);
+  color: var(--ink);
+  outline: none;
+  transition: border-color .18s, box-shadow .18s;
+}
+input[type="text"]:focus {
+  border-color: var(--bubblegum);
+  box-shadow: 0 0 0 4px rgba(255, 111, 174, 0.12);
+}
+
+.code-input {
+  text-align: center;
+  font-size: 34px !important;
+  font-weight: 900 !important;
+  letter-spacing: 12px;
+  text-transform: uppercase;
+}
+
+/* ============ Buttons ============ */
+.btn {
+  font: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  border: none;
+  border-radius: 20px;
+  padding: 17px 20px;
+  cursor: pointer;
+  transition: transform .08s, box-shadow .12s, filter .12s;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.btn:active { transform: scale(.96); }
+
+/* Shine sweep on primary button */
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -120%;
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.32) 50%, transparent 100%);
+  transform: skewX(-18deg);
+  animation: btn-shine 4s ease-in-out infinite 0.8s;
+  pointer-events: none;
+}
+@keyframes btn-shine {
+  0%   { left: -120%; }
+  28%  { left: 160%; }
+  100% { left: 160%; }
+}
+
+.btn-primary {
+  background: linear-gradient(170deg, #FF85BE 0%, #FF6FAE 40%, #E05090 100%);
+  color: #fff;
+  box-shadow: 0 6px 0 #C03070, 0 10px 28px rgba(224, 80, 142, .38);
+  text-shadow: 0 1px 4px rgba(160, 20, 80, 0.35);
+}
+.btn-primary:active { box-shadow: 0 2px 0 #C03070, 0 4px 12px rgba(224, 80, 142, .25); }
+
+.btn-secondary {
+  background: linear-gradient(170deg, #FFFFFF 0%, #FFF5FA 100%);
+  color: var(--ink);
+  box-shadow: 0 5px 0 var(--cream-deep), 0 8px 20px rgba(180, 60, 130, .10);
+  border: 1.5px solid rgba(255, 111, 174, 0.18);
+}
+.btn-secondary:active { box-shadow: 0 1px 0 var(--cream-deep); }
+.btn:disabled { filter: grayscale(.6) opacity(.6); pointer-events: none; }
+
+.home-actions { display: flex; flex-direction: column; gap: 12px; }
+
+.btn-back {
+  font: inherit; font-weight: 700; font-size: 16px;
+  background: none; border: none; color: var(--bubblegum);
+  padding: 8px 0; text-align: left; cursor: pointer; width: max-content;
+}
+.btn-icon {
+  font-size: 20px;
+  background: var(--card);
+  border: 1.5px solid rgba(255, 111, 174, 0.15);
+  width: 46px; height: 46px; border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: transform .08s;
+}
+.btn-icon:active { transform: scale(.92); }
+.btn-icon.locked { opacity: .55; }
+.btn-icon.active { outline: 2.5px solid var(--gold); background: #FFFBE8; }
+.btn-icon.off { opacity: .38; filter: grayscale(1); }
+.audio-toggles {
+  position: absolute;
+  top: calc(var(--sat) + 12px); right: 12px;
+  display: flex; gap: 8px;
+  z-index: 5;
+}
+
+/* ============ Tutorial ============ */
+.btn-link {
+  font: inherit; font-size: 15px; font-weight: 800;
+  background: none; border: none; color: var(--ink-soft);
+  padding: 6px; cursor: pointer; text-align: center;
+}
+.tut-step { display: flex; gap: 14px; align-items: flex-start; }
+.tut-emoji { font-size: 30px; flex: 0 0 auto; line-height: 1.2; }
+.tut-step b { font-size: 15px; }
+.tut-step p { font-size: 13.5px; color: var(--ink-soft); font-weight: 600; margin-top: 3px; }
+#screen-tutorial { padding-bottom: calc(var(--sab) + 28px); }
+
+/* ============ Quick picks ============ */
+.quick-picks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.quick-pick {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 6px;
+  background: var(--cream);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform .1s, border-color .1s, background .1s, box-shadow .1s;
+}
+.quick-pick:active { transform: scale(.95); }
+.quick-pick.sel {
+  border-color: var(--bubblegum);
+  background: #FFF0F8;
+  box-shadow: 0 0 0 4px rgba(255, 111, 174, 0.10);
+}
+
+/* ============ Chef picker ============ */
+.chef-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.chef-cell {
+  font: inherit;
+  min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 7px;
+  padding: 11px 6px 9px;
+  background: var(--cream);
+  border: 2px solid transparent;
+  border-radius: 18px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform .1s, border-color .1s, background .1s, box-shadow .1s;
+}
+.chef-cell:active { transform: scale(.96); }
+.chef-cell.sel {
+  border-color: var(--bubblegum);
+  background: #FFF0F8;
+  box-shadow: 0 0 0 3px rgba(255, 111, 174, 0.15);
+}
+.chef-cell img {
+  width: 100%;
+  max-width: 96px;
+  height: 100px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(45, 22, 52, 0.18));
+}
+.chef-cell span {
+  width: 100%;
+  /* two-word names wrap to a second line instead of being cut off; cap at
+     two lines so the grid rows stay even */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  min-height: 2.4em; /* reserve both lines so single-line names align */
+}
+.profile-stats { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
+
+/* ============ Lobby ============ */
+.lobby-head { display: flex; align-items: center; gap: 10px; }
+.lobby-head .btn-back { flex: 0 0 auto; }
+.code-chip {
+  flex: 1;
+  background: linear-gradient(135deg, #2D1634 0%, #3D2050 100%);
+  color: #fff;
+  border-radius: 18px;
+  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 6px 20px rgba(45, 22, 52, 0.35);
+}
+.code-chip-label { font-size: 10px; font-weight: 800; letter-spacing: 2.5px; opacity: .6; }
+.code-chip-code { font-size: 24px; font-weight: 900; letter-spacing: 6px; }
+
+.member-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.member {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  width: 60px;
+}
+.member-face {
+  font-size: 26px; width: 52px; height: 52px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, #FFF0F8 0%, #FFE4F4 100%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 111, 174, 0.18);
+  position: relative;
+}
+.member-face img {
+  max-width: 44px;
+  max-height: 48px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(45, 22, 52, 0.16));
+}
+.member.offline { opacity: .35; }
+.member-face .host-badge {
+  position: absolute; top: -7px; right: -4px; font-size: 14px;
+}
+.member-name { font-size: 11.5px; font-weight: 700; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.levels-card { flex: 1; }
+.level-list { display: flex; flex-direction: column; gap: 10px; }
+.level-row {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, #FFF8FC 0%, #FFF3F8 100%);
+  border-radius: 18px;
+  padding: 13px 14px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform .12s, border-color .12s, box-shadow .12s;
+  box-shadow: 0 2px 10px rgba(180,60,130,0.07);
+}
+.level-row:active { transform: scale(.98); }
+.level-row.locked { opacity: .4; pointer-events: none; }
+.level-emoji { font-size: 32px; }
+.level-info { flex: 1; min-width: 0; }
+.level-name { font-weight: 800; font-size: 15px; }
+.level-blurb { font-size: 12px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.level-stars { font-size: 15px; letter-spacing: 1px; color: var(--gold); }
+.level-stars .off { color: #DCCDE8; }
+.level-row .level-play {
+  font-size: 13px; font-weight: 800; color: #fff;
+  background: linear-gradient(170deg, #FF85BE 0%, #E0508E 100%);
+  border-radius: 12px; padding: 8px 13px;
+  box-shadow: 0 3px 0 #C03070;
+}
+.lobby-foot { text-align: center; }
+
+/* ============ Section heads in level list ============ */
+.section-head {
+  display: flex; align-items: center; gap: 8px;
+  margin: 10px 2px 0;
+  font-weight: 800; font-size: 14px;
+}
+.section-head .sec-emoji { font-size: 18px; }
+.section-head .sec-stars { margin-left: auto; font-size: 12px; color: var(--gold); font-weight: 800; }
+
+/* ============ Game HUD (overlaid on the board) ============ */
+#screen-game { padding: 0; }
+.game-top { display: flex; gap: 6px; align-items: center; }
+.hud-pill {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 7px 11px;
+  font-weight: 800; font-size: 14px;
+  box-shadow: var(--shadow-card);
+  font-variant-numeric: tabular-nums;
+  border: 1.5px solid rgba(255, 111, 174, 0.10);
+}
+.hud-timer.low { color: var(--sherbet); animation: pulse .8s infinite; }
+@keyframes pulse { 50% { transform: scale(1.07); } }
+.hud-combo { color: var(--bubblegum); }
+.hud-plates { color: var(--ink); }
+.hud-plates.empty { color: var(--sherbet); animation: pulse .8s infinite; }
+/* Pause is the only on-board control — pinned to the far right of the top row. */
+.game-top .btn-pause { margin-left: auto; flex: 0 0 auto; }
+
+.orders-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 1px 2px 5px;
+  min-height: 84px;
+  scroll-snap-type: x proximity;
+}
+.orders-strip:empty {
+  display: none;
+  min-height: 0;
+}
+.orders-strip::-webkit-scrollbar { display: none; }
+.ticket {
+  flex: 0 0 auto;
+  /* cozy warm card so the ticket reads as part of the kitchen, not a web UI */
+  background: linear-gradient(180deg, #FFFDF8 0%, #FFF3E6 100%);
+  border-radius: 22px;
+  box-shadow: 0 5px 16px rgba(150, 95, 55, 0.16), inset 0 0 0 1px rgba(255,255,255,0.55);
+  padding: 7px 9px 6px;
+  /* Wide enough to show the full dish name. The strip is pointer-events:none so
+     taps fall through to the crates underneath; extra tickets clip at the screen
+     edge rather than scrolling. */
+  width: 196px;
+  animation: ticket-in .3s ease-out;
+  /* warm woody rim instead of the cold pink hairline */
+  border: 1.5px solid rgba(176, 116, 74, 0.30);
+  border-top: 4px solid var(--mint);
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  gap: 5px 8px;
+  scroll-snap-align: start;
+}
+.ticket.warn { border-top-color: var(--gold); }
+.ticket.urgent { border-top-color: var(--sherbet); animation: ticket-shake .4s infinite; }
+@keyframes ticket-in { from { transform: translateY(-16px); opacity: 0; } }
+@keyframes ticket-shake { 25% { transform: rotate(1.4deg); } 75% { transform: rotate(-1.4deg); } }
+
+.ticket-dish {
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+.ticket-dish-img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(80, 30, 60, 0.12));
+}
+.ticket-dish .glyph {
+  font-size: 30px;
+  line-height: 1;
+}
+.ticket-body {
+  min-width: 0;
+}
+.ticket-headline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin-bottom: 4px;
+}
+/* The customer is the least important thing on the ticket — kept small so the
+   dish, ingredients and timer read first. */
+.ticket-customer {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(45, 22, 52, 0.12);
+  box-shadow: 0 1px 2px rgba(80, 30, 60, 0.10);
+}
+.ticket-customer-img {
+  width: 18px;
+  height: 21px;
+  object-fit: contain;
+  object-position: center top;
+  transform: translateY(1px);
+}
+.ticket-customer svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+/* The dish name is the headline of the ticket — keep it prominent. */
+.ticket-name {
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 1.1;
+  color: var(--ink);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Expression switching */
+.cust-mouth.cust-warn, .cust-mouth.cust-urgent { display: none; }
+.cust-brow-urgent { display: none; }
+.ticket.warn .cust-mouth.cust-happy   { display: none; }
+.ticket.warn .cust-mouth.cust-warn    { display: inline; }
+.ticket.urgent .cust-mouth.cust-happy { display: none; }
+.ticket.urgent .cust-mouth.cust-urgent{ display: inline; }
+.ticket.urgent .cust-brow-urgent      { display: inline; }
+.ticket.urgent .cust-blush            { opacity: 0; }
+
+.ticket-head { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; }
+.ticket-head .t-emoji { font-size: 20px; }
+.ticket-ingredients {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  overflow: hidden;
+}
+.ticket-ingredient {
+  width: 36px;
+  flex: 0 0 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+.ticket-mini {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+}
+.ticket-mini svg.art,
+.ticket-mini-img {
+  width: 33px;
+  height: 33px;
+  object-fit: contain;
+}
+.ticket-prep {
+  min-height: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  font-size: 13px;
+  line-height: 0.95;
+}
+.ticket.vip {
+  border-top-color: var(--gold);
+  background: linear-gradient(180deg, #FFF6D6 0%, #FFF3E6 70%);
+  box-shadow: 0 0 0 1.5px var(--gold), 0 5px 16px rgba(150, 95, 55, 0.18);
+}
+
+/* ============ Rush banner & star progress ============ */
+.rush-banner {
+  background: linear-gradient(90deg, var(--sherbet) 0%, var(--bubblegum) 45%, var(--gold) 100%);
+  color: #fff;
+  font-weight: 900; font-size: 15px;
+  text-align: center; padding: 9px 12px; border-radius: 14px;
+  animation: rush-pulse .45s infinite;
+  box-shadow: 0 4px 18px rgba(255, 111, 174, .55);
+  text-shadow: 0 1px 4px rgba(160, 30, 80, 0.4);
+}
+@keyframes rush-pulse { 50% { transform: scale(1.035); filter: brightness(1.14); } }
+
+.star-progress {
+  position: relative; height: 11px;
+  background: var(--cream-deep); border-radius: 8px;
+  margin: 0 2px;
+  box-shadow: inset 0 2px 4px rgba(180, 60, 130, 0.10);
+}
+.star-progress i {
+  display: block; height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--mint) 0%, var(--gold) 60%, var(--bubblegum) 100%);
+  border-radius: 8px;
+  transition: width .4s;
+  box-shadow: 0 0 8px rgba(255, 111, 174, 0.3);
+}
+.star-progress .star-mark {
+  position: absolute; top: 50%;
+  transform: translate(-100%, -54%);
+  font-size: 14px; color: #DCCDE8;
+  text-shadow: 0 1px 2px rgba(59,46,42,.14);
+}
+.star-progress .star-mark.hit { color: var(--gold); filter: drop-shadow(0 0 4px rgba(255, 210, 63, 0.7)); }
+
+/* in-game crew radio strip: now playing, what's next, skip. Pinned to the
+   bottom of the board as a slim overlay; only shows when the crew has a queue. */
+.radio-bar {
+  position: absolute;
+  left: 0; right: 0; margin-inline: auto;
+  bottom: calc(var(--sab) + 8px);
+  width: calc(100% - 16px);
+  max-width: 460px;
+  z-index: 3;
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--cream);
+  border: 1.5px solid rgba(255, 111, 174, 0.15);
+  border-radius: 14px;
+  padding: 6px 10px;
+  box-shadow: var(--shadow-card);
+}
+.radio-emoji { font-size: 16px; flex: 0 0 auto; }
+.radio-bar-info { flex: 1; min-width: 0; }
+.radio-bar-title {
+  font-size: 12px; font-weight: 800;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.radio-bar-next {
+  font-size: 10.5px; font-weight: 700; color: var(--ink-soft);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.radio-bar-btn {
+  font: inherit; font-size: 16px;
+  width: 36px; height: 36px;
+  border: none; border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 2px 0 var(--cream-deep);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.radio-bar-btn:active { transform: translateY(1px); }
+.radio-bar-btn:disabled { opacity: .4; }
+/* ============ Level music (crew radio queue) ============ */
+.music-title { display: flex; align-items: center; gap: 8px; }
+.music-now {
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  max-width: 155px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.music-search input[type="text"] {
+  height: 44px;
+  padding: 0 13px;
+  border-radius: 14px;
+  font-size: 15px;
+}
+.music-search-btn {
+  font: inherit;
+  font-size: 18px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--cream-deep);
+  cursor: pointer;
+}
+.music-results,
+.music-queue { display: flex; flex-direction: column; gap: 8px; }
+.music-results {
+  max-height: 260px;
+  overflow: auto;
+  margin-bottom: 10px;
+  padding-right: 2px;
+}
+.music-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  background: var(--cream);
+  border-radius: 14px;
+  padding: 8px;
+}
+.music-row.current {
+  outline: 2px solid var(--bubblegum-glow);
+  background: #FFF0F8;
+}
+.music-thumb {
+  width: 56px;
+  height: 42px;
+  flex: 0 0 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--cream-deep);
+  color: var(--bubblegum);
+  font-weight: 900;
+}
+.music-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.music-info { flex: 1; min-width: 0; }
+.music-name {
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-action {
+  font: inherit;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 12px;
+  background: var(--cream-deep);
+  color: var(--ink-soft);
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.music-action.add { background: var(--bubblegum); color: #fff; box-shadow: 0 3px 0 var(--bubblegum-deep); }
+.music-empty {
+  background: var(--cream);
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* ============ Kitchen shop ============ */
+.crew-stats { margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.shop-coins { float: right; color: var(--ink); font-weight: 800; }
+.shop-list { display: flex; flex-direction: column; gap: 8px; }
+.shop-row {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, #FFF8FC 0%, #FFF3F8 100%);
+  border-radius: 16px; padding: 10px 13px;
+  border: 1.5px solid rgba(255, 111, 174, 0.10);
+}
+.shop-row.owned { opacity: .6; }
+.shop-emoji { font-size: 24px; }
+.shop-info { flex: 1; min-width: 0; }
+.shop-name { font-weight: 800; font-size: 13.5px; }
+.shop-desc { font-size: 11.5px; color: var(--ink-soft); font-weight: 600; }
+.shop-buy {
+  font: inherit; font-size: 12px; font-weight: 800;
+  border: none; border-radius: 12px; padding: 7px 11px;
+  background: linear-gradient(170deg, #FF85BE 0%, #E0508E 100%);
+  color: #fff; cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 #C03070;
+}
+.shop-buy:disabled { background: var(--cream-deep); color: var(--ink-soft); box-shadow: none; }
+.shop-row.owned .shop-buy {
+  background: linear-gradient(170deg, #60D9B0 0%, #26A882 100%);
+  box-shadow: 0 3px 0 #1A8A68;
+}
+
+/* ============ Canvas area ============ */
+/* The board is full-bleed: the wrap is pinned to the whole viewport and every
+   bit of HUD chrome floats on top of it. Fixed positioning means the canvas
+   ignores the screen's padding and safe-area gutters — overlays add those back
+   themselves so controls dodge the notch. */
+.canvas-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  background: #F0D8F0;
+}
+#game-canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+
+/* ---- On-board overlays (everything floats over the kitchen) ---- */
+/* The top cluster is non-interactive so taps fall through to the board; only
+   the pause button (and the bottom radio strip) opt back into pointer events. */
+.board-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: calc(var(--sat) + 8px) 8px 0;
+  pointer-events: none;
+}
+.board-overlay .game-top,
+.board-overlay .orders-strip,
+.board-overlay .star-progress,
+.board-overlay .rush-banner { pointer-events: none; }
+.board-overlay #btn-pause { pointer-events: auto; }
+
+.pause-overlay {
+  position: absolute; inset: 0;
+  z-index: 10;
+  background: rgba(45, 22, 52, 0.6);
+  backdrop-filter: blur(6px);
+  display: grid; place-items: center;
+  padding: calc(var(--sat) + 16px) 16px calc(var(--sab) + 16px);
+}
+.pause-box {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 16px 48px rgba(45, 22, 52, 0.25);
+  border: 1.5px solid rgba(255, 111, 174, 0.15);
+}
+.pause-box h2 { font-size: 26px; font-weight: 900; }
+
+/* ---- Pause settings toggles (Music · SFX · Music source) ---- */
+.pause-toggles { display: flex; flex-direction: column; gap: 8px; }
+.pause-toggle {
+  font: inherit;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid rgba(255, 111, 174, 0.18);
+  border-radius: 16px;
+  background: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform .08s, background .12s;
+}
+.pause-toggle:active { transform: scale(.97); }
+.pause-toggle .pt-emoji { font-size: 20px; flex: 0 0 auto; }
+.pause-toggle .pt-label { font-weight: 800; font-size: 15px; flex: 1; text-align: left; }
+.pause-toggle .pt-state {
+  font-weight: 800; font-size: 13px;
+  padding: 4px 13px; border-radius: 999px;
+  background: var(--mint); color: #fff;
+  box-shadow: 0 2px 0 var(--mint-deep);
+  flex: 0 0 auto; min-width: 52px;
+}
+.pause-toggle.off .pt-state { background: var(--cream-deep); color: var(--ink-soft); box-shadow: none; }
+.pause-toggle.off .pt-emoji { filter: grayscale(1); opacity: .5; }
+.pause-toggle.off .pt-label { color: var(--ink-soft); }
+.pause-toggle:disabled { opacity: .45; pointer-events: none; }
+/* Source toggle reports which source plays (Game / YouTube), not on/off. */
+#btn-pm-source .pt-state { background: var(--lavender); box-shadow: 0 2px 0 var(--lav-deep); color: #fff; }
+
+/* ---- Action row: Exit (red) · Restart (yellow) · Continue (green) ---- */
+.pause-actions { display: flex; gap: 8px; margin-top: 2px; }
+.pause-act {
+  flex: 1; min-width: 0;
+  font: inherit; font-weight: 800; font-size: 15px;
+  border: none; border-radius: 16px;
+  padding: 14px 6px;
+  color: #fff;
+  cursor: pointer;
+  transition: transform .08s, filter .12s;
+}
+.pause-act:active { transform: scale(.95); }
+.pause-act.exit {
+  background: linear-gradient(170deg, #FF6B7D 0%, #F2495C 45%, #D8324A 100%);
+  box-shadow: 0 5px 0 #B02438, 0 8px 18px rgba(216, 50, 74, .32);
+  text-shadow: 0 1px 3px rgba(120, 16, 36, .4);
+}
+.pause-act.restart {
+  background: linear-gradient(170deg, #FFE066 0%, #FFD23F 45%, #F0B800 100%);
+  color: var(--ink);
+  box-shadow: 0 5px 0 #C89400, 0 8px 18px rgba(232, 184, 0, .30);
+}
+.pause-act.continue {
+  background: linear-gradient(170deg, #5FE0B8 0%, #3DC9A0 45%, #26A882 100%);
+  box-shadow: 0 5px 0 #1A8A68, 0 8px 18px rgba(38, 168, 130, .30);
+  text-shadow: 0 1px 3px rgba(16, 90, 68, .4);
+}
+.pause-act:active { box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+
+/* ============ Results ============ */
+.results-wrap {
+  text-align: center;
+  justify-content: center;
+  flex: 1; gap: 12px;
+  position: relative;
+}
+.results-wrap h2 { font-size: 30px; font-weight: 900; }
+.stars-row { font-size: 68px; letter-spacing: 8px; line-height: 1.1; }
+.stars-row .star { color: #DCCDE8; display: inline-block; transition: transform .2s; }
+.stars-row .star.lit {
+  color: var(--gold);
+  animation: star-pop .5s cubic-bezier(.2, 2.2, .4, 1) both;
+  filter: drop-shadow(0 0 12px rgba(255, 210, 63, 0.7));
+}
+@keyframes star-pop { from { transform: scale(0) rotate(-30deg); } }
+.big-score {
+  font-size: 54px; font-weight: 900; font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, #FF6FAE 0%, #FFD23F 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.results-stats { display: flex; justify-content: center; gap: 18px; font-weight: 700; color: var(--ink-soft); }
+.results-players { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 8px 0; }
+.rp { display: flex; flex-direction: column; align-items: center; font-size: 12px; font-weight: 700; }
+.rp .face {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  font-size: 28px;
+}
+.rp .face img { width: 38px; height: 40px; object-fit: contain; display: block; }
+
+/* ============ Recap awards ============ */
+.results-awards { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.award {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card);
+  border-radius: 16px; padding: 9px 15px;
+  box-shadow: var(--shadow-card);
+  font-size: 12.5px; text-align: left;
+  border: 1.5px solid rgba(255, 111, 174, 0.10);
+}
+.award .aw-emoji { font-size: 24px; }
+.ticket-bar { grid-column: 1 / -1; height: 5px; background: var(--cream-deep); border-radius: 3px; overflow: hidden; }
+.ticket-bar i { display: block; height: 100%; background: var(--mint); border-radius: 3px; }
+.ticket.warn .ticket-bar i { background: var(--gold); }
+.ticket.urgent .ticket-bar i { background: var(--sherbet); }
+
+/* ============ Toast & banner ============ */
+.toast {
+  position: fixed; left: 50%; bottom: calc(var(--sab) + 24px);
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2D1634 0%, #3D2050 100%);
+  color: #fff;
+  font-weight: 700; font-size: 14px;
+  padding: 13px 22px; border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(45, 22, 52, 0.35);
+  z-index: 50;
+  max-width: 86vw; text-align: center;
+  animation: toast-in .25s ease-out;
+}
+@keyframes toast-in { from { transform: translate(-50%, 14px); opacity: 0; } }
+.connection-banner {
+  position: fixed; top: calc(var(--sat) + 8px); left: 50%; transform: translateX(-50%);
+  background: var(--gold); color: var(--ink);
+  font-weight: 800; font-size: 13px;
+  padding: 8px 16px; border-radius: 14px; z-index: 60;
+  box-shadow: 0 4px 14px rgba(232, 184, 0, 0.35);
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- ============ HOME ============ -->
+  <section id="screen-home" class="screen active">
+
+    <div class="audio-toggles">
+      <button class="btn-icon" id="btn-music-home" title="Music">🎵</button>
+      <button class="btn-icon" id="btn-sfx-home" title="Sound effects">🔊</button>
+    </div>
+
+    <!-- Floating food background -->
+    <div class="home-floaties" aria-hidden="true">
+      <span style="--x:5%;  --dur:16s; --delay:0s;   --sz:26px">🍓</span>
+      <span style="--x:14%; --dur:12s; --delay:3.1s; --sz:22px">🍋</span>
+      <span style="--x:24%; --dur:18s; --delay:7s;   --sz:30px">🧁</span>
+      <span style="--x:36%; --dur:14s; --delay:1.5s; --sz:24px">🍩</span>
+      <span style="--x:47%; --dur:11s; --delay:5.2s; --sz:28px">🍰</span>
+      <span style="--x:58%; --dur:19s; --delay:2.8s; --sz:22px">🍪</span>
+      <span style="--x:68%; --dur:13s; --delay:9s;   --sz:26px">🫐</span>
+      <span style="--x:78%; --dur:15s; --delay:4.4s; --sz:32px">🎂</span>
+      <span style="--x:88%; --dur:17s; --delay:6.6s; --sz:20px">🍬</span>
+      <span style="--x:93%; --dur:12s; --delay:0.8s; --sz:24px">🍦</span>
+      <span style="--x:20%; --dur:20s; --delay:11s;  --sz:18px">🌸</span>
+      <span style="--x:55%; --dur:14s; --delay:8.5s; --sz:18px">🌸</span>
+      <span style="--x:82%; --dur:16s; --delay:3.5s; --sz:16px">⭐</span>
+      <span style="--x:40%; --dur:22s; --delay:13s;  --sz:14px">✨</span>
+      <span style="--x:70%; --dur:18s; --delay:2.2s; --sz:16px">💫</span>
+    </div>
+
+    <!-- Twinkling sparkles -->
+    <div class="sparkle" style="--x:8%;  --y:18%; --dur:3.2s; --delay:0s;    --sz:16px">✨</div>
+    <div class="sparkle" style="--x:88%; --y:25%; --dur:4.1s; --delay:1.4s;  --sz:12px">⭐</div>
+    <div class="sparkle" style="--x:15%; --y:72%; --dur:3.8s; --delay:2.1s;  --sz:14px">✨</div>
+    <div class="sparkle" style="--x:82%; --y:68%; --dur:2.9s; --delay:0.6s;  --sz:16px">💫</div>
+    <div class="sparkle" style="--x:50%; --y:12%; --dur:4.4s; --delay:3.3s;  --sz:10px">⭐</div>
+    <div class="sparkle" style="--x:92%; --y:55%; --dur:3.5s; --delay:1.8s;  --sz:12px">✨</div>
+
+    <div class="home-wrap">
+      <header class="logo">
+        <div class="logo-icon-wrap">
+          <div class="logo-glow-ring"></div>
+          <div class="logo-pan">🍳</div>
+        </div>
+        <h1>Kitchen Sync</h1>
+        <p class="tagline">Cook together, apart 🍴</p>
+      </header>
+
+      <div class="card profile-card">
+        <label class="field-label">Who's cooking?</label>
+        <div class="quick-picks" id="quick-picks"></div>
+        <label class="field-label" for="name-input">Your name</label>
+        <input id="name-input" type="text" maxlength="14" placeholder="Your name" autocomplete="nickname" enterkeyhint="done">
+        <label class="field-label">Choose your chef</label>
+        <div class="chef-grid" id="chef-grid"></div>
+        <div class="profile-stats" id="profile-stats"></div>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn btn-primary" id="btn-create">🍳 Start a Kitchen</button>
+        <button class="btn btn-secondary" id="btn-show-join">Join a Kitchen</button>
+        <button class="btn-link" id="btn-how-home">❓ How to play</button>
+      </div>
+      <p class="fineprint">Free to play with 2–8 chefs · Add to Home Screen for the full app feel</p>
+    </div>
+  </section>
+
+  <!-- ============ JOIN ============ -->
+  <section id="screen-join" class="screen">
+    <div class="narrow-wrap">
+      <button class="btn-back" data-back="home">‹ Back</button>
+      <h2>Join a Kitchen</h2>
+      <p class="muted">Type the 4-letter code from your host.</p>
+      <input id="code-input" class="code-input" type="text" maxlength="4" placeholder="CODE"
+             autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+      <button class="btn btn-primary" id="btn-join">Join</button>
+    </div>
+  </section>
+
+  <!-- ============ LOBBY ============ -->
+  <section id="screen-lobby" class="screen">
+    <div class="lobby-wrap">
+      <div class="lobby-head">
+        <button class="btn-back" id="btn-leave">‹ Leave</button>
+        <div class="code-chip" id="code-chip">
+          <span class="code-chip-label">KITCHEN</span>
+          <span class="code-chip-code" id="lobby-code">····</span>
+        </div>
+        <button class="btn-icon" id="btn-how-lobby" title="How to play">❓</button>
+        <button class="btn-icon" id="btn-share" title="Invite">📤</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Crew <span class="muted" id="crew-count"></span></div>
+        <div class="member-row" id="member-row"></div>
+        <div class="crew-stats" id="crew-stats"></div>
+      </div>
+
+      <div class="card" id="shop-card" hidden>
+        <div class="card-title">Kitchen Shop <span class="shop-coins" id="shop-coins"></span></div>
+        <div class="shop-list" id="shop-list"></div>
+      </div>
+
+      <div class="card music-card">
+        <div class="card-title music-title">
+          <span>Level Music</span>
+          <span class="music-now" id="music-now">Queue empty</span>
+        </div>
+        <form class="music-search" id="music-search">
+          <input id="music-search-input" type="text" maxlength="80" placeholder="Search YouTube" autocomplete="off" enterkeyhint="search">
+          <button class="music-search-btn" id="music-search-btn" type="submit" title="Search">🔎</button>
+        </form>
+        <div class="music-results" id="music-results" hidden></div>
+        <div class="music-queue" id="music-queue"></div>
+      </div>
+
+      <div class="card levels-card">
+        <div class="card-title">Levels</div>
+        <div class="level-list" id="level-list"></div>
+      </div>
+
+      <div class="lobby-foot">
+        <p class="muted small" id="lobby-hint"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TUTORIAL ============ -->
+  <section id="screen-tutorial" class="screen">
+    <div class="narrow-wrap">
+      <button class="btn-back tut-back">‹ Back</button>
+      <h2>How to Play 🍳</h2>
+      <p class="muted">You and your crew share one kitchen. Fill the order tickets at the top before they expire!</p>
+
+      <div class="card tut-step">
+        <div class="tut-emoji">👆</div>
+        <div><b>Tap to do everything.</b><p>Tap any station and your chef walks over and does the right thing. Tap open floor just to move.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">📦🔪</div>
+        <div><b>Grab &amp; chop.</b><p>Tap a crate to grab an ingredient, then tap a cutting board. The board keeps chopping while you move on to the next job. Chopped food wears a little 🔪 badge — and stays chopped forever. (Crews that buy the 🤖 Auto-Chopper get 35% faster chopping automatically — no switch to flip.)</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">🍳🔥</div>
+        <div><b>Cook — but don't walk too far.</b><p>Pans, pots and ovens cook on their own. ✅ means ready. Leave it too long and it burns — trash it 🗑️ and start over.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">🍽️🛎️</div>
+        <div><b>Plate &amp; serve.</b><p>Grab a plate from the stack (or tap the stack while holding food). Plates and ingredients combine either way around — on counters, boards, or straight from the pot. Deliver finished plates to the green window.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">🫧🍽️</div>
+        <div><b>Wash the dishes!</b><p>From level 2 on, plates are limited — served plates come back dirty at the sink. Tap the sink and stand there to scrub them back into the stack. No clean plates, no serving!</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">⏱️⭐</div>
+        <div><b>Fast food, big tips.</b><p>Serve before a ticket runs out for tips, and chain deliveries for a 🔥 combo. Beat the score goals to earn up to 3 stars and unlock the next level.</p></div>
+      </div>
+      <div class="card tut-step">
+        <div class="tut-emoji">🧑‍🍳🤝</div>
+        <div><b>Cook together.</b><p>Split the jobs — one chops, one cooks, one runs plates. Anyone can pause. Your kitchen code keeps your stars forever, so the crew can come back any time.</p></div>
+      </div>
+
+      <button class="btn btn-primary tut-back">Got it — let's cook!</button>
+    </div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="screen-game" class="screen">
+    <!-- The board fills the whole screen; every HUD piece floats on top of it. -->
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Top cluster: star progress, stat pills + pause, then order tickets -->
+      <div class="board-overlay">
+        <div class="star-progress" id="star-progress">
+          <i id="star-fill"></i>
+          <span class="star-mark" data-i="0">★</span>
+          <span class="star-mark" data-i="1">★</span>
+          <span class="star-mark" data-i="2">★</span>
+        </div>
+        <div class="game-top">
+          <div class="hud-pill hud-timer" id="hud-timer">⏱ 0:00</div>
+          <div class="hud-pill hud-score" id="hud-score">🪙 0</div>
+          <div class="hud-pill hud-plates" id="hud-plates" title="Clean plates">🍽️ ∞</div>
+          <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
+          <button class="btn-icon btn-pause" id="btn-pause" title="Pause">⏸️</button>
+        </div>
+        <div class="rush-banner" id="rush-banner" hidden></div>
+        <div class="orders-strip" id="orders-strip"></div>
+      </div>
+
+      <!-- Bottom: slim crew-radio strip (only appears when there's a queue) -->
+      <div class="radio-bar" id="radio-bar" hidden>
+        <span class="radio-emoji">📻</span>
+        <div class="radio-bar-info">
+          <div class="radio-bar-title" id="radio-bar-title"></div>
+          <div class="radio-bar-next" id="radio-bar-next"></div>
+        </div>
+        <button class="radio-bar-btn" id="btn-radio-skip" title="Next song">⏭️</button>
+      </div>
+
+      <!-- Pause = shared crew freeze; doubles as the settings + actions menu -->
+      <div class="pause-overlay" id="pause-overlay" hidden>
+        <div class="pause-box">
+          <h2>Paused</h2>
+          <p class="muted" id="pause-byline">Anyone can resume.</p>
+          <div class="pause-toggles">
+            <button class="pause-toggle" id="btn-pm-music" type="button">
+              <span class="pt-emoji">🎵</span>
+              <span class="pt-label">Music</span>
+              <span class="pt-state" id="pm-music-state">On</span>
+            </button>
+            <button class="pause-toggle" id="btn-pm-sfx" type="button">
+              <span class="pt-emoji">🔊</span>
+              <span class="pt-label">Sound effects</span>
+              <span class="pt-state" id="pm-sfx-state">On</span>
+            </button>
+            <button class="pause-toggle" id="btn-pm-source" type="button">
+              <span class="pt-emoji">📻</span>
+              <span class="pt-label">Music source</span>
+              <span class="pt-state" id="pm-source-state">Game</span>
+            </button>
+          </div>
+          <div class="pause-actions">
+            <button class="pause-act exit" id="btn-exit-lobby" type="button">Exit</button>
+            <button class="pause-act restart" id="btn-restart" type="button">Restart</button>
+            <button class="pause-act continue" id="btn-resume" type="button">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section id="screen-results" class="screen">
+    <div class="narrow-wrap results-wrap">
+      <h2 id="results-title">Time's up!</h2>
+      <div class="stars-row" id="stars-row">
+        <span class="star" data-i="0">★</span><span class="star" data-i="1">★</span><span class="star" data-i="2">★</span>
+      </div>
+      <div class="big-score" id="results-score">0</div>
+      <div class="results-stats" id="results-stats"></div>
+      <div class="results-awards" id="results-awards"></div>
+      <div class="results-players" id="results-players"></div>
+      <button class="btn btn-primary" id="btn-results-done">Back to the Kitchen</button>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" hidden></div>
+  <div id="connection-banner" class="connection-banner" hidden>Reconnecting…</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sound.js"></script>
+  <script src="/js/music.js"></script>
+  <script src="/js/radio.js"></script>
+  <script src="/js/art.js"></script>
+  <script src="/js/assetManifest.js"></script>
+  <script src="/js/gfx.js"></script>
+  <script src="/js/isoRender.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    window.addEventListener('load', () => {
+      if (window.io && window.KSRender && window.SFX) return;
+      const note = document.createElement('div');
+      note.style.cssText = 'position:fixed;inset:0;display:grid;place-items:center;background:#FFF8FC;z-index:99;text-align:center;font-family:ui-rounded,-apple-system,system-ui';
+      note.innerHTML = '<div><div style="font-size:64px">🍳</div><h2 style="color:#2D1634;margin:12px 0 4px">Preheating the kitchen…</h2><p style="color:#9070A8;font-weight:600;font-size:15px">The server is waking up — one moment!</p></div>';
+      document.body.appendChild(note);
+      setTimeout(() => location.reload(), 4000);
+    });
+  </script>
+</body>
+</html>

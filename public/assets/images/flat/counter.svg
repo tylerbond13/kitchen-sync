@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 112">
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7D396"/><stop offset="1" stop-color="#E8B36B"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#A96B3F"/><stop offset="1" stop-color="#8E5631"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#94582E"/><stop offset="1" stop-color="#7C4A28"/>
+    </linearGradient>
+  </defs>
+  <rect x="14" y="100" width="15" height="10" rx="3" fill="#6B3E1F" stroke="#4A2A12" stroke-width="2.5"/>
+  <rect x="99" y="100" width="15" height="10" rx="3" fill="#6B3E1F" stroke="#4A2A12" stroke-width="2.5"/>
+  <rect x="10" y="28" width="108" height="76" rx="7" fill="url(#body)" stroke="#5A3318" stroke-width="3.5"/>
+  <rect x="20" y="38" width="41" height="56" rx="5" fill="url(#panel)" stroke="#5F3A1D" stroke-width="3"/>
+  <rect x="67" y="38" width="41" height="56" rx="5" fill="url(#panel)" stroke="#5F3A1D" stroke-width="3"/>
+  <rect x="26" y="44" width="29" height="44" rx="3" fill="none" stroke="#6E4424" stroke-width="2" opacity="0.8"/>
+  <rect x="73" y="44" width="29" height="44" rx="3" fill="none" stroke="#6E4424" stroke-width="2" opacity="0.8"/>
+  <rect x="54" y="57" width="5.5" height="17" rx="2.75" fill="#D7DCE4" stroke="#8E959F" stroke-width="1.5"/>
+  <rect x="68.5" y="57" width="5.5" height="17" rx="2.75" fill="#D7DCE4" stroke="#8E959F" stroke-width="1.5"/>
+  <rect x="3" y="6" width="122" height="24" rx="7" fill="url(#top)" stroke="#5A3318" stroke-width="3.5"/>
+  <rect x="9" y="10" width="110" height="6.5" rx="3.25" fill="#FFE8B8" opacity="0.75"/>
+  <path d="M16 23 H50 M60 23 H86 M94 23 H112" stroke="#D49B55" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+</svg>

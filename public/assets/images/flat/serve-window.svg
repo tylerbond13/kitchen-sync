@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 152">
+  <defs>
+    <linearGradient id="pillar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F4E3C2"/><stop offset="0.5" stop-color="#EAD2A4"/><stop offset="1" stop-color="#D9BB85"/>
+    </linearGradient>
+    <linearGradient id="shelf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0C27D"/><stop offset="1" stop-color="#D9A155"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8CCB9B"/><stop offset="1" stop-color="#5FA877"/>
+    </linearGradient>
+  </defs>
+  <!-- header arch -->
+  <path d="M6 44 V30 Q6 8 32 8 H96 Q122 8 122 30 V44 Z" fill="#F2E2C0" stroke="#5A3318" stroke-width="3.5"/>
+  <path d="M14 40 V31 Q14 15 34 15 H94 Q114 15 114 31 V40 Z" fill="url(#green)" stroke="#3F7A53" stroke-width="2.5"/>
+  <path d="M18 38 Q18 19 38 19 H90" fill="none" stroke="#D9B65A" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+  <!-- bell on the header -->
+  <g transform="translate(64 27)">
+    <path d="M-9 6 Q-9 -7 0 -7 Q9 -7 9 6 Z" fill="#F2C94C" stroke="#A8821D" stroke-width="2.4"/>
+    <rect x="-11" y="5" width="22" height="4" rx="2" fill="#F2C94C" stroke="#A8821D" stroke-width="2"/>
+    <circle cx="0" cy="-8.5" r="2.2" fill="#F2C94C" stroke="#A8821D" stroke-width="1.6"/>
+  </g>
+  <!-- pillars -->
+  <rect x="4" y="40" width="17" height="102" rx="5" fill="url(#pillar)" stroke="#5A3318" stroke-width="3.5"/>
+  <rect x="107" y="40" width="17" height="102" rx="5" fill="url(#pillar)" stroke="#5A3318" stroke-width="3.5"/>
+  <rect x="2" y="140" width="21" height="10" rx="3" fill="#C9A86A" stroke="#5A3318" stroke-width="2.5"/>
+  <rect x="105" y="140" width="21" height="10" rx="3" fill="#C9A86A" stroke="#5A3318" stroke-width="2.5"/>
+  <!-- pass-through shelf -->
+  <rect x="8" y="92" width="112" height="18" rx="5" fill="url(#shelf)" stroke="#5A3318" stroke-width="3.5"/>
+  <rect x="13" y="95" width="102" height="5" rx="2.5" fill="#FFE8B8" opacity="0.75"/>
+  <!-- tiled front under the shelf -->
+  <rect x="12" y="110" width="104" height="34" rx="4" fill="url(#green)" stroke="#3F7A53" stroke-width="2.5"/>
+  <path d="M12 127 H116 M38 110 V144 M64 110 V144 M90 110 V144" stroke="#4E8E62" stroke-width="2" opacity="0.8"/>
+  <rect x="12" y="110" width="104" height="5" rx="2.5" fill="#D9B65A" opacity="0.9"/>
+  <!-- service bell on the shelf -->
+  <g transform="translate(98 88)">
+    <path d="M-7 4 Q-7 -6 0 -6 Q7 -6 7 4 Z" fill="#F2C94C" stroke="#A8821D" stroke-width="2.2"/>
+    <rect x="-9" y="3" width="18" height="3.5" rx="1.75" fill="#F2C94C" stroke="#A8821D" stroke-width="1.8"/>
+    <circle cx="0" cy="-7.5" r="1.8" fill="#F2C94C" stroke="#A8821D" stroke-width="1.4"/>
+  </g>
+</svg>
