@@ -1665,5 +1665,8 @@ input[type="text"]:focus {
       setTimeout(() => location.reload(), 4000);
     });
   </script>
+
+  <!-- Build/version tag — filled from /api/version so it reflects the deployed build -->
+  <div id="version-tag" style="position:fixed;left:0;right:0;bottom:calc(var(--sab,0px) + 3px);text-align:center;font-size:10px;font-weight:700;letter-spacing:.3px;color:var(--ink-soft);opacity:.55;pointer-events:none;z-index:40;font-family:ui-rounded,-apple-system,system-ui"></div>
 </body>
 </html>
