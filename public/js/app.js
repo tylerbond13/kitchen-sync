@@ -105,6 +105,21 @@
     toastTimer = setTimeout(() => { el.hidden = true; }, ms);
   }
 
+  // Short voice/sound clips (mp3). Rides the SFX mute toggle; optional throttle
+  // keeps rapid-fire events (deliveries) from stacking into noise.
+  let lastClipAt = 0;
+  function playClip(src, { throttle = 0 } = {}) {
+    if (SFX.isMuted()) return;
+    const now = Date.now();
+    if (throttle && now - lastClipAt < throttle) return;
+    lastClipAt = now;
+    try {
+      const a = new Audio(src);
+      a.volume = 0.85;
+      a.play().catch(() => {});
+    } catch {}
+  }
+
   // ---------- quick picks (the Bond crew) ----------
   const FAMILY = ['Eric', 'Stephanie', 'Tyler', 'Logan', 'Natalie', 'Nathan'];
   const picksEl = $('quick-picks');
@@ -136,6 +151,9 @@
       saveProfile();
       refreshPicker();
       SFX.unlock(); SFX.tap();
+      playClip('/assets/audio/soundboard-clips/hello.mp3');
+      // surface the action buttons so "Start a Kitchen" is one tap away
+      document.querySelector('.home-actions')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       sendHello();
     };
     chefGrid.appendChild(cell);
@@ -776,6 +794,7 @@
       }
       if (ev.type === 'serve') {
         renderer.spawnServeJuice(ev.x, ev.y, ev.points, ev.vip);
+        playClip('/assets/audio/soundboard-clips/dinner-is-served-madam.mp3', { throttle: 2500 });
       }
     }
   });
