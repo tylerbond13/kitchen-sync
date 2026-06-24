@@ -1410,6 +1410,12 @@
     });
   }
 
+  // ---------- version tag (aligns with GitHub release + deployed commit) ----------
+  fetch('/api/version').then((r) => r.json()).then((v) => {
+    const el = document.getElementById('version-tag');
+    if (el) el.textContent = `v${v.version}` + (v.commit && v.commit !== 'local' ? ` · ${v.commit}` : '');
+  }).catch(() => {});
+
   // ---------- deep link & boot ----------
   const params = new URLSearchParams(location.search);
   const joinParam = (params.get('join') || '').toUpperCase();

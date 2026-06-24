@@ -6,6 +6,7 @@ const rooms = require('./rooms');
 const store = require('./store');
 const youtube = require('./youtube');
 const { RECIPES, ING, LEVELS } = require('./levels');
+const pkg = require('../package.json');
 
 const PORT = process.env.PORT || 3000;
 
@@ -40,6 +41,16 @@ app.get('/api/catalog', (_req, res) => {
     recipes: Object.entries(RECIPES).map(([id, r]) => ({ id, name: r.name, emoji: r.emoji, needs: r.needs, handheld: !!r.handheld })),
     ingredients: Object.entries(ING).map(([id, i]) => ({ id, name: i.name, emoji: i.emoji })),
     presets: LEVELS.map((l) => ({ id: l.id, name: l.name, emoji: l.emoji, layout: l.layout, crates: l.crates, recipes: l.orders.recipes, plates: l.plates || 0, duration: l.duration, stars: l.stars })),
+  });
+});
+
+// Version banner: semver from package.json + the deployed git commit (Render
+// sets RENDER_GIT_COMMIT). Lets you tell at a glance which build is live and
+// whether a new push has finished deploying.
+app.get('/api/version', (_req, res) => {
+  res.json({
+    version: pkg.version,
+    commit: (process.env.RENDER_GIT_COMMIT || '').slice(0, 7) || 'local',
   });
 });
 
