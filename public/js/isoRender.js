@@ -364,7 +364,10 @@
       this.wallMeta = WALL_META[this.themeName] || WALL_META.diner;
       // Per-round customer cast: Fisher-Yates with the server's seed.
       const rand = mulberry32((staticState.seed ?? 1) >>> 0);
-      this.cast = [...CUSTOMER_KEYS];
+      // a custom/admin level can restrict the cast to a chosen set of avatars
+      this.cast = (staticState.customers && staticState.customers.length)
+        ? [...staticState.customers]
+        : [...CUSTOMER_KEYS];
       for (let i = this.cast.length - 1; i > 0; i--) {
         const j = Math.floor(rand() * (i + 1));
         [this.cast[i], this.cast[j]] = [this.cast[j], this.cast[i]];
@@ -1128,8 +1131,10 @@
       this.glyph(itemEmoji(item),x,y,size); // only if even the placeholder is missing
     }
     drawStack(stack,x,y,size){
-      GFX.draw(this.ctx,'plate',x,y,size*1.9,size*1.1);
-      stack.contents.forEach((it,i)=>this.drawBare(it,x,y-size*0.12-i*size*0.18,size*0.7));
+      // A "stack" is a handheld combo (bun + patty, fish taco, etc.) — the
+      // bun/tortilla IS the vessel, so render the items directly with NO plate
+      // underneath. Plates only appear once a real plate has been grabbed.
+      stack.contents.forEach((it,i)=>this.drawBare(it,x,y-i*size*0.2,size*0.9));
     }
     drawPlate(plate,x,y,size){
       GFX.draw(this.ctx,'plate',x,y,size*1.9,size*1.1);
@@ -1163,5 +1168,5 @@
     }
   }
 
-  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml, ticketRecipeHtml, customerFace, customerKeyForOrder };
+  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml, ticketRecipeHtml, customerFace, customerKeyForOrder, CUSTOMER_KEYS };
 })();

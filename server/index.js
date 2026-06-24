@@ -5,6 +5,7 @@ const { Server } = require('socket.io');
 const rooms = require('./rooms');
 const store = require('./store');
 const youtube = require('./youtube');
+const { RECIPES, ING, LEVELS } = require('./levels');
 
 const PORT = process.env.PORT || 3000;
 
@@ -30,6 +31,16 @@ app.get('/api/youtube/search', async (req, res) => {
   } catch (err) {
     res.status(502).json({ error: 'YouTube search is unavailable right now.' });
   }
+});
+
+// Catalog for the in-app Level Builder: recipes, ingredients, and the built-in
+// layouts (used as board-design presets / starting points).
+app.get('/api/catalog', (_req, res) => {
+  res.json({
+    recipes: Object.entries(RECIPES).map(([id, r]) => ({ id, name: r.name, emoji: r.emoji, needs: r.needs, handheld: !!r.handheld })),
+    ingredients: Object.entries(ING).map(([id, i]) => ({ id, name: i.name, emoji: i.emoji })),
+    presets: LEVELS.map((l) => ({ id: l.id, name: l.name, emoji: l.emoji, layout: l.layout, crates: l.crates, recipes: l.orders.recipes, plates: l.plates || 0, duration: l.duration, stars: l.stars })),
+  });
 });
 
 app.get('/healthz', (_req, res) => res.json({ ok: true }));

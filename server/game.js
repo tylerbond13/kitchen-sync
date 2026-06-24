@@ -3,7 +3,7 @@
 // interactions, simulates chopping/cooking/orders, and broadcasts state.
 const { ING, DISHES, RECIPES, COOK_COMBOS, CHOPPABLE } = require('./levels');
 
-const SPEED = 4.08;       // tiles per second
+const SPEED = 4.08 * 2.5; // tiles per second (2.5× the original base speed)
 const CHOP_TIME = 2.2;    // seconds for a board to finish chopping
 const AUTO_CHOP_RATE = 1.35; // upgrade toggle: hands-free boards chop faster
 const CHOP_SOUND_EVERY = 0.55;
@@ -82,7 +82,7 @@ class Game {
 
     // crew upgrades (Kitchen Shop)
     const u = opts.upgrades || {};
-    this.speed = SPEED * (u.fast_shoes ? 1.12 : 1);
+    this.speed = SPEED * (u.fast_shoes ? 1.12 : 1) * (level.speedMult || 1);
     this.burnBonus = u.nonstick ? 3 : 0;
     this.cookMult = u.turbo_stove ? 0.85 : 1;
     this.dishBot = !!u.dish_bot;
@@ -97,6 +97,7 @@ class Game {
         id: p.id, name: p.name, avatar: p.avatar, chef: p.chef || 'chef',
         x: spawn.x + 0.5, y: spawn.y + 0.5,
         path: [], intent: null, queue: [], carry: null, working: false,
+        steer: null, face: null,
         delivered: 0, chops: 0, washed: 0,
       };
       i++;
@@ -107,7 +108,11 @@ class Game {
     this.pace = n === 1 ? { every: 1.6, ttl: 1.35, stars: 0.7 }
       : n === 2 ? { every: 1.25, ttl: 1.15, stars: 0.85 }
       : { every: 1, ttl: 1, stars: 1 };
-    this.starGoals = level.stars.map((s) => Math.max(50, Math.round((s * this.pace.stars) / 10) * 10));
+    // custom/admin levels use exact, unscaled tuning so the sliders mean what they say
+    if (level.exactStars) this.pace = { every: 1, ttl: 1, stars: 1 };
+    this.starGoals = level.exactStars
+      ? level.stars.map((s) => Math.max(10, Math.round(s)))
+      : level.stars.map((s) => Math.max(50, Math.round((s * this.pace.stars) / 10) * 10));
 
     // plates are finite when the level has a sink: served plates come back
     // dirty and must be washed to rejoin the stack
@@ -321,6 +326,41 @@ class Game {
         p.intent = null;
         this.emit('go', { playerId: p.id });
       }
+    }
+  }
+
+  // Continuous keyboard steering: the client sends the held arrow-key direction
+  // while keys are down and {0,0} on release. Steering takes over from any tap
+  // path; releasing leaves the chef wherever they stopped.
+  steer(playerId, dx, dy) {
+    const p = this.players[playerId];
+    if (!p || this.phase !== 'playing' || this.paused) return;
+    dx = Math.sign(Number(dx) || 0);
+    dy = Math.sign(Number(dy) || 0);
+    if (!dx && !dy) { p.steer = null; return; }
+    p.steer = { dx, dy };
+    p.face = { dx, dy };
+    p.path = [];
+    p.intent = null;
+    if (p.queue) p.queue.length = 0;
+  }
+
+  // Spacebar: interact with the station the chef faces, else any neighbour.
+  interactFacing(playerId) {
+    const p = this.players[playerId];
+    if (!p || this.phase !== 'playing' || this.paused) return;
+    const px = Math.floor(p.x), py = Math.floor(p.y);
+    const tries = [];
+    const f = p.face;
+    if (f && f.dx) tries.push([Math.sign(f.dx), 0]);
+    if (f && f.dy) tries.push([0, Math.sign(f.dy)]);
+    for (const d of [[0, -1], [1, 0], [0, 1], [-1, 0]]) tries.push(d);
+    const seen = new Set();
+    for (const [dx, dy] of tries) {
+      const k = `${px + dx},${py + dy}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      if (this.stations[k]) { this.interact(p, k); return; }
     }
   }
 
@@ -655,22 +695,37 @@ class Game {
 
     // movement + arrival interactions
     for (const p of Object.values(this.players)) {
-      if (p.path.length) {
+      if (p.steer) {
+        // Free keyboard movement: glide in the held direction, sliding along
+        // walls. No auto-interaction here — that's what the spacebar is for.
+        const len = Math.hypot(p.steer.dx, p.steer.dy) || 1;
+        const step = this.speed * dt;
+        const nx = p.x + (p.steer.dx / len) * step;
+        const ny = p.y + (p.steer.dy / len) * step;
+        if (this.isFloor(Math.floor(nx), Math.floor(p.y))) p.x = nx;
+        if (this.isFloor(Math.floor(p.x), Math.floor(ny))) p.y = ny;
+        continue;
+      }
+      // Tap navigation: spend the whole per-tick budget across waypoints so
+      // higher speeds don't stall at one tile per tick.
+      let budget = this.speed * dt;
+      while (p.path.length && budget > 0) {
         const wp = p.path[0];
         const tx = wp.x + 0.5, ty = wp.y + 0.5;
         const dx = tx - p.x, dy = ty - p.y;
         const dist = Math.hypot(dx, dy);
-        const step = this.speed * dt;
-        if (dist <= step) {
+        if (dist <= budget) {
           p.x = tx; p.y = ty;
           p.path.shift();
+          budget -= dist;
           if (!p.path.length && p.intent) {
             const intent = p.intent; p.intent = null;
             this.interact(p, intent);
           }
         } else {
-          p.x += (dx / dist) * step;
-          p.y += (dy / dist) * step;
+          p.x += (dx / dist) * budget;
+          p.y += (dy / dist) * budget;
+          budget = 0;
         }
       }
     }
@@ -904,7 +959,7 @@ class Game {
         id: p.id, name: p.name, avatar: p.avatar, chef: p.chef || 'chef',
         x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100,
         queue: (p.queue || []).map((action) => this.describeQueuedAction(action)),
-        carry: p.carry, working: p.working, moving: p.path.length > 0,
+        carry: p.carry, working: p.working, moving: p.path.length > 0 || !!p.steer,
         delivered: p.delivered,
       })),
       stations,

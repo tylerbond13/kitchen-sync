@@ -1,7 +1,7 @@
 // Live room management: lobby membership, game lifecycle, socket wiring.
 // A "crew" is the persistent record (store.js); a "room" is its live session.
 const { Game } = require('./game');
-const { LEVELS, RECIPES, SECTIONS, UPGRADES } = require('./levels');
+const { LEVELS, RECIPES, ING, SECTIONS, UPGRADES } = require('./levels');
 const store = require('./store');
 
 const TICK_MS = 1000 / 12;
@@ -140,11 +140,55 @@ function effectiveHost(room) {
   return room.hostId;
 }
 
-function startGame(io, room, levelId) {
-  const level = LEVELS.find((l) => l.id === levelId);
-  if (!level) return { error: 'Unknown level' };
-  const list = levelList(room.crew);
-  if (!list.find((l) => l.id === levelId)?.unlocked) return { error: 'Level locked' };
+function clampNum(v, lo, hi, def) {
+  v = Number(v);
+  if (!Number.isFinite(v)) return def;
+  return Math.max(lo, Math.min(hi, v));
+}
+
+// Turn a client builder config into a level object the Game understands.
+function buildCustomLevel(c) {
+  c = c || {};
+  let layout = Array.isArray(c.layout) ? c.layout.map((r) => String(r)) : null;
+  if (!layout || !layout.length) return { error: 'Board has no layout' };
+  const w = Math.max(...layout.map((r) => r.length), 1);
+  layout = layout.slice(0, 14).map((r) => r.padEnd(w, '.'));
+  if (!layout.some((r) => r.includes('.'))) return { error: 'Board needs an open floor tile' };
+  const recipes = (Array.isArray(c.recipes) ? c.recipes : []).filter((id) => RECIPES[id]);
+  if (!recipes.length) return { error: 'Pick at least one recipe' };
+  const stars = Array.isArray(c.stars) && c.stars.length === 3
+    ? c.stars.map((s) => clampNum(s, 10, 100000, 300))
+    : [300, 540, 780];
+  return {
+    id: 'custom', n: 0, section: 'diner', theme: c.theme || 'diner',
+    name: String(c.name || 'Custom Kitchen').slice(0, 40), emoji: '🛠️',
+    duration: clampNum(c.duration, 30, 600, 150),
+    stars, exactStars: true,
+    plates: c.plates ? clampNum(c.plates, 1, 12, 4) : undefined,
+    crates: (c.crates && typeof c.crates === 'object') ? c.crates : {},
+    layout,
+    speedMult: clampNum(c.speedMult, 0.25, 5, 1),
+    customers: (Array.isArray(c.customers) && c.customers.length) ? c.customers.map(String) : null,
+    orders: {
+      recipes,
+      every: clampNum(c.every, 3, 60, 14),
+      ttl: clampNum(c.ttl, 15, 240, 60),
+      maxOpen: clampNum(c.maxOpen, 1, 8, 4),
+    },
+  };
+}
+
+function startGame(io, room, levelId, custom) {
+  let level;
+  if (custom) {
+    level = buildCustomLevel(custom);
+    if (level.error) return { error: level.error };
+  } else {
+    level = LEVELS.find((l) => l.id === levelId);
+    if (!level) return { error: 'Unknown level' };
+    const list = levelList(room.crew);
+    if (!list.find((l) => l.id === levelId)?.unlocked) return { error: 'Level locked' };
+  }
   if (room.game && room.game.phase === 'playing') return { error: 'Game in progress' };
 
   const roster = [...room.players.values()].filter((p) => p.connected);
@@ -287,9 +331,29 @@ function attach(io) {
       ack(startGame(io, joined.room, levelId));
     });
 
+    // Admin/test mode + pre-level board editing: start a round from a fully
+    // custom level config (board layout, crates, orders, tuning, customers).
+    socket.on('start_custom', (cfg, ack) => {
+      if (typeof ack !== 'function') ack = () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      if (joined.playerId !== effectiveHost(joined.room)) return ack({ error: 'Only the host can start' });
+      ack(startGame(io, joined.room, null, cfg));
+    });
+
     socket.on('tap', ({ x, y }) => {
       if (!joined || !joined.room.game) return;
       joined.room.game.tap(joined.playerId, x, y);
+    });
+
+    // desktop keyboard controls — arrow keys steer, space interacts
+    socket.on('steer', ({ dx, dy } = {}) => {
+      if (!joined || !joined.room.game) return;
+      joined.room.game.steer(joined.playerId, dx, dy);
+    });
+
+    socket.on('interact', () => {
+      if (!joined || !joined.room.game) return;
+      joined.room.game.interactFacing(joined.playerId);
     });
 
     socket.on('autochop', (on) => {
