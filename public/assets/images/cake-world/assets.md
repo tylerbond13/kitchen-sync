@@ -202,6 +202,10 @@ Generated from the Cake World vision reference image. All generated item views a
 - Left: `ks-cw-cake-petal-slice-left-v1.png`
 - Right: `ks-cw-cake-petal-slice-right-v1.png`
 
+### Chopped Ingredient Icons
+
+- Honeycomb: `ks-cw-ingredient-honeycomb-chopped-front-v1.png`
+
 ### Icing Color Selector
 
 - Front: `ks-cw-icing-color-selector-front-v1.png`
