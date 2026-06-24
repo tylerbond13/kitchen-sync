@@ -322,7 +322,10 @@
       this.wallMeta = WALL_META[this.themeName] || WALL_META.diner;
       // Per-round customer cast: Fisher-Yates with the server's seed.
       const rand = mulberry32((staticState.seed ?? 1) >>> 0);
-      this.cast = [...CUSTOMER_KEYS];
+      // a custom/admin level can restrict the cast to a chosen set of avatars
+      this.cast = (staticState.customers && staticState.customers.length)
+        ? [...staticState.customers]
+        : [...CUSTOMER_KEYS];
       for (let i = this.cast.length - 1; i > 0; i--) {
         const j = Math.floor(rand() * (i + 1));
         [this.cast[i], this.cast[j]] = [this.cast[j], this.cast[i]];
@@ -1050,5 +1053,5 @@
     }
   }
 
-  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml, ticketRecipeHtml, customerFace, customerKeyForOrder };
+  window.KSRender = { Renderer, itemEmoji, tokenEmoji, tokenHtml, prepChainHtml, ticketRecipeHtml, customerFace, customerKeyForOrder, CUSTOMER_KEYS };
 })();

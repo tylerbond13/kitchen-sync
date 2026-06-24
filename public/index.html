@@ -1063,6 +1063,58 @@ input[type="text"]:focus {
   box-shadow: 0 4px 14px rgba(232, 184, 0, 0.35);
 }
 
+/* ============ Level Builder ============ */
+.builder-wrap { gap: 12px; padding-bottom: calc(var(--sab) + 28px); }
+.builder-head { display: flex; align-items: center; gap: 10px; }
+.builder-head h2 { font-size: 22px; }
+.builder-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset-btn, .btn-mini {
+  font: inherit; font-weight: 800; font-size: 12px;
+  padding: 8px 11px; border-radius: 12px;
+  border: 1.5px solid rgba(255, 111, 174, 0.18);
+  background: var(--cream); color: var(--ink); cursor: pointer;
+}
+.preset-btn:active, .btn-mini:active { transform: scale(.95); }
+.builder-palette { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.pal-btn {
+  font: inherit; font-size: 11px; font-weight: 800;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 58px; padding: 7px 4px; border-radius: 12px;
+  border: 2px solid transparent; background: var(--cream); color: var(--ink); cursor: pointer;
+}
+.pal-btn .pal-emoji { font-size: 20px; }
+.pal-btn.sel { border-color: var(--bubblegum); background: #FFF0F8; }
+.builder-cratepick { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.builder-cratepick select { font: inherit; padding: 6px 8px; border-radius: 10px; border: 1.5px solid var(--cream-deep); background: #fff; }
+.builder-grid-wrap { overflow: auto; padding: 2px; }
+.builder-grid { display: grid; gap: 2px; width: max-content; margin: 0 auto; }
+.cell { width: 30px; height: 30px; display: grid; place-items: center; font-size: 15px; border: 1px solid rgba(45,22,52,.06); border-radius: 6px; cursor: pointer; background: #EFE0D0; padding: 0; }
+.cell.counter { background: #C9A77F; }
+.cell.station { background: #9ED8C6; }
+.cell.serve   { background: #7FD99A; }
+.cell.crate   { background: #F2C879; }
+.builder-size { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.builder-recipes, .builder-avatars { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: inherit; font-size: 12px; font-weight: 800;
+  padding: 6px 10px; border-radius: 999px;
+  border: 2px solid transparent; background: var(--cream); color: var(--ink-soft);
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+}
+.chip.sel { border-color: var(--mint); background: #E8FBF4; color: var(--ink); }
+.chip img { width: 18px; height: 22px; object-fit: contain; }
+.slider-row { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 13px; margin: 9px 0; }
+.slider-row input[type=range] { flex: 1; accent-color: var(--bubblegum); }
+.slider-row output { min-width: 48px; text-align: right; color: var(--bubblegum); }
+.builder-stars { display: flex; gap: 10px; }
+.builder-stars label { font-weight: 800; font-size: 13px; display: flex; align-items: center; gap: 4px; }
+.builder-stars input { width: 66px; font: inherit; padding: 6px; border-radius: 10px; border: 1.5px solid var(--cream-deep); }
+.level-edit {
+  font: inherit; font-size: 13px; font-weight: 800; color: var(--ink-soft);
+  background: var(--card); border: 1.5px solid rgba(255,111,174,.15);
+  border-radius: 12px; padding: 8px 11px; margin-left: 6px; cursor: pointer;
+}
+
   </style>
 </head>
 <body>
@@ -1185,6 +1237,8 @@ input[type="text"]:focus {
         <div class="level-list" id="level-list"></div>
       </div>
 
+      <button class="btn btn-secondary" id="btn-open-builder" hidden>🛠️ Build / Test a Level</button>
+
       <div class="lobby-foot">
         <p class="muted small" id="lobby-hint"></p>
       </div>
@@ -1228,6 +1282,69 @@ input[type="text"]:focus {
       </div>
 
       <button class="btn btn-primary tut-back">Got it — let's cook!</button>
+    </div>
+  </section>
+
+  <!-- ============ LEVEL BUILDER (admin / pre-level board editing) ============ -->
+  <section id="screen-builder" class="screen">
+    <div class="narrow-wrap builder-wrap">
+      <div class="builder-head">
+        <button class="btn-back" id="builder-back">‹ Back</button>
+        <h2 id="builder-title">🛠️ Level Builder</h2>
+      </div>
+
+      <div class="card">
+        <div class="field-label">Start from a board design</div>
+        <div class="builder-presets" id="builder-presets"></div>
+      </div>
+
+      <div class="card">
+        <div class="field-label">Board — pick a piece, then tap tiles to place it</div>
+        <div class="builder-palette" id="builder-palette"></div>
+        <div class="builder-cratepick" id="builder-cratepick" hidden>
+          <span class="small muted">📦 Crate holds:</span>
+          <select id="builder-ingredient"></select>
+        </div>
+        <div class="builder-grid-wrap"><div class="builder-grid" id="builder-grid"></div></div>
+        <div class="builder-size">
+          <button class="btn-mini" data-size="colminus">– column</button>
+          <button class="btn-mini" data-size="colplus">+ column</button>
+          <button class="btn-mini" data-size="rowminus">– row</button>
+          <button class="btn-mini" data-size="rowplus">+ row</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field-label">Orders — what customers can ask for</div>
+        <div class="builder-recipes" id="builder-recipes"></div>
+      </div>
+
+      <div class="card">
+        <div class="field-label">Tuning</div>
+        <label class="slider-row">Chef speed <output id="out-speed">1×</output>
+          <input type="range" id="sl-speed" min="0.25" max="4" step="0.25" value="1"></label>
+        <label class="slider-row">New order every <output id="out-every">14s</output>
+          <input type="range" id="sl-every" min="3" max="40" step="1" value="14"></label>
+        <label class="slider-row">Order time limit <output id="out-ttl">60s</output>
+          <input type="range" id="sl-ttl" min="20" max="180" step="5" value="60"></label>
+        <label class="slider-row">Max open orders <output id="out-maxopen">4</output>
+          <input type="range" id="sl-maxopen" min="1" max="8" step="1" value="4"></label>
+        <label class="slider-row">Round length <output id="out-duration">150s</output>
+          <input type="range" id="sl-duration" min="30" max="600" step="10" value="150"></label>
+        <div class="field-label" style="margin-top:12px">Star goals (coins)</div>
+        <div class="builder-stars">
+          <label>⭐<input type="number" id="st-1" value="300" min="10"></label>
+          <label>⭐⭐<input type="number" id="st-2" value="540" min="10"></label>
+          <label>⭐⭐⭐<input type="number" id="st-3" value="780" min="10"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field-label">Customers in play</div>
+        <div class="builder-avatars" id="builder-avatars"></div>
+      </div>
+
+      <button class="btn btn-primary" id="builder-play">▶︎ Play this kitchen</button>
     </div>
   </section>
 

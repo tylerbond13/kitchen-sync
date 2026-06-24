@@ -12,7 +12,7 @@ No app store, no install: one player starts a kitchen, shares a link, everyone j
 
 - **Real-time co-op for 1–8 chefs** — server-authoritative simulation over WebSockets; everyone sees the same kitchen live.
 - **Jackbox-style joining** — share `https://your-host/?join=TACO` and family is in.
-- **Mobile-first controls** — tap a crate to grab, tap a board to chop, tap the stove to cook, tap the window to serve. One gesture, zero learning curve. Plays in **landscape** — turn the phone sideways and the kitchen fills the screen.
+- **Tap or type to play** — on a phone, tap a crate to grab, tap a board to chop, tap the stove to cook, tap the window to serve; one gesture, zero learning curve. On a computer, **arrow keys steer your chef and the spacebar works the station they're facing** — tap and keyboard are equally first-class. Plays in **landscape** — turn the phone sideways and the kitchen fills the screen.
 - **A 14-level campaign across 3 themed worlds** — 🍳 The Family Diner, ❄️ Winter Wonderland, and 🏖️ Beach Club, each with its own palette, ingredients, and recipes (stew, hot cocoa, smoothies, poke, fish tacos...). Score thresholds award 1–3 stars; each star unlocks the next level.
 - **Persistent memory** —
   - **Crews**: your kitchen code is permanent. Come back next week, type the same code, and your stars, best scores, and unlocks are still there.
@@ -49,10 +49,11 @@ npx localtunnel --port 3000   # or: cloudflared tunnel --url http://localhost:30
 2. **Everyone else:** open the link → pick a chef → you're in the lobby.
 3. Host taps a level. Orders appear with countdown timers; the team divides the work:
    - Tap an **ingredient crate** to grab.
-   - Tap a **cutting board** to place + chop — your chef has to stand there while chopping.
+   - Tap a **cutting board** to place + chop — the board keeps chopping on its own while you move on to the next job.
    - Tap the **stove/pot/oven** to cook. Cooking continues on its own… and **burns** if you forget it. 🔥
    - Tap the **plate stack** for a plate, tap counters/appliances to assemble.
    - Tap the **green serving window** to deliver. On-time = points + tip + combo.
+   - 💻 **On a computer?** Arrow keys move your chef and the **spacebar** works the station they're facing — every tap action has a keyboard equal.
 4. Beat the score thresholds for ⭐⭐⭐ and unlock the next level.
 
 ## 🏗 Architecture
@@ -84,7 +85,7 @@ test/       Engine unit tests + 2-client end-to-end test
 **Design decisions**
 
 - *Server-authoritative*: phones only send taps; the server simulates everything. No cheating, no desync, and a dropped player's chef just idles until they reconnect (rejoin is automatic, even mid-round).
-- *Tap-to-act, not joystick*: virtual joysticks are miserable on phones. Tapping a station pathfinds (BFS) and auto-interacts on arrival — intuitive enough that nobody reads instructions.
+- *Tap-to-act, not joystick*: virtual joysticks are miserable on phones, so tapping a station pathfinds (BFS) and auto-interacts on arrival — intuitive enough that nobody reads instructions. Desktop, which has a real keyboard, also gets direct **arrow-key** movement and a **spacebar** interact; the two schemes are equally first-class.
 - *JSON file store*: right-sized for a family game; `store.js` is the single seam to swap in SQLite/Postgres later.
 
 ## ☁️ Deploying (so the family can play)

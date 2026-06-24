@@ -627,10 +627,17 @@
             if (res && res.error) toast(res.error);
           });
         };
+        const edit = document.createElement('button');
+        edit.className = 'level-edit';
+        edit.textContent = '✏️';
+        edit.title = 'Rearrange this board before playing';
+        edit.onclick = (e) => { e.stopPropagation(); openBuilder({ from: 'lobby', levelId: lvl.id, title: `✏️ ${lvl.name}` }); };
+        row.appendChild(edit);
       }
       $('level-list').appendChild(row);
     }
 
+    $('btn-open-builder').hidden = !iAmHost;
     renderShop(state);
     renderCrewStats(state);
     renderMusic(state.music || musicState);
@@ -1023,6 +1030,188 @@
     SFX.tap();
     show('lobby');
   };
+
+  // ---------- Level Builder (admin / pre-level board editing) ----------
+  let catalog = null;
+  let builderReturn = 'lobby';
+  const editor = { grid: [], brush: '#', ing: 'lettuce', recipes: new Set(), avatars: new Set() };
+
+  const PALETTE = [
+    { t: '.', emoji: '⬜', label: 'Floor',   cls: 'floor' },
+    { t: '#', emoji: '🟫', label: 'Counter', cls: 'counter' },
+    { t: 'B', emoji: '🔪', label: 'Board',   cls: 'station' },
+    { t: 'S', emoji: '🍳', label: 'Pan',     cls: 'station' },
+    { t: 'O', emoji: '🥘', label: 'Pot',     cls: 'station' },
+    { t: 'V', emoji: '🔥', label: 'Oven',    cls: 'station' },
+    { t: 'P', emoji: '🍽️', label: 'Plates',  cls: 'station' },
+    { t: 'W', emoji: '🟩', label: 'Serve',   cls: 'serve' },
+    { t: 'K', emoji: '🚰', label: 'Sink',    cls: 'station' },
+    { t: 'T', emoji: '🗑️', label: 'Trash',   cls: 'station' },
+    { t: 'C', emoji: '📦', label: 'Crate',   cls: 'crate' },
+  ];
+  const PAL_BY_T = Object.fromEntries(PALETTE.map((p) => [p.t, p]));
+  const DEFAULT_LAYOUT = ['.1B2B3.', '#.....#', '#..#..P', 'P..#..#', '#.....#', '.T.W#W.'];
+  const DEFAULT_CRATES = { 1: 'lettuce', 2: 'tomato', 3: 'cucumber' };
+
+  async function ensureCatalog() {
+    if (catalog) return catalog;
+    try { catalog = await (await fetch('/api/catalog')).json(); }
+    catch { catalog = { recipes: [], ingredients: [], presets: [] }; }
+    return catalog;
+  }
+  function ingEmoji(id) {
+    const i = (catalog.ingredients || []).find((x) => x.id === id);
+    return i ? i.emoji : '📦';
+  }
+  function loadBoard(layoutRows, cratesMap) {
+    cratesMap = cratesMap || {};
+    editor.grid = (layoutRows || DEFAULT_LAYOUT).map((row) =>
+      [...String(row)].map((ch) => {
+        if (/[1-9]/.test(ch)) return { t: 'C', ing: cratesMap[ch] || 'lettuce' };
+        if ('.#BSOVPWTK'.includes(ch)) return { t: ch, ing: null };
+        return { t: '.', ing: null };
+      }));
+  }
+  function cellLabel(cell) {
+    if (cell.t === 'C') return ingEmoji(cell.ing);
+    if (cell.t === '.') return '';
+    return PAL_BY_T[cell.t] ? PAL_BY_T[cell.t].emoji : '';
+  }
+  function cellCls(cell) { return 'cell ' + (PAL_BY_T[cell.t] ? PAL_BY_T[cell.t].cls : 'floor'); }
+
+  function renderPresets() {
+    const wrap = $('builder-presets'); wrap.innerHTML = '';
+    const mk = (label, fn) => { const b = document.createElement('button'); b.className = 'preset-btn'; b.textContent = label; b.onclick = fn; wrap.appendChild(b); };
+    mk('⬜ Empty 7×6', () => { loadBoard(['.......', '.......', '.......', '.......', '.......', '...W...'], {}); renderGrid(); SFX.tap(); });
+    for (const p of (catalog.presets || [])) {
+      mk(`${p.emoji || '🍳'} ${p.name}`, () => {
+        loadBoard(p.layout, p.crates);
+        editor.recipes = new Set(p.recipes || []);
+        if (p.duration) $('sl-duration').value = p.duration;
+        if (Array.isArray(p.stars)) { $('st-1').value = p.stars[0]; $('st-2').value = p.stars[1]; $('st-3').value = p.stars[2]; }
+        renderGrid(); renderRecipes(); syncOutputs(); SFX.tap();
+      });
+    }
+  }
+  function renderPalette() {
+    const wrap = $('builder-palette'); wrap.innerHTML = '';
+    for (const p of PALETTE) {
+      const b = document.createElement('button');
+      b.className = 'pal-btn' + (editor.brush === p.t ? ' sel' : '');
+      b.innerHTML = `<span class="pal-emoji">${p.emoji}</span>${p.label}`;
+      b.onclick = () => { editor.brush = p.t; $('builder-cratepick').hidden = p.t !== 'C'; renderPalette(); SFX.tap(); };
+      wrap.appendChild(b);
+    }
+  }
+  function renderCratePick() {
+    const sel = $('builder-ingredient'); sel.innerHTML = '';
+    for (const i of (catalog.ingredients || [])) {
+      const o = document.createElement('option'); o.value = i.id; o.textContent = `${i.emoji} ${i.name}`; sel.appendChild(o);
+    }
+    sel.value = editor.ing;
+    sel.onchange = () => { editor.ing = sel.value; };
+  }
+  function renderGrid() {
+    const g = $('builder-grid');
+    const cols = editor.grid[0] ? editor.grid[0].length : 0;
+    g.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+    g.innerHTML = '';
+    editor.grid.forEach((row, y) => row.forEach((cell, x) => {
+      const b = document.createElement('button');
+      b.className = cellCls(cell);
+      b.textContent = cellLabel(cell);
+      b.onclick = () => {
+        editor.grid[y][x] = editor.brush === 'C' ? { t: 'C', ing: editor.ing } : { t: editor.brush, ing: null };
+        renderGrid();
+      };
+      g.appendChild(b);
+    }));
+  }
+  function resizeBoard(kind) {
+    const rows = editor.grid.length, cols = editor.grid[0] ? editor.grid[0].length : 0;
+    const blank = () => ({ t: '.', ing: null });
+    if (kind === 'colplus' && cols < 12) editor.grid.forEach((r) => r.push(blank()));
+    if (kind === 'colminus' && cols > 3) editor.grid.forEach((r) => r.pop());
+    if (kind === 'rowplus' && rows < 12) editor.grid.push(Array.from({ length: cols }, blank));
+    if (kind === 'rowminus' && rows > 3) editor.grid.pop();
+    renderGrid();
+  }
+  function renderRecipes() {
+    const wrap = $('builder-recipes'); wrap.innerHTML = '';
+    for (const r of (catalog.recipes || [])) {
+      const b = document.createElement('button');
+      b.className = 'chip' + (editor.recipes.has(r.id) ? ' sel' : '');
+      b.innerHTML = `${r.emoji} ${r.name}`;
+      b.onclick = () => { editor.recipes.has(r.id) ? editor.recipes.delete(r.id) : editor.recipes.add(r.id); renderRecipes(); SFX.tap(); };
+      wrap.appendChild(b);
+    }
+  }
+  function avatarThumbHtml(key) {
+    const ent = window.ASSETS && window.ASSETS[key];
+    const path = typeof ent === 'string' ? ent : (ent && ent.path);
+    return path ? `<img src="/${path}" alt="">` : '';
+  }
+  function renderAvatars() {
+    const wrap = $('builder-avatars'); wrap.innerHTML = '';
+    for (const key of ((window.KSRender && KSRender.CUSTOMER_KEYS) || [])) {
+      const b = document.createElement('button');
+      b.className = 'chip' + (editor.avatars.has(key) ? ' sel' : '');
+      b.innerHTML = `${avatarThumbHtml(key)}${key.replace(/_/g, ' ')}`;
+      b.onclick = () => { editor.avatars.has(key) ? editor.avatars.delete(key) : editor.avatars.add(key); renderAvatars(); SFX.tap(); };
+      wrap.appendChild(b);
+    }
+  }
+  function syncOutputs() {
+    $('out-speed').textContent = (+$('sl-speed').value) + '×';
+    $('out-every').textContent = $('sl-every').value + 's';
+    $('out-ttl').textContent = $('sl-ttl').value + 's';
+    $('out-maxopen').textContent = $('sl-maxopen').value;
+    $('out-duration').textContent = $('sl-duration').value + 's';
+  }
+  async function openBuilder(opts = {}) {
+    await ensureCatalog();
+    builderReturn = opts.from || 'lobby';
+    let preset = opts.preset;
+    if (!preset && opts.levelId) preset = (catalog.presets || []).find((p) => p.id === opts.levelId);
+    loadBoard(preset ? preset.layout : DEFAULT_LAYOUT, preset ? preset.crates : DEFAULT_CRATES);
+    editor.recipes = new Set(preset ? (preset.recipes || ['salad']) : ['salad', 'big_salad']);
+    editor.avatars = new Set((window.KSRender && KSRender.CUSTOMER_KEYS) || []);
+    editor.brush = '#';
+    editor.ing = ((catalog.ingredients || [])[0] || { id: 'lettuce' }).id;
+    $('builder-cratepick').hidden = true;
+    if (preset && preset.duration) $('sl-duration').value = preset.duration;
+    if (preset && Array.isArray(preset.stars)) { $('st-1').value = preset.stars[0]; $('st-2').value = preset.stars[1]; $('st-3').value = preset.stars[2]; }
+    $('builder-title').textContent = opts.title || '🛠️ Level Builder';
+    renderPresets(); renderPalette(); renderCratePick(); renderGrid(); renderRecipes(); renderAvatars(); syncOutputs();
+    show('builder');
+  }
+  function playCustom() {
+    if (!editor.recipes.size) return toast('Pick at least one recipe.');
+    let d = 1; const crates = {};
+    const layout = editor.grid.map((row) => row.map((cell) => {
+      if (cell.t === 'C') { if (d > 9) return '.'; const k = String(d++); crates[k] = cell.ing || 'lettuce'; return k; }
+      return cell.t;
+    }).join(''));
+    const cfg = {
+      name: 'Custom Kitchen', layout, crates,
+      recipes: [...editor.recipes],
+      speedMult: +$('sl-speed').value, every: +$('sl-every').value, ttl: +$('sl-ttl').value,
+      maxOpen: +$('sl-maxopen').value, duration: +$('sl-duration').value,
+      stars: [+$('st-1').value, +$('st-2').value, +$('st-3').value],
+      plates: 4, customers: [...editor.avatars],
+    };
+    SFX.tap();
+    socket.emit('start_custom', cfg, (res) => { if (res && res.error) toast(res.error); });
+  }
+  $('builder-back').onclick = () => { SFX.tap(); show(builderReturn); };
+  $('builder-play').onclick = playCustom;
+  $('btn-open-builder').onclick = () => openBuilder({ from: 'lobby' });
+  document.querySelectorAll('.builder-size .btn-mini').forEach((b) => {
+    b.onclick = () => { resizeBoard(b.dataset.size); SFX.tap(); };
+  });
+  ['sl-speed', 'sl-every', 'sl-ttl', 'sl-maxopen', 'sl-duration'].forEach((id) => {
+    const el = $(id); if (el) el.addEventListener('input', syncOutputs);
+  });
 
   // ---------- deep link & boot ----------
   const params = new URLSearchParams(location.search);

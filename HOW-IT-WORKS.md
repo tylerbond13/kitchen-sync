@@ -224,8 +224,9 @@ Each phone:
    - feeds the snapshot to the renderer, which draws it,
    - updates the HUD (timer, score, plates, orders),
    - plays any one-shot sounds the snapshot reported (a chop, a serve).
-   When you tap a tile, the client sends `tap({x,y})` and… that's it. The next
-   snapshot will show your chef reacting.
+   When you tap a tile, the client sends `tap({x,y})` — or, on desktop, the arrow
+   keys and spacebar send `steer`/`interact` — and… that's it. The next snapshot
+   will show your chef reacting.
 
 **8. The round ends.** When the timer hits zero, `game.tick` flips the phase to
 `over`. The loop notices, calls `finishGame`: it **saves** the result to disk
@@ -275,8 +276,9 @@ What happens inside `game.tick(dt)` ([server/game.js](server/game.js)), in order
 every tick:
 
 1. Count down the round timer; open/close **lunch-rush** windows.
-2. **Move** every chef along its path a little (`speed * dt`); if a chef arrives
-   at the tile it was sent to, run the **interaction** there.
+2. **Move** every chef — along its tapped path, or in the held arrow-key
+   direction — a little (`speed * dt`); if a path-walking chef reaches the tile it
+   was sent to, run the **interaction** there.
 3. Advance **chopping** on every board that has raw food on it.
 4. Return **dirty plates** to the sink after their delay; advance **washing**.
 5. Advance **cooking**; turn finished food to "done," and "done" food to "burned"
@@ -447,7 +449,9 @@ named messages with a blob of data attached. Two patterns are used:
 | `create_crew` | profile | `{ code }` | Make a new kitchen |
 | `join` | `{ code, profile, crewBackup, playerBackup }` | `{ lobby, crew, player, game }` | Enter a kitchen (and offer my backups) |
 | `start_game` | `levelId` | `{ ok }` / `{ error }` | Host starts a level |
-| `tap` | `{ x, y }` | — | "I tapped this tile" (the only in-game input!) |
+| `tap` | `{ x, y }` | — | "I tapped this tile" — walk here, or use this station |
+| `steer` | `{ dx, dy }` | — | Desktop arrow keys: the held movement direction (`{0,0}` on release) |
+| `interact` | — | — | Desktop spacebar: use the station the chef is facing |
 | `pause` | `on` | — | Pause/resume (anyone can) |
 | `restart_level` | — | `{ ok }` | Restart the current round |
 | `exit_round` | — | — | I'm bailing to the lobby |
@@ -468,10 +472,12 @@ named messages with a blob of data attached. Two patterns are used:
 | `radio` | radio payload | The shared music now-playing/queue changed |
 | `emote` | `{ playerId, emoji }` | Someone sent a reaction — *the relay is still wired up, but nothing triggers it now* |
 
-The thing to internalize: **the only gameplay input is `tap`.** Walking, chopping,
-plating, serving — all of it is "tap a tile, let the server decide." That one
-decision is what keeps the game simple to control on a phone and impossible to
-desync.
+The thing to internalize: **gameplay input stays tiny and high-level.** On a phone
+it's a single `tap` — walking, chopping, plating, serving all reduce to "tap a tile,
+let the server decide." Desktop adds `steer` (arrow-key movement) and `interact`
+(spacebar), but those are just as coarse: the client only ever sends the raw intent,
+never "move my chef to (x,y)" or "chop this." That's what keeps the game simple to
+control and impossible to desync.
 
 ---
 
@@ -557,15 +563,26 @@ When you tap a far tile, the server finds a walking route with **BFS
 (breadth-first search)** over the floor tiles (`findPath`). BFS is the classic
 "shortest path on a grid" algorithm: explore outward ring by ring from the chef
 until you reach the target, then trace the route back. The chef then follows that
-list of waypoints, moving `speed * dt` each tick (`SPEED = 4.08` tiles/second). If
-you tap a *station*, it routes you to an adjacent floor tile and remembers your
-**intent**, so it auto-interacts the moment you arrive.
+list of waypoints, moving `speed * dt` each tick (`SPEED = 4.08 * 2.5 ≈ 10.2`
+tiles/second — 2.5× the game's original base pace). If you tap a *station*, it
+routes you to an adjacent floor tile and remembers your **intent**, so it
+auto-interacts the moment you arrive.
+
+On desktop there's a second, equally first-class way to move: **the arrow keys
+steer the chef directly** (`steer`). Holding a key glides the chef freely in that
+direction — no path, no waypoints, sliding along walls — and releasing leaves them
+where they stopped. A key press simply takes over from any tap-path already in
+progress, so tapping and steering never fight each other.
 
 ### Tapping & the action queue
 `tap()` is the front door. If your chef is busy (walking or working), the tap is
 **queued** (up to 8) instead of dropped — so you can pre-plan "chop, then plate,
 then serve" with three quick taps. If you're free and standing next to the tapped
-station, it interacts immediately; otherwise it walks you there first.
+station, it interacts immediately; otherwise it walks you there first. On desktop
+the **spacebar** (`interact`) is the keyboard counterpart to a tap: it uses the
+station the chef is facing (falling back to any neighbour), so arrow-keys-plus-space
+reaches the same grab/chop/plate/serve actions as tapping — it just acts now rather
+than queuing.
 
 ### Interactions (the `interact` switch)
 Standing next to a station and acting runs a big `switch` on the station type:

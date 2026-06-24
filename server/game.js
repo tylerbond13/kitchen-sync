@@ -62,7 +62,7 @@ class Game {
 
     // crew upgrades (Kitchen Shop)
     const u = opts.upgrades || {};
-    this.speed = SPEED * (u.fast_shoes ? 1.12 : 1);
+    this.speed = SPEED * (u.fast_shoes ? 1.12 : 1) * (level.speedMult || 1);
     this.burnBonus = u.nonstick ? 3 : 0;
     this.cookMult = u.turbo_stove ? 0.85 : 1;
     this.dishBot = !!u.dish_bot;
@@ -91,7 +91,11 @@ class Game {
     this.pace = n === 1 ? { every: 1.6, ttl: 1.35, stars: 0.7 }
       : n === 2 ? { every: 1.25, ttl: 1.15, stars: 0.85 }
       : { every: 1, ttl: 1, stars: 1 };
-    this.starGoals = level.stars.map((s) => Math.max(50, Math.round((s * this.pace.stars) / 10) * 10));
+    // custom/admin levels use exact, unscaled tuning so the sliders mean what they say
+    if (level.exactStars) this.pace = { every: 1, ttl: 1, stars: 1 };
+    this.starGoals = level.exactStars
+      ? level.stars.map((s) => Math.max(10, Math.round(s)))
+      : level.stars.map((s) => Math.max(50, Math.round((s * this.pace.stars) / 10) * 10));
 
     // plates are finite when the level has a sink: served plates come back
     // dirty and must be washed to rejoin the stack
@@ -855,6 +859,7 @@ class Game {
       duration: this.level.duration,
       starThresholds: this.starGoals,
       autoChopAllowed: this.autoChopAllowed,
+      customers: this.level.customers || null,
       seed: this.seed,
     };
   }
