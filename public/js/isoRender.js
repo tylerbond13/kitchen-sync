@@ -401,9 +401,16 @@
       this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + WALL_SIDE + PAD;
       this.worldH = this.oy + (maxGy+1)*TILE_HEIGHT + 30 + PAD;
 
-      this.scale = Math.min(this.canvas.width/this.worldW, this.canvas.height/this.worldH);
+      // Reserve the top HUD/order-card band (and a sliver at the bottom for the
+      // radio strip) so the kitchen never renders underneath the overlays —
+      // otherwise on wide/desktop screens the top row of stations hides behind
+      // the order cards.
+      const topInset = 150 * this.dpr;
+      const botInset = 16 * this.dpr;
+      const availH = Math.max(80 * this.dpr, this.canvas.height - topInset - botInset);
+      this.scale = Math.min(this.canvas.width/this.worldW, availH/this.worldH);
       this.txOff = (this.canvas.width  - this.worldW*this.scale)/2;
-      this.tyOff = (this.canvas.height - this.worldH*this.scale)/2;
+      this.tyOff = topInset + (availH - this.worldH*this.scale)/2;
     }
 
     toWorld(cx, cy) { return [(cx-this.txOff)/this.scale, (cy-this.tyOff)/this.scale]; }
