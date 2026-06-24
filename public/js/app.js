@@ -806,10 +806,8 @@
     $('rush-banner').hidden = true;
     $('game-players').innerHTML = '';
     gpEls.clear();
-    const acBtn = $('btn-autochop');
-    acBtn.hidden = false; // always visible — locked until the crew buys it
-    acBtn.textContent = staticState.autoChopAllowed ? '🔪' : '🔒';
-    acBtn.classList.toggle('locked', !staticState.autoChopAllowed);
+    // Auto-Chopper is always-on when the crew owns it — no in-game toggle.
+    $('btn-autochop').hidden = true;
     renderer = new KSRender.Renderer($('game-canvas'), staticState, profile.id, (x, y) => {
       SFX.tap();
       socket.emit('tap', { x, y });

@@ -979,6 +979,33 @@ input[type="text"]:focus {
   box-shadow: 0 16px 48px rgba(45, 22, 52, 0.25);
   border: 1.5px solid rgba(255, 111, 174, 0.15);
 }
+/* Action row: Exit (red) · Restart (yellow) · Continue (green) */
+.pause-actions { display: flex; gap: 8px; margin-top: 2px; }
+.pause-act {
+  flex: 1; min-width: 0;
+  font: inherit; font-weight: 800; font-size: 15px;
+  border: none; border-radius: 16px;
+  padding: 14px 6px;
+  color: #fff;
+  cursor: pointer;
+  transition: transform .08s, filter .12s;
+}
+.pause-act:active { transform: scale(.95); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.pause-act.exit {
+  background: linear-gradient(170deg, #FF6B7D 0%, #F2495C 45%, #D8324A 100%);
+  box-shadow: 0 5px 0 #B02438, 0 8px 18px rgba(216, 50, 74, .32);
+  text-shadow: 0 1px 3px rgba(120, 16, 36, .4);
+}
+.pause-act.restart {
+  background: linear-gradient(170deg, #FFE066 0%, #FFD23F 45%, #F0B800 100%);
+  color: var(--ink);
+  box-shadow: 0 5px 0 #C89400, 0 8px 18px rgba(232, 184, 0, .30);
+}
+.pause-act.continue {
+  background: linear-gradient(170deg, #5FE0B8 0%, #3DC9A0 45%, #26A882 100%);
+  box-shadow: 0 5px 0 #1A8A68, 0 8px 18px rgba(38, 168, 130, .30);
+  text-shadow: 0 1px 3px rgba(16, 90, 68, .4);
+}
 /* YouTube console embedded in the pause menu — flat (no nested card chrome) */
 .pause-music {
   background: transparent;
@@ -1526,9 +1553,11 @@ input[type="text"]:focus {
         <div class="pause-box">
           <h2>Paused</h2>
           <p class="muted" id="pause-byline">Anyone can resume.</p>
-          <button class="btn btn-primary" id="btn-resume">Resume</button>
-          <button class="btn btn-secondary" id="btn-restart">Restart Level</button>
-          <button class="btn btn-secondary" id="btn-exit-lobby">Exit to Menu</button>
+          <div class="pause-actions">
+            <button class="pause-act exit" id="btn-exit-lobby" type="button">Exit</button>
+            <button class="pause-act restart" id="btn-restart" type="button">Restart</button>
+            <button class="pause-act continue" id="btn-resume" type="button">Continue</button>
+          </div>
           <div class="card music-card pause-music">
             <div class="card-title music-title">
               <span>🎵 Level Music</span>
