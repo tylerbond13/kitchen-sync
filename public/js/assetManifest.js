@@ -17,6 +17,8 @@
 (function () {
   const HD = 'assets/images/hd/';
   const FLAT = 'assets/images/flat/';
+  const CW = 'assets/images/cake-world/';   // the only art set with left/right facings
+  const cw = (file, extra = {}) => ({ path: CW + file, flat: true, ...extra });
 
   window.KS_CHEFS = [
     { key: 'chef', name: 'Chef' },
@@ -173,17 +175,46 @@
     // `flat: true` = straight-on art, renderer skips its iso squash.
     // Keys without a front-facing HD render yet use hand-built SVG stand-ins
     // (assets/images/flat/) — swap each back to its .png as regens land.
-    counter:        { path: HD + 'ks-countertop.png', flat: true },
-    chopping_board: { path: HD + 'ks-chopping-block.png', flat: true },
-    oven:           { path: HD + 'ks-industrial-baking-oven.png' },
+    // Generic stations use the cake-world art set because it ships front + left
+    // + right facings (wired as <key>_left / <key>_right and picked by faceKey
+    // based on wall side / explicit facing). Stove + pot stay on diner art —
+    // there is no cake-world equivalent (cake world only has the mixer).
+    counter:        cw('ks-cw-empty-single-countertop-front-v1.png', { scale: 1.12 }),
+    counter_left:   cw('ks-cw-empty-single-countertop-left-v1.png',  { scale: 1.12 }),
+    counter_right:  cw('ks-cw-empty-single-countertop-right-v1.png', { scale: 1.12 }),
+    chopping_board:        cw('ks-cw-cutting-prep-station-front-v1.png', { scale: 1.16 }),
+    chopping_board_left:   cw('ks-cw-cutting-prep-station-left-v1.png',  { scale: 1.16 }),
+    chopping_board_right:  cw('ks-cw-cutting-prep-station-right-v1.png', { scale: 1.16 }),
+    chopping_board_active:        cw('ks-cw-cutting-prep-station-active-front-v1.png', { scale: 1.16 }),
+    chopping_board_active_left:   cw('ks-cw-cutting-prep-station-active-left-v1.png',  { scale: 1.16 }),
+    chopping_board_active_right:  cw('ks-cw-cutting-prep-station-active-right-v1.png', { scale: 1.16 }),
+    oven:           cw('ks-cw-dual-cake-oven-station-front-v1.png', { scale: 1.26 }),
+    oven_left:      cw('ks-cw-dual-cake-oven-station-left-v1.png',  { scale: 1.26 }),
+    oven_right:     cw('ks-cw-dual-cake-oven-station-right-v1.png', { scale: 1.26 }),
+    oven_active:        cw('ks-cw-dual-cake-oven-station-active-front-v1.png', { scale: 1.26 }),
+    oven_active_left:   cw('ks-cw-dual-cake-oven-station-active-left-v1.png',  { scale: 1.26 }),
+    oven_active_right:  cw('ks-cw-dual-cake-oven-station-active-right-v1.png', { scale: 1.26 }),
     stove:          { path: HD + 'ks-stove-pan.png' },
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
     pot:            { path: HD + 'ks-stockpot.png' },
-    plate_stack:    { path: HD + 'ks-plate-stack.png', flat: true },
-    serve_window:   { path: HD + 'ks-delivery-counter.png', flat: true, scale: 1.05 },
-    trash:          { path: HD + 'ks-trash-can.png', flat: true, scale: 0.88 },
-    sink:           { path: HD + 'ks-sink.png', flat: true },
-    sink_dirty:     { path: HD + 'ks-sink-dirty.png', flat: true },
+    plate_stack:       cw('ks-cw-stack-dishes-front-v1.png', { scale: 0.98 }),
+    plate_stack_left:  cw('ks-cw-stack-dishes-left-v1.png',  { scale: 0.98 }),
+    plate_stack_right: cw('ks-cw-stack-dishes-right-v1.png', { scale: 0.98 }),
+    serve_window:      cw('ks-cw-delivery-arch-counter-front-v1.png', { scale: 1.32 }),
+    serve_window_left: cw('ks-cw-delivery-arch-counter-left-v1.png',  { scale: 1.32 }),
+    serve_window_right:cw('ks-cw-delivery-arch-counter-right-v1.png', { scale: 1.32 }),
+    serve_window_active:       cw('ks-cw-delivery-arch-counter-active-front-v1.png', { scale: 1.32 }),
+    serve_window_active_left:  cw('ks-cw-delivery-arch-counter-active-left-v1.png',  { scale: 1.32 }),
+    serve_window_active_right: cw('ks-cw-delivery-arch-counter-active-right-v1.png', { scale: 1.32 }),
+    trash:          cw('ks-cw-trash-can-front-v1.png', { scale: 0.92 }),
+    trash_left:     cw('ks-cw-trash-can-left-v1.png',  { scale: 0.92 }),
+    trash_right:    cw('ks-cw-trash-can-right-v1.png', { scale: 0.92 }),
+    sink:           cw('ks-cw-dishwashing-station-empty-front-v1.png', { scale: 1.16 }),
+    sink_left:      cw('ks-cw-dishwashing-station-empty-left-v1.png',  { scale: 1.16 }),
+    sink_right:     cw('ks-cw-dishwashing-station-empty-right-v1.png', { scale: 1.16 }),
+    sink_dirty:        cw('ks-cw-dishwashing-station-active-front-v1.png', { scale: 1.16 }),
+    sink_dirty_left:   cw('ks-cw-dishwashing-station-active-left-v1.png',  { scale: 1.16 }),
+    sink_dirty_right:  cw('ks-cw-dishwashing-station-active-right-v1.png', { scale: 1.16 }),
 
     // ── Ingredient crates ────────────────────────────────────────────────────
     // Front-facing HD crates where they exist; everything else gets the
