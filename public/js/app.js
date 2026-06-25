@@ -659,6 +659,8 @@
   function renderLobby(state) {
     lobby = state;
     iAmHost = state.hostId === profile.id;
+    // keep the builder's saved-board list fresh when a board is saved/deleted
+    if (typeof renderPresets === 'function' && $('screen-builder').classList.contains('active')) renderPresets();
     $('lobby-code').textContent = state.code;
 
     const online = state.players.filter((p) => p.connected);
@@ -1287,6 +1289,25 @@
         renderGrid(); renderRecipes(); syncOutputs(); SFX.tap();
       });
     }
+    // Your crew's saved boards (persisted to the kitchen code, across sessions).
+    const saved = (lobby && lobby.boards) || {};
+    const names = Object.keys(saved);
+    if (names.length) {
+      const sep = document.createElement('div');
+      sep.className = 'preset-sep';
+      sep.textContent = '💾 Saved boards';
+      wrap.appendChild(sep);
+      for (const name of names) {
+        const b = document.createElement('button');
+        b.className = 'preset-btn saved';
+        b.innerHTML = `${escapeHtml(name)} <span class="preset-del" title="Delete">×</span>`;
+        b.onclick = (e) => {
+          if (e.target.classList.contains('preset-del')) { socket.emit('delete_board', name, () => {}); return; }
+          loadConfig(saved[name]); SFX.tap();
+        };
+        wrap.appendChild(b);
+      }
+    }
   }
   function renderPalette() {
     const wrap = $('builder-palette'); wrap.innerHTML = '';
@@ -1348,12 +1369,45 @@
   }
   function renderAvatars() {
     const wrap = $('builder-avatars'); wrap.innerHTML = '';
-    for (const key of ((window.KSRender && KSRender.CUSTOMER_KEYS) || [])) {
-      const b = document.createElement('button');
-      b.className = 'chip' + (editor.avatars.has(key) ? ' sel' : '');
-      b.innerHTML = `${avatarThumbHtml(key)}${key.replace(/_/g, ' ')}`;
-      b.onclick = () => { editor.avatars.has(key) ? editor.avatars.delete(key) : editor.avatars.add(key); renderAvatars(); SFX.tap(); };
-      wrap.appendChild(b);
+    // Mirror the main menu's organized groups; each group can be added/removed
+    // as a whole (e.g. drop all "Politics & Royals" at once) or per-character.
+    const groups = CHEF_SECTIONS.map((s) => ({
+      name: s.name, emoji: s.emoji,
+      members: s.keys.map((k) => chefByKey.get(k)).filter((c) => c && avatarThumbHtml(c.key)),
+    }));
+    const leftovers = CHEFS.filter((c) => c.key !== 'chef'
+      && !CHEF_SECTIONS.some((s) => s.keys.includes(c.key)) && avatarThumbHtml(c.key));
+    if (leftovers.length) groups.push({ name: 'More Stars', emoji: '⭐', members: leftovers });
+
+    for (const g of groups) {
+      if (!g.members.length) continue;
+      const keys = g.members.map((c) => c.key);
+      const allSel = keys.every((k) => editor.avatars.has(k));
+      const head = document.createElement('div');
+      head.className = 'avatar-group-head';
+      head.innerHTML = `<span class="agh-name">${g.emoji} ${escapeHtml(g.name)}</span>`;
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'group-toggle' + (allSel ? ' on' : '');
+      toggle.textContent = allSel ? '✓ All' : '+ Add all';
+      toggle.onclick = () => {
+        if (allSel) keys.forEach((k) => editor.avatars.delete(k));
+        else keys.forEach((k) => editor.avatars.add(k));
+        renderAvatars(); SFX.tap();
+      };
+      head.appendChild(toggle);
+      wrap.appendChild(head);
+
+      const row = document.createElement('div');
+      row.className = 'avatar-group-row';
+      for (const c of g.members) {
+        const b = document.createElement('button');
+        b.className = 'chip' + (editor.avatars.has(c.key) ? ' sel' : '');
+        b.innerHTML = `${avatarThumbHtml(c.key)}${escapeHtml(c.name)}`;
+        b.onclick = () => { editor.avatars.has(c.key) ? editor.avatars.delete(c.key) : editor.avatars.add(c.key); renderAvatars(); SFX.tap(); };
+        row.appendChild(b);
+      }
+      wrap.appendChild(row);
     }
   }
   function syncOutputs() {
@@ -1380,14 +1434,14 @@
     renderPresets(); renderPalette(); renderCratePick(); renderGrid(); renderRecipes(); renderAvatars(); syncOutputs();
     show('builder');
   }
-  function playCustom() {
-    if (!editor.recipes.size) return toast('Pick at least one recipe.');
+  // Serialize the editor into the level config used to play AND to save.
+  function boardConfig() {
     let d = 1; const crates = {};
     const layout = editor.grid.map((row) => row.map((cell) => {
       if (cell.t === 'C') { if (d > 9) return '.'; const k = String(d++); crates[k] = cell.ing || 'lettuce'; return k; }
       return cell.t;
     }).join(''));
-    const cfg = {
+    return {
       name: 'Custom Kitchen', layout, crates,
       recipes: [...editor.recipes],
       speedMult: +$('sl-speed').value, every: +$('sl-every').value, ttl: +$('sl-ttl').value,
@@ -1395,12 +1449,39 @@
       stars: [+$('st-1').value, +$('st-2').value, +$('st-3').value],
       plates: 4, customers: [...editor.avatars],
     };
+  }
+  function loadConfig(cfg) {
+    loadBoard(cfg.layout, cfg.crates);
+    editor.recipes = new Set(cfg.recipes || []);
+    editor.avatars = new Set((cfg.customers && cfg.customers.length) ? cfg.customers : ((window.KSRender && KSRender.CUSTOMER_KEYS) || []));
+    if (cfg.speedMult) $('sl-speed').value = cfg.speedMult;
+    if (cfg.every) $('sl-every').value = cfg.every;
+    if (cfg.ttl) $('sl-ttl').value = cfg.ttl;
+    if (cfg.maxOpen) $('sl-maxopen').value = cfg.maxOpen;
+    if (cfg.duration) $('sl-duration').value = cfg.duration;
+    if (Array.isArray(cfg.stars)) { $('st-1').value = cfg.stars[0]; $('st-2').value = cfg.stars[1]; $('st-3').value = cfg.stars[2]; }
+    renderGrid(); renderRecipes(); renderAvatars(); syncOutputs();
+  }
+  function playCustom() {
+    if (!editor.recipes.size) return toast('Pick at least one recipe.');
     SFX.tap();
-    socket.emit('start_custom', cfg, (res) => { if (res && res.error) toast(res.error); });
+    socket.emit('start_custom', boardConfig(), (res) => { if (res && res.error) toast(res.error); });
+  }
+  function saveCurrentBoard() {
+    const name = ($('board-name').value || '').trim();
+    if (!name) return toast('Name your board first.');
+    if (!editor.recipes.size) return toast('Pick at least one recipe.');
+    SFX.tap();
+    socket.emit('save_board', { name, cfg: boardConfig() }, (res) => {
+      if (res && res.error) return toast(res.error);
+      toast(`Saved "${name}" 💾`);
+      $('board-name').value = '';
+    });
   }
   if ($('builder-back')) {
     $('builder-back').onclick = () => { SFX.tap(); show(builderReturn); };
     $('builder-play').onclick = playCustom;
+    $('board-save').onclick = saveCurrentBoard;
     $('btn-open-builder').onclick = () => openBuilder({ from: 'lobby' });
     document.querySelectorAll('.builder-size .btn-mini').forEach((b) => {
       b.onclick = () => { resizeBoard(b.dataset.size); SFX.tap(); };

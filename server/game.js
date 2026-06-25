@@ -317,7 +317,10 @@ class Game {
       if (tx === px && ty === py && p.carry) {
         for (const [dx, dy] of [[0, -1], [1, 0], [-1, 0], [0, 1]]) {
           const k = `${tx + dx},${ty + dy}`;
-          if (this.stations[k]) {
+          const st = this.stations[k];
+          // Never auto-discard into an adjacent trash via a forgiving tap — that
+          // dumped plates just from tapping near the bin while walking past it.
+          if (st && st.type !== 'trash') {
             this.interact(p, k);
             return;
           }

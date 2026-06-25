@@ -119,7 +119,25 @@ function ensureCrewExtras(crew) {
   }
   if (!crew.settings) crew.settings = {};
   if (!crew.stats) crew.stats = { meals: 0, rounds: 0, earned: crew.wallet.coins };
+  if (!crew.boards) crew.boards = {}; // saved custom boards (name -> level config)
   return crew;
+}
+
+// Persist a custom board under the crew's codename so it survives sessions.
+function saveBoard(crew, name, cfg) {
+  ensureCrewExtras(crew);
+  name = String(name || '').trim().slice(0, 40);
+  if (!name) return false;
+  if (!crew.boards[name] && Object.keys(crew.boards).length >= 50) return false;
+  crew.boards[name] = cfg;
+  crews.save();
+  return true;
+}
+
+function deleteBoard(crew, name) {
+  ensureCrewExtras(crew);
+  if (crew.boards[name]) { delete crew.boards[name]; crews.save(); return true; }
+  return false;
 }
 
 function buyUpgrade(crew, id, cost) {
@@ -271,7 +289,7 @@ module.exports = {
   createCrew, getCrew, touchCrewMember, recordLevelResult,
   getPlayer, upsertPlayer, recordPlayerResult, flushAll,
   restoreCrew, mergeCrew, mergePlayerStats,
-  ensureCrewExtras, buyUpgrade,
+  ensureCrewExtras, buyUpgrade, saveBoard, deleteBoard,
   ensureAdminCrew, ADMIN_CODE,
   logSongRequest, SONG_LOG_FILE,
 };
