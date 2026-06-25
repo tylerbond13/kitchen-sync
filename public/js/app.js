@@ -1231,7 +1231,7 @@
   // ---------- Level Builder (admin / pre-level board editing) ----------
   let catalog = null;
   let builderReturn = 'lobby';
-  const editor = { grid: [], brush: '#', ing: 'lettuce', recipes: new Set(), avatars: new Set() };
+  const editor = { grid: [], brush: '#', ing: 'lettuce', dir: 'straight', recipes: new Set(), avatars: new Set() };
 
   const PALETTE = [
     { t: '.', emoji: '⬜', label: 'Floor',   cls: 'floor' },
@@ -1264,9 +1264,9 @@
     cratesMap = cratesMap || {};
     editor.grid = (layoutRows || DEFAULT_LAYOUT).map((row) =>
       [...String(row)].map((ch) => {
-        if (/[1-9]/.test(ch)) return { t: 'C', ing: cratesMap[ch] || 'lettuce' };
-        if ('.#BSOVPWTK'.includes(ch)) return { t: ch, ing: null };
-        return { t: '.', ing: null };
+        if (/[1-9]/.test(ch)) return { t: 'C', ing: cratesMap[ch] || 'lettuce', dir: 'straight' };
+        if ('.#BSOVPWTK'.includes(ch)) return { t: ch, ing: null, dir: 'straight' };
+        return { t: '.', ing: null, dir: 'straight' };
       }));
   }
   function cellLabel(cell) {
@@ -1327,6 +1327,26 @@
     sel.value = editor.ing;
     sel.onchange = () => { editor.ing = sel.value; };
   }
+  // Facing brush: every piece you place takes this direction. straight/front
+  // overrides the wall-based default; left/right pick a directional sprite.
+  function renderFacing() {
+    const wrap = $('builder-facing'); if (!wrap) return;
+    wrap.innerHTML = '<span class="small muted">Facing:</span>';
+    [['straight', '⬆ Front'], ['right', '➡ Right'], ['left', '⬅ Left']].forEach(([d, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'face-btn' + (editor.dir === d ? ' sel' : '');
+      b.textContent = label;
+      b.onclick = () => { editor.dir = d; renderFacing(); SFX.tap(); };
+      wrap.appendChild(b);
+    });
+  }
+  // Apply the current brush (and facing) to a cell.
+  function setCellAt(x, y) {
+    if (editor.brush === '.') editor.grid[y][x] = { t: '.', ing: null, dir: 'straight' };
+    else if (editor.brush === 'C') editor.grid[y][x] = { t: 'C', ing: editor.ing, dir: editor.dir };
+    else editor.grid[y][x] = { t: editor.brush, ing: null, dir: editor.dir };
+  }
   function renderGrid() {
     const g = $('builder-grid');
     const cols = editor.grid[0] ? editor.grid[0].length : 0;
@@ -1334,18 +1354,59 @@
     g.innerHTML = '';
     editor.grid.forEach((row, y) => row.forEach((cell, x) => {
       const b = document.createElement('button');
-      b.className = cellCls(cell);
+      b.type = 'button';
+      b.className = cellCls(cell)
+        + (cell.t !== '.' && cell.dir === 'left' ? ' face-left' : '')
+        + (cell.t !== '.' && cell.dir === 'right' ? ' face-right' : '');
+      b.dataset.x = x; b.dataset.y = y;
       b.textContent = cellLabel(cell);
-      b.onclick = () => {
-        editor.grid[y][x] = editor.brush === 'C' ? { t: 'C', ing: editor.ing } : { t: editor.brush, ing: null };
-        renderGrid();
-      };
       g.appendChild(b);
     }));
+    setupGridDrag();
+  }
+  // Tap a cell to place the brush; drag a placed piece to MOVE it; drag across
+  // empty floor to paint. Pointer events cover both mouse and touch.
+  function setupGridDrag() {
+    const g = $('builder-grid');
+    if (g.__dragSetup) return;
+    g.__dragSetup = true;
+    const cellAt = (cx, cy) => {
+      const el = document.elementFromPoint(cx, cy);
+      const c = el && el.closest && el.closest('.cell');
+      return (c && c.dataset.x !== undefined) ? { x: +c.dataset.x, y: +c.dataset.y } : null;
+    };
+    let drag = null;
+    g.addEventListener('pointerdown', (e) => {
+      const c = e.target.closest && e.target.closest('.cell');
+      if (!c) return;
+      const x = +c.dataset.x, y = +c.dataset.y;
+      drag = { sx: x, sy: y, moved: false, src: editor.grid[y][x] };
+      try { g.setPointerCapture(e.pointerId); } catch {}
+      e.preventDefault();
+    });
+    g.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const c = cellAt(e.clientX, e.clientY);
+      if (!c || (c.x === drag.sx && c.y === drag.sy)) return;
+      drag.moved = true;
+      if (drag.src.t === '.') { setCellAt(c.x, c.y); renderGrid(); } // paint-drag on floor
+    });
+    g.addEventListener('pointerup', (e) => {
+      if (!drag) return;
+      const end = cellAt(e.clientX, e.clientY);
+      if (!drag.moved) {
+        setCellAt(drag.sx, drag.sy); renderGrid(); SFX.tap();        // tap = place brush
+      } else if (drag.src.t !== '.' && end && (end.x !== drag.sx || end.y !== drag.sy)) {
+        editor.grid[drag.sy][drag.sx] = { t: '.', ing: null, dir: 'straight' };
+        editor.grid[end.y][end.x] = drag.src;                       // drag a piece = move it
+        renderGrid(); SFX.tap();
+      }
+      drag = null;
+    });
   }
   function resizeBoard(kind) {
     const rows = editor.grid.length, cols = editor.grid[0] ? editor.grid[0].length : 0;
-    const blank = () => ({ t: '.', ing: null });
+    const blank = () => ({ t: '.', ing: null, dir: 'straight' });
     if (kind === 'colplus' && cols < 12) editor.grid.forEach((r) => r.push(blank()));
     if (kind === 'colminus' && cols > 3) editor.grid.forEach((r) => r.pop());
     if (kind === 'rowplus' && rows < 12) editor.grid.push(Array.from({ length: cols }, blank));
@@ -1426,23 +1487,27 @@
     editor.recipes = new Set(preset ? (preset.recipes || ['salad']) : ['salad', 'big_salad']);
     editor.avatars = new Set((window.KSRender && KSRender.CUSTOMER_KEYS) || []);
     editor.brush = '#';
+    editor.dir = 'straight';
     editor.ing = ((catalog.ingredients || [])[0] || { id: 'lettuce' }).id;
     $('builder-cratepick').hidden = true;
     if (preset && preset.duration) $('sl-duration').value = preset.duration;
     if (preset && Array.isArray(preset.stars)) { $('st-1').value = preset.stars[0]; $('st-2').value = preset.stars[1]; $('st-3').value = preset.stars[2]; }
     $('builder-title').textContent = opts.title || '🛠️ Level Builder';
-    renderPresets(); renderPalette(); renderCratePick(); renderGrid(); renderRecipes(); renderAvatars(); syncOutputs();
+    renderPresets(); renderPalette(); renderCratePick(); renderFacing(); renderGrid(); renderRecipes(); renderAvatars(); syncOutputs();
     show('builder');
   }
   // Serialize the editor into the level config used to play AND to save.
   function boardConfig() {
-    let d = 1; const crates = {};
-    const layout = editor.grid.map((row) => row.map((cell) => {
-      if (cell.t === 'C') { if (d > 9) return '.'; const k = String(d++); crates[k] = cell.ing || 'lettuce'; return k; }
-      return cell.t;
+    let d = 1; const crates = {}; const facings = {};
+    const layout = editor.grid.map((row, y) => row.map((cell, x) => {
+      let ch;
+      if (cell.t === 'C') { if (d > 9) ch = '.'; else { ch = String(d++); crates[ch] = cell.ing || 'lettuce'; } }
+      else ch = cell.t;
+      if (ch !== '.' && (cell.dir === 'left' || cell.dir === 'right')) facings[`${x},${y}`] = cell.dir;
+      return ch;
     }).join(''));
     return {
-      name: 'Custom Kitchen', layout, crates,
+      name: 'Custom Kitchen', layout, crates, facings,
       recipes: [...editor.recipes],
       speedMult: +$('sl-speed').value, every: +$('sl-every').value, ttl: +$('sl-ttl').value,
       maxOpen: +$('sl-maxopen').value, duration: +$('sl-duration').value,
@@ -1452,6 +1517,10 @@
   }
   function loadConfig(cfg) {
     loadBoard(cfg.layout, cfg.crates);
+    if (cfg.facings) for (const [k, v] of Object.entries(cfg.facings)) {
+      const [fx, fy] = k.split(',').map(Number);
+      if (editor.grid[fy] && editor.grid[fy][fx]) editor.grid[fy][fx].dir = v;
+    }
     editor.recipes = new Set(cfg.recipes || []);
     editor.avatars = new Set((cfg.customers && cfg.customers.length) ? cfg.customers : ((window.KSRender && KSRender.CUSTOMER_KEYS) || []));
     if (cfg.speedMult) $('sl-speed').value = cfg.speedMult;
