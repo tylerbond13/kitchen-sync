@@ -102,12 +102,11 @@
   ];
   // Customer pool (grandma_rose benched for now). The order is shuffled per
   // round from the server's seed so every kitchen sees the same random cast.
-  const CUSTOMER_KEYS = [
-    'cake_customer_businesswoman',
-    'cake_customer_blonde',
-    'cake_customer_suited_man',
-    'cake_customer_young_girl',
-  ];
+  // The waiting line rotates through the full chef roster — every character that
+  // has art — so customers are the same cast you can pick as your chef.
+  const CUSTOMER_KEYS = (window.KS_CHEFS || [])
+    .map((c) => c.key)
+    .filter((k) => k && k !== 'chef' && window.ASSETS && !!window.ASSETS[k]);
 
   // Tiny seeded PRNG (mulberry32) — deterministic across every client.
   function mulberry32(a) {
