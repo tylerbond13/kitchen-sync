@@ -127,6 +127,7 @@ function lobbyState(room) {
     crewStats: room.crew.stats,
     upgrades: UPGRADES,
     music: radioPayload(room),
+    boards: room.crew.boards || {},
     inGame: !!room.game && room.game.phase === 'playing',
   };
 }
@@ -447,6 +448,25 @@ function attach(io) {
       if (!store.buyUpgrade(crew, id, up.cost)) {
         return ack({ error: 'Not enough coins yet — keep cooking!' });
       }
+      ack({ ok: true });
+      roomBroadcast(io, joined.room, 'lobby', lobbyState(joined.room));
+    });
+
+    // Saved custom boards persist under the crew codename across sessions.
+    socket.on('save_board', ({ name, cfg } = {}, ack) => {
+      if (typeof ack !== 'function') ack = () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      const built = buildCustomLevel(cfg);
+      if (built.error) return ack({ error: built.error });
+      if (!store.saveBoard(joined.room.crew, name, cfg)) return ack({ error: 'Could not save (name empty or too many boards)' });
+      ack({ ok: true });
+      roomBroadcast(io, joined.room, 'lobby', lobbyState(joined.room));
+    });
+
+    socket.on('delete_board', (name, ack) => {
+      if (typeof ack !== 'function') ack = () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      store.deleteBoard(joined.room.crew, name);
       ack({ ok: true });
       roomBroadcast(io, joined.room, 'lobby', lobbyState(joined.room));
     });
