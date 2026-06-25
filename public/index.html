@@ -1262,11 +1262,23 @@ input[type="text"]:focus {
 .builder-cratepick select { font: inherit; padding: 6px 8px; border-radius: 10px; border: 1.5px solid var(--cream-deep); background: #fff; }
 .builder-grid-wrap { overflow: auto; padding: 2px; }
 .builder-grid { display: grid; gap: 2px; width: max-content; margin: 0 auto; }
-.cell { width: 30px; height: 30px; display: grid; place-items: center; font-size: 15px; border: 1px solid rgba(45,22,52,.06); border-radius: 6px; cursor: pointer; background: #EFE0D0; padding: 0; }
+.cell { position: relative; width: 30px; height: 30px; display: grid; place-items: center; font-size: 15px; border: 1px solid rgba(45,22,52,.06); border-radius: 6px; cursor: pointer; background: #EFE0D0; padding: 0; touch-action: none; }
 .cell.counter { background: #C9A77F; }
 .cell.station { background: #9ED8C6; }
 .cell.serve   { background: #7FD99A; }
 .cell.crate   { background: #F2C879; }
+.cell.face-left::after, .cell.face-right::after {
+  content: ''; position: absolute; bottom: 1px; right: 1px;
+  font-size: 9px; font-weight: 900; line-height: 1; color: var(--bubblegum-deep);
+}
+.cell.face-left::after  { content: '◀'; }
+.cell.face-right::after { content: '▶'; }
+.builder-facing { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.face-btn {
+  font: inherit; font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 999px;
+  border: 1.5px solid rgba(255, 111, 174, 0.2); background: var(--cream); color: var(--ink-soft); cursor: pointer;
+}
+.face-btn.sel { background: var(--lavender); color: #fff; border-color: transparent; box-shadow: 0 2px 0 var(--lav-deep); }
 .builder-size { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
 .builder-recipes, .builder-avatars { display: flex; flex-wrap: wrap; gap: 6px; }
 .builder-avatars { flex-direction: column; align-items: stretch; }
@@ -1491,6 +1503,8 @@ input[type="text"]:focus {
           <span class="small muted">📦 Crate holds:</span>
           <select id="builder-ingredient"></select>
         </div>
+        <div class="builder-facing" id="builder-facing"></div>
+        <p class="small muted" style="margin:2px 0 8px">Tap a tile to place · drag a piece to move it · drag on empty floor to paint.</p>
         <div class="builder-grid-wrap"><div class="builder-grid" id="builder-grid"></div></div>
         <div class="builder-size">
           <button class="btn-mini" data-size="colminus">– column</button>

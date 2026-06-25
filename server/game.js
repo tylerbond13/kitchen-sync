@@ -914,6 +914,7 @@ class Game {
       h: this.h,
       grid: this.level.layout,
       crates: this.level.crates,
+      facings: this.level.facings || null,   // explicit per-tile facing (builder)
       duration: this.level.duration,
       starThresholds: this.starGoals,
       autoChopAllowed: this.autoChopAllowed,

@@ -170,6 +170,9 @@ function buildCustomLevel(c) {
     layout,
     speedMult: clampNum(c.speedMult, 0.25, 5, 1),
     customers: (Array.isArray(c.customers) && c.customers.length) ? c.customers.map(String) : null,
+    facings: (c.facings && typeof c.facings === 'object')
+      ? Object.fromEntries(Object.entries(c.facings).filter(([, v]) => v === 'left' || v === 'right'))
+      : null,
     orders: {
       recipes,
       every: clampNum(c.every, 3, 60, 14),

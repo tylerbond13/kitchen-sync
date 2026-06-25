@@ -851,12 +851,19 @@
     // Uses the directional sprite variant (<key>_left / <key>_right) when it
     // exists, otherwise falls back to the straight front image.
     faceKey(key, gx, gy) {
-      const w = this.lvl.w;
+      // An explicit per-tile facing (from the builder) overrides the wall rule.
+      const explicit = this.lvl.facings && this.lvl.facings[`${gx},${gy}`];
       let dir = null;
-      if (gy === 0) dir = null;             // top/back wall → front
-      else if (gx === 0) dir = 'right';     // against the left wall → face right
-      else if (gx === w - 1) dir = 'left';  // against the right wall → face left
-      // bottom wall and interior tiles stay front-facing
+      if (explicit === 'left' || explicit === 'right') {
+        dir = explicit;
+      } else if (explicit === 'straight') {
+        dir = null;                           // forced front even on a side wall
+      } else {
+        const w = this.lvl.w;
+        if (gy === 0) dir = null;             // top/back wall → front
+        else if (gx === 0) dir = 'right';     // against the left wall → face right
+        else if (gx === w - 1) dir = 'left';  // against the right wall → face left
+      }
       if (!dir) return key;
       const variant = `${key}_${dir}`;
       return GFX.has(variant) ? variant : key;
