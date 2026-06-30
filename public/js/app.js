@@ -150,7 +150,6 @@
   // one giant blob. Anyone not listed falls into "More Stars" at the end, so
   // new chefs never silently vanish.
   const CHEF_SECTIONS = [
-    { name: 'House Specials',        emoji: '🏠', keys: ['chef','grandma_rose','workhorse','kid','camp_counselor','influencer','socialite'] },
     { name: 'Sitcom Stars',          emoji: '📺', keys: ['jerry_seinfeld','elaine_benes','cosmo_kramer','george_costanza','betty_white','blanche_devereaux','dorothy_zbornak','lorelai_gilmore','rory_gilmore','lucy_ricardo','ricky_ricardo','carrie_bradshaw','angela_lansbury','barney'] },
     { name: 'Daytime TV',            emoji: '⚖️', keys: ['judge_judy','oprah_winfrey','dr_phil'] },
     { name: 'Music Legends',         emoji: '🎤', keys: ['sinatra','elvis_presley','john_lennon','dolly','cher','celine_dion','elton_john','bono','shania_twain'] },
@@ -162,6 +161,8 @@
     { name: 'Sports Legends',        emoji: '🏀', keys: ['michael_jordan','shaquille_oneal'] },
     { name: 'Reality & Pop Culture', emoji: '📱', keys: ['kim_kardashian','kris_jenner','snooki'] },
     { name: 'Cartoons & Games',      emoji: '🎮', keys: ['bart_simpson','marge_simpson','sonic_hedgehog'] },
+    // House Specials live at the bottom — the celebrity chefs lead the roster.
+    { name: 'House Specials',        emoji: '🏠', keys: ['chef','grandma_rose','workhorse','kid','camp_counselor','influencer','socialite'] },
   ];
 
   const chefGrid = $('chef-grid');
@@ -395,6 +396,32 @@
     syncUrl(null);
     show('home');
     sendHello();
+  };
+
+  // Change your chef WITHOUT leaving the kitchen. "Leave" drops you from the
+  // room (and a fresh start makes a new code); this just reopens the chef
+  // picker, then re-registers with the same code so you land back in the
+  // kitchen you were already in — with your new chef applied to the roster.
+  function setChefEditMode(on) {
+    $('btn-chef-done').hidden = !on;
+    $('btn-create').hidden = on;
+    $('btn-show-join').hidden = on;
+    $('btn-how-home').hidden = on;
+  }
+  $('btn-edit-chef').onclick = () => {
+    if (!myCode) return;            // only meaningful from inside a kitchen
+    SFX.tap();
+    setChefEditMode(true);
+    show('home');
+    const grid = document.getElementById('chef-grid');
+    if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  $('btn-chef-done').onclick = () => {
+    SFX.tap();
+    setChefEditMode(false);
+    bootToBuilder = false;
+    if (myCode) joinCrew(myCode, true); // re-register new chef, same kitchen → lobby
+    else show('home');
   };
 
   // keep the address bar in sync with the kitchen shown on screen
