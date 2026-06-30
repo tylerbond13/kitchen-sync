@@ -415,10 +415,14 @@
       // The builder preview is look-only: you can't click ingredients to start
       // cutting them like the real game.
       if (!this.preview) {
-        // Stored (not anonymous) so destroy() can remove it — the <canvas> is
-        // reused across rounds, so a leaked listener would stack every replay
-        // and fire each tap N times (place+pickup cancelling out → "can't pick
-        // up what you put down" until a page refresh).
+        // The <canvas> is a persistent DOM node reused across every round. If a
+        // prior renderer left its tap listener attached (e.g. it wasn't
+        // destroy()'d before this one was built — finishing a level then
+        // reopening it), each tap would fire N times and on a counter the
+        // place+pickup would cancel out → "can't pick up what you put down"
+        // until a refresh. Guarantee exactly ONE tap listener per canvas:
+        // remove whatever was bound before, then bind and remember ours.
+        if (canvas.__ksTapHandler) canvas.removeEventListener('pointerdown', canvas.__ksTapHandler);
         this._onPointerDown = (e) => {
           const rect = canvas.getBoundingClientRect();
           const cx = (e.clientX-rect.left)*(canvas.width/rect.width);
@@ -428,6 +432,7 @@
           const hit = this.pick(wx, wy);
           if (hit) this.onTap(hit[0], hit[1]);
         };
+        canvas.__ksTapHandler = this._onPointerDown;
         canvas.addEventListener('pointerdown', this._onPointerDown);
       }
       requestAnimationFrame(()=>this.frame());
@@ -437,7 +442,10 @@
       this.running=false;
       window.removeEventListener('resize',this.resize);
       this._ro && this._ro.disconnect();
-      if (this._onPointerDown) this.canvas.removeEventListener('pointerdown', this._onPointerDown);
+      if (this._onPointerDown) {
+        this.canvas.removeEventListener('pointerdown', this._onPointerDown);
+        if (this.canvas.__ksTapHandler === this._onPointerDown) this.canvas.__ksTapHandler = null;
+      }
     }
 
     // ── World space ⇄ canvas ──────────────────────────────────────────────────
@@ -1004,6 +1012,15 @@
       // Crates without dedicated art: counter + ingredient sprite on top.
       if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 17);
 
+      // Clean-plate count on the dish rack. Drawn BEFORE the `!s` bail below:
+      // plate-stack tiles carry no per-station dynamic state, so `s` is
+      // undefined for them — the supply count lives on the global cur.plates.
+      if (c==='P' && this.cur && this.cur.plates!==undefined) {
+        const supply=this.cur.plates;
+        const label=supply===null?'∞':String(supply);
+        this.countBadge(sx+20, topY-28, label, supply===0, '#FF4070');
+      }
+
       if (!s) return;
 
       if (s.item) {
@@ -1038,12 +1055,6 @@
         } else if (s.state==='burned') {
           if(Math.floor(now/250)%2) this.glyph('💨',sx,topY-20,17);
         }
-      }
-      if (c==='P' && this.cur.plates!==undefined) {
-        const supply=this.cur.plates;
-        const label=supply===null?'∞':String(supply);
-        // Clean-plate count on the dish rack (red when the stack is empty).
-        this.countBadge(sx+20, topY-28, label, supply===0, '#FF4070');
       }
     }
 
