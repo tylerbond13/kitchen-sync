@@ -90,6 +90,29 @@
   // Grid char → station image key. Digits 1-9 are ingredient crates and render
   // as a counter block with the ingredient sprite on top (via level.crates).
   const STATION_KEY = { B:'chopping_board', S:'stove', O:'pot', V:'oven', P:'plate_stack', W:'serve_window', T:'trash', K:'sink', M:'mixing_bowl', I:'icing_dispenser', G:'garnish_counter' };
+  const PLAIN_STATION_KEY = {
+    counter:'counter_plain',
+    chopping_board:'chopping_board_plain',
+    chopping_board_active:'chopping_board_active_plain',
+    oven:'oven_plain',
+    oven_active:'oven_active_plain',
+    stove:'stove_plain',
+    stove_full:'stove_full_plain',
+    stove_fire:'stove_fire_plain',
+    pot:'pot_plain',
+    pot_full:'pot_full_plain',
+    pot_active:'pot_active_plain',
+    mixing_bowl:'mixing_bowl_plain',
+    mixing_bowl_full:'mixing_bowl_full_plain',
+    icing_dispenser:'icing_dispenser_plain',
+    garnish_counter:'garnish_counter_plain',
+    plate_stack:'plate_stack_plain',
+    serve_window:'serve_window_plain',
+    serve_window_active:'serve_window_active_plain',
+    trash:'trash_plain',
+    sink:'sink_plain',
+    sink_dirty:'sink_dirty_plain',
+  };
 
   // Cake World ambient decor (drawn by pushCakeDecor when level.decor==='cake').
   // kind 'rug' = flat floor underlay (drawn first); 'prop' = floor-anchored
@@ -966,6 +989,13 @@
       return GFX.has(variant) ? variant : key;
     }
 
+    stationArtKey(key) {
+      const cakeWorld = this.lvl.decor === 'cake' || this.lvl.levelId === 'cake-sweet-beginnings';
+      if (cakeWorld) return key;
+      const plain = PLAIN_STATION_KEY[key];
+      return plain && GFX.has(plain) ? plain : key;
+    }
+
     drawBlock(c, gx, gy, sx, sy, now) {
       const {ctx}=this;
       const TW=TILE_WIDTH, TH=TILE_HEIGHT;
@@ -1003,9 +1033,13 @@
       // Cake World: the mixing bowl shows its "full" art while it holds
       // ingredients/batter (filling, mixing, or done).
       if (c==='M' && s && s.contents && s.contents.length) key='mixing_bowl_full';
-      key = this.faceKey(key, gx, gy);
+      const stateKey = key;
+      key = this.faceKey(this.stationArtKey(key), gx, gy);
       let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, isoFixFor(key));
-      if (!rect) { key='counter'; rect = GFX.drawAnchored(ctx, 'counter', sx, baseY, TW*SPRITE_FILL, isoFixFor(key)); }
+      if (!rect) {
+        key = this.faceKey(this.stationArtKey('counter'), gx, gy);
+        rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, isoFixFor(key));
+      }
       if (rect) this._hits.push({ ...rect, gx, gy, key, d: sy });
       const topY = sy - BLOCK_LIFT;
 
@@ -1030,7 +1064,7 @@
       }
       if (s.dirty!==undefined) {
         // The dirty-sink render already shows piled plates; don't double up.
-        if (key !== 'sink_dirty') {
+        if (stateKey !== 'sink_dirty') {
           const n=Math.min(s.dirty,3);
           for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,30,30);
         }

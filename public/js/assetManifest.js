@@ -173,13 +173,8 @@
 
     // ── Stations (grid chars) + live state variants ─────────────────────────
     // `flat: true` = straight-on art, renderer skips its iso squash.
-    // Keys without a front-facing HD render yet use hand-built SVG stand-ins
-    // (assets/images/flat/) — swap each back to its .png as regens land.
-    // Generic stations use the cake-world art set (assets/images/cake-world/
-    // stations/) because it ships front + left + right facings (wired as
-    // <key>_left / <key>_right and picked by faceKey from wall side / explicit
-    // facing). Stove + pot stay on diner HD art — cake world has no range, only
-    // the stand mixer / icing dispenser / garnish counter wired below.
+    // Cake World keeps the cake-world station set below. Non-cake levels remap
+    // these canonical station keys to the plain HD keys in isoRender.js.
     counter:        cw('stations/ks-cw-empty-single-countertop-front-v1.png', { scale: 1.12 }),
     counter_left:   cw('stations/ks-cw-empty-single-countertop-left-v1.png',  { scale: 1.12 }),
     counter_right:  cw('stations/ks-cw-empty-single-countertop-right-v1.png', { scale: 1.12 }),
@@ -231,6 +226,29 @@
     sink_dirty:        cw('stations/ks-cw-dishwashing-station-active-front-v1.png', { scale: 1.16 }),
     sink_dirty_left:   cw('stations/ks-cw-dishwashing-station-active-left-v1.png',  { scale: 1.16 }),
     sink_dirty_right:  cw('stations/ks-cw-dishwashing-station-active-right-v1.png', { scale: 1.16 }),
+
+    // ── Plain HD station set (levels 1-14 + non-cake custom boards) ─────────
+    counter_plain:               { path: HD + 'ks-countertop.png', scale: 1.12 },
+    chopping_board_plain:        { path: HD + 'ks-hd-cutting-board-station.png', scale: 1.12 },
+    chopping_board_active_plain: { path: HD + 'ks-hd-cutting-board-station-active.png', scale: 1.12 },
+    oven_plain:                  { path: HD + 'ks-hd-oven-station.png', scale: 1.14 },
+    oven_active_plain:           { path: HD + 'ks-hd-oven-station-active.png', scale: 1.14 },
+    stove_plain:                 { path: HD + 'ks-stove-pan.png' },
+    stove_full_plain:            { path: HD + 'ks-stove-pan.png' },
+    stove_fire_plain:            { path: HD + 'ks-stove-pan-fire.png' },
+    pot_plain:                   { path: HD + 'ks-stockpot.png' },
+    pot_full_plain:              { path: HD + 'ks-hd-stockpot-station-full.png' },
+    pot_active_plain:            { path: HD + 'ks-hd-stockpot-station-active.png' },
+    mixing_bowl_plain:           { path: HD + 'ks-hd-mixer-station-empty.png', scale: 1.10 },
+    mixing_bowl_full_plain:      { path: HD + 'ks-hd-mixer-station-full.png', scale: 1.10 },
+    icing_dispenser_plain:       { path: HD + 'ks-hd-icing-dispenser-station.png', scale: 1.10 },
+    garnish_counter_plain:       { path: HD + 'ks-hd-garnish-counter-station.png', scale: 1.10 },
+    plate_stack_plain:           { path: HD + 'ks-hd-plate-stack-station.png', scale: 1.02 },
+    serve_window_plain:          { path: HD + 'ks-serve-window.png', scale: 1.22 },
+    serve_window_active_plain:   { path: HD + 'ks-hd-serve-window-active.png', scale: 1.22 },
+    trash_plain:                 { path: HD + 'ks-trash-can.png', scale: 0.92 },
+    sink_plain:                  { path: HD + 'ks-sink.png', scale: 1.10 },
+    sink_dirty_plain:            { path: HD + 'ks-sink-dirty.png', scale: 1.10 },
 
     // ── Ingredient crates ────────────────────────────────────────────────────
     // Front-facing HD crates where they exist; everything else gets the
