@@ -492,23 +492,35 @@
       for (const hit of hits) {
         if (wx < hit.x || wx > hit.x + hit.w ||
             wy < hit.y || wy > hit.y + hit.h) continue;
-        // A tall sprite (stove, oven, a counter with a plate on it) is drawn far
-        // above its tile, so its bounding rect overhangs the open floor in FRONT
-        // of it. Only let a sprite claim a tap that lands within its own one-tile
-        // footprint (the bottom band of the rect); taps on the upper overhang
-        // fall through to the floor below. This stops a chef sprinting down a
-        // one-wide lane from "tapping" the counters they pass — which used to
-        // drop or grab items as you ran by. To interact, tap the station's base.
-        const baseY = hit.y + hit.h;
-        if (wy < baseY - TILE_HEIGHT) continue;
         const u = (wx - hit.x) / hit.w, v = (wy - hit.y) / hit.h;
-        if (GFX.alphaAt(hit.key, u, v)) return [hit.gx, hit.gy];
+        if (!GFX.alphaAt(hit.key, u, v)) continue;
+        // Overhang guard: a tall sprite (stove, oven, a counter with food on it)
+        // is drawn well above its tile, so its rect can cover the open floor in
+        // FRONT of it. If this tap is on that upper overhang AND the tile truly
+        // under the cursor is walkable floor, treat it as a move (fall through)
+        // instead of an accidental interact while sprinting past. Taps over the
+        // station's own footprint — or over a wall / another station, like a
+        // board hugging the wall on a one-wide lane — still interact normally.
+        const baseY = hit.y + hit.h;
+        if (wy < baseY - TILE_HEIGHT) {
+          const ux = Math.floor((wx - this.ox) / TILE_WIDTH);
+          const uy = Math.floor((wy - this.oy) / TILE_HEIGHT);
+          if (!(ux === hit.gx && uy === hit.gy) && this.isFloorTile(ux, uy)) continue;
+        }
+        return [hit.gx, hit.gy];
       }
       // gridX = floor(mouseX / tileWidth), gridY = floor(mouseY / tileHeight)
       const gx = Math.floor((wx - this.ox) / TILE_WIDTH);
       const gy = Math.floor((wy - this.oy) / TILE_HEIGHT);
       if (gx>=0 && gy>=0 && gx<this.lvl.w && gy<this.lvl.h) return [gx, gy];
       return null;
+    }
+
+    // Walkable floor = an open '.' tile in the static layout (stations/crates
+    // are letters/digits). Used by the overhang guard above.
+    isFloorTile(gx, gy) {
+      const row = this.lvl.grid && this.lvl.grid[gy];
+      return !!row && row[gx] === '.';
     }
 
     // ── Server state plumbing (flat 2D data in, flat 2D data out) ────────────
