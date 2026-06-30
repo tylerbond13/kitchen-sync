@@ -229,6 +229,14 @@
 
     // ── Plain HD station set (levels 1-14 + non-cake custom boards) ─────────
     counter_plain:               { path: HD + 'ks-countertop.png', scale: 1.12 },
+    counter_row_2_horizontal_plain: { path: HD + 'ks-hd-countertop-row-2-horizontal.png', scale: 1.12 },
+    counter_row_3_horizontal_plain: { path: HD + 'ks-hd-countertop-row-3-horizontal.png', scale: 1.12 },
+    counter_row_2_vertical_plain:   { path: HD + 'ks-hd-countertop-row-2-vertical-right.png', scale: 1.12 },
+    counter_row_2_vertical_left_plain:  { path: HD + 'ks-hd-countertop-row-2-vertical-left.png', scale: 1.12 },
+    counter_row_2_vertical_right_plain: { path: HD + 'ks-hd-countertop-row-2-vertical-right.png', scale: 1.12 },
+    counter_row_3_vertical_plain:   { path: HD + 'ks-hd-countertop-row-3-vertical-right.png', scale: 1.12 },
+    counter_row_3_vertical_left_plain:  { path: HD + 'ks-hd-countertop-row-3-vertical-left.png', scale: 1.12 },
+    counter_row_3_vertical_right_plain: { path: HD + 'ks-hd-countertop-row-3-vertical-right.png', scale: 1.12 },
     chopping_board_plain:        { path: HD + 'ks-hd-cutting-board-station.png', scale: 1.12 },
     chopping_board_active_plain: { path: HD + 'ks-hd-cutting-board-station-active.png', scale: 1.12 },
     oven_plain:                  { path: HD + 'ks-hd-oven-station.png', scale: 1.14 },
