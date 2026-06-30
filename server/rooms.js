@@ -12,8 +12,9 @@ const VIDEO_ID_RE = /^[\w-]{11}$/;
 const rooms = new Map(); // code -> room
 
 function levelList(crew) {
+  store.ensureCrewExtras(crew);
   const adminCrew = crew.code === store.ADMIN_CODE; // BOND: everything unlocked
-  return LEVELS.map((lvl, i) => {
+  const list = LEVELS.map((lvl, i) => {
     const prog = crew.progress[lvl.id] || { stars: 0, bestScore: 0 };
     const prevId = i > 0 ? LEVELS[i - 1].id : null;
     // beta levels (e.g. Cake World) are always open so they're easy to try.
@@ -23,8 +24,35 @@ function levelList(crew) {
       section: lvl.section || 'diner', beta: !!lvl.beta,
       stars: prog.stars, bestScore: prog.bestScore, unlocked,
       thresholds: lvl.stars,
+      edited: !!crew.overrides[lvl.id], // this crew rearranged the stock board
     };
   });
+  // Saved custom boards become their own playable levels at the bottom of the
+  // selector, each with an independent star record (keyed "custom:<name>").
+  let n = LEVELS.length;
+  for (const [name, cfg] of Object.entries(crew.boards || {})) {
+    const id = `custom:${name}`;
+    const prog = crew.progress[id] || { stars: 0, bestScore: 0 };
+    const recipes = Array.isArray(cfg.recipes) ? cfg.recipes.length : 0;
+    list.push({
+      id, n: ++n, name, emoji: '🛠️',
+      blurb: recipes ? `Your build · ${recipes} recipe${recipes > 1 ? 's' : ''}` : 'Your custom kitchen',
+      section: 'custom', beta: false, custom: true,
+      stars: prog.stars, bestScore: prog.bestScore, unlocked: true,
+      thresholds: Array.isArray(cfg.stars) ? cfg.stars : undefined,
+    });
+  }
+  return list;
+}
+
+// The "Your Kitchens" section only exists when a crew has saved a board, so it
+// never shows an empty header.
+function sectionList(crew) {
+  store.ensureCrewExtras(crew);
+  if (Object.keys(crew.boards || {}).length) {
+    return [...SECTIONS, { id: 'custom', name: 'Your Kitchens', emoji: '🛠️', blurb: 'Boards your crew built.' }];
+  }
+  return SECTIONS;
 }
 
 function getRoom(code) {
@@ -122,12 +150,13 @@ function lobbyState(room) {
     hostId: effectiveHost(room),
     players: [...room.players.values()],
     levels: levelList(room.crew),
-    sections: SECTIONS,
+    sections: sectionList(room.crew),
     wallet: room.crew.wallet,
     crewStats: room.crew.stats,
     upgrades: UPGRADES,
     music: radioPayload(room),
     boards: room.crew.boards || {},
+    overrides: room.crew.overrides || {},
     inGame: !!room.game && room.game.phase === 'playing',
   };
 }
@@ -182,16 +211,50 @@ function buildCustomLevel(c) {
   };
 }
 
+// Resolve a level id to the config the Game runs. Handles three cases:
+//   • "custom:<name>" — a saved board, played under its own star-tracked id
+//   • a built-in id the crew has edited — the stock level wearing its override
+//     (board + tuning) while keeping the level's identity (id/name/theme/stars)
+//   • a plain built-in id — the stock level
+function resolveLevel(crew, levelId) {
+  store.ensureCrewExtras(crew);
+  if (typeof levelId === 'string' && levelId.startsWith('custom:')) {
+    const name = levelId.slice('custom:'.length);
+    const cfg = crew.boards[name];
+    if (!cfg) return { error: 'That custom kitchen is gone.' };
+    const level = buildCustomLevel(cfg);
+    if (level.error) return level;
+    level.id = levelId;
+    level.name = name;
+    return level;
+  }
+  const base = LEVELS.find((l) => l.id === levelId);
+  if (!base) return { error: 'Unknown level' };
+  const override = crew.overrides[levelId];
+  if (!override) return base;
+  const level = buildCustomLevel(override);
+  if (level.error) return base; // a broken edit shouldn't lock you out — play stock
+  // Keep the level's identity (placement, art theme, star record) but use the
+  // crew's rearranged board + tuning.
+  return {
+    ...level,
+    id: base.id, n: base.n, name: base.name, emoji: base.emoji,
+    section: base.section, theme: base.theme, decor: base.decor, beta: base.beta,
+  };
+}
+
 function startGame(io, room, levelId, custom) {
   let level;
   if (custom) {
     level = buildCustomLevel(custom);
     if (level.error) return { error: level.error };
   } else {
-    level = LEVELS.find((l) => l.id === levelId);
-    if (!level) return { error: 'Unknown level' };
     const list = levelList(room.crew);
-    if (!list.find((l) => l.id === levelId)?.unlocked) return { error: 'Level locked' };
+    const entry = list.find((l) => l.id === levelId);
+    if (!entry) return { error: 'Unknown level' };
+    if (!entry.unlocked) return { error: 'Level locked' };
+    level = resolveLevel(room.crew, levelId);
+    if (level.error) return { error: level.error };
   }
   if (room.game && room.game.phase === 'playing') return { error: 'Game in progress' };
 
@@ -470,6 +533,21 @@ function attach(io) {
       if (typeof ack !== 'function') ack = () => {};
       if (!joined) return ack({ error: 'Not in a kitchen' });
       store.deleteBoard(joined.room.crew, name);
+      ack({ ok: true });
+      roomBroadcast(io, joined.room, 'lobby', lobbyState(joined.room));
+    });
+
+    // Editing a built-in level: persist the rearranged board + tuning for THIS
+    // codename so every future play of that level uses it. cfg:null reverts.
+    socket.on('save_override', ({ levelId, cfg } = {}, ack) => {
+      if (typeof ack !== 'function') ack = () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      if (!LEVELS.find((l) => l.id === levelId)) return ack({ error: 'Unknown level' });
+      if (cfg) {
+        const built = buildCustomLevel(cfg);
+        if (built.error) return ack({ error: built.error });
+      }
+      store.saveOverride(joined.room.crew, levelId, cfg || null);
       ack({ ok: true });
       roomBroadcast(io, joined.room, 'lobby', lobbyState(joined.room));
     });

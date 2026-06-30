@@ -119,11 +119,14 @@ function ensureCrewExtras(crew) {
   }
   if (!crew.settings) crew.settings = {};
   if (!crew.stats) crew.stats = { meals: 0, rounds: 0, earned: crew.wallet.coins };
-  if (!crew.boards) crew.boards = {}; // saved custom boards (name -> level config)
+  if (!crew.boards) crew.boards = {};       // saved custom boards (name -> level config)
+  if (!crew.overrides) crew.overrides = {}; // per-crew edits to built-in levels (levelId -> config)
   return crew;
 }
 
 // Persist a custom board under the crew's codename so it survives sessions.
+// Saved boards surface as their own playable levels (id "custom:<name>") with
+// independent star tracking, so editing one means re-saving under the same name.
 function saveBoard(crew, name, cfg) {
   ensureCrewExtras(crew);
   name = String(name || '').trim().slice(0, 40);
@@ -136,8 +139,26 @@ function saveBoard(crew, name, cfg) {
 
 function deleteBoard(crew, name) {
   ensureCrewExtras(crew);
-  if (crew.boards[name]) { delete crew.boards[name]; crews.save(); return true; }
+  if (crew.boards[name]) {
+    delete crew.boards[name];
+    delete crew.progress[`custom:${name}`]; // its star record goes with it
+    crews.save();
+    return true;
+  }
   return false;
+}
+
+// Per-crew edit of a built-in level: every future play of that level for this
+// codename uses the edited board + tuning, while keeping the level's own id
+// (and therefore its star record) intact. Passing a null cfg reverts to stock.
+function saveOverride(crew, levelId, cfg) {
+  ensureCrewExtras(crew);
+  levelId = String(levelId || '').slice(0, 48);
+  if (!levelId) return false;
+  if (cfg) crew.overrides[levelId] = cfg;
+  else delete crew.overrides[levelId];
+  crews.save();
+  return true;
 }
 
 function buyUpgrade(crew, id, cost) {
@@ -210,7 +231,7 @@ function restoreCrew(backup) {
 function mergeCrew(crew, backup) {
   if (!backup || typeof backup !== 'object') return;
   for (const [levelId, p] of Object.entries(backup.progress || {})) {
-    if (typeof levelId !== 'string' || levelId.length > 32 || !p) continue;
+    if (typeof levelId !== 'string' || levelId.length > 48 || !p) continue;
     const cur = crew.progress[levelId] || { stars: 0, bestScore: 0, plays: 0 };
     crew.progress[levelId] = {
       stars: Math.max(cur.stars, int(p.stars, 3)),
@@ -238,6 +259,22 @@ function mergeCrew(crew, backup) {
   }
   if (backup.settings && typeof backup.settings === 'object') {
     crew.settings.autoChop = !!backup.settings.autoChop || !!crew.settings.autoChop;
+  }
+  // Custom boards and built-in edits are part of a crew's identity — restore any
+  // the server lost, without clobbering ones it still has.
+  if (backup.boards && typeof backup.boards === 'object') {
+    for (const [name, cfg] of Object.entries(backup.boards)) {
+      if (!crew.boards[name] && cfg && typeof cfg === 'object'
+          && Object.keys(crew.boards).length < 50) crew.boards[name] = cfg;
+    }
+  }
+  if (backup.overrides && typeof backup.overrides === 'object') {
+    for (const [levelId, cfg] of Object.entries(backup.overrides)) {
+      if (!crew.overrides[levelId] && cfg && typeof cfg === 'object'
+          && typeof levelId === 'string' && levelId.length <= 48) {
+        crew.overrides[levelId] = cfg;
+      }
+    }
   }
   if (backup.stats && typeof backup.stats === 'object') {
     for (const k of ['meals', 'rounds', 'earned']) {
@@ -289,7 +326,7 @@ module.exports = {
   createCrew, getCrew, touchCrewMember, recordLevelResult,
   getPlayer, upsertPlayer, recordPlayerResult, flushAll,
   restoreCrew, mergeCrew, mergePlayerStats,
-  ensureCrewExtras, buyUpgrade, saveBoard, deleteBoard,
+  ensureCrewExtras, buyUpgrade, saveBoard, deleteBoard, saveOverride,
   ensureAdminCrew, ADMIN_CODE,
   logSongRequest, SONG_LOG_FILE,
 };
