@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Kitchen Sync — AI Lab 🧠</title>
+<meta name="description" content="A from-scratch neural network, a self-teaching reinforcement-learning chef, and an AI Director that predicts order-failure risk — live, in your browser." />
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#0e1530; --panel:#121a38; --panel2:#162043; --ink:#eaf0ff;
+    --muted:#9fb0d6; --line:rgba(150,180,255,.14);
+    --cyan:#38e1ff; --mag:#ff5cc8; --lime:#8dff9e; --amber:#ffd166; --red:#ff5a6e;
+    --grad:linear-gradient(120deg,var(--cyan),var(--mag));
+    --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(120% 90% at 20% -10%, #15224d 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font:15px/1.5 ui-rounded,'SF Pro Rounded',system-ui,Segoe UI,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased; padding:0 0 80px;
+  }
+  a{color:var(--cyan)}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px}
+  header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 2px 14px}
+  .logo{font-size:26px;font-weight:900;letter-spacing:.3px}
+  .logo .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tagline{color:var(--muted);font-size:13px;max-width:560px}
+  .spacer{flex:1}
+  .btn{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+    padding:9px 14px;border-radius:12px;font-weight:700;cursor:pointer;font-size:14px;transition:.15s}
+  .btn:hover{border-color:var(--cyan);transform:translateY(-1px)}
+  .btn.primary{background:var(--grad);color:#06121f;border:none}
+  .btn.ghost{background:transparent}
+  .btn.sm{padding:6px 10px;font-size:13px}
+  .tabs{display:flex;gap:8px;margin:6px 0 18px;flex-wrap:wrap}
+  .tab{padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel);
+    cursor:pointer;font-weight:800;color:var(--muted)}
+  .tab.active{color:var(--ink);border-color:transparent;background:var(--grad);color:#06121f}
+  .view{display:none} .view.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .grid{display:grid;gap:16px}
+  .panel{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+    border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .panel h2{margin:0 0 4px;font-size:16px} .panel h3{margin:0 0 8px;font-size:14px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.6px}
+  .panel p.sub{margin:0 0 12px;color:var(--muted);font-size:13px}
+  canvas{display:block;width:100%;border-radius:12px;background:#0a1024}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:92px}
+  .stat .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .stat .v{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+  .slider{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;margin:6px 0}
+  .slider label{font-size:13px;color:var(--ink)}
+  .slider .val{font-variant-numeric:tabular-nums;color:var(--cyan);font-weight:800;min-width:46px;text-align:right}
+  .slider input[type=range]{grid-column:1/3;width:100%;accent-color:var(--mag)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{background:transparent;border:0;color:var(--muted);padding:7px 12px;font-weight:800;cursor:pointer;font-size:13px}
+  .seg button.on{background:var(--grad);color:#06121f}
+  .gauge-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .gauge{position:relative;width:170px;height:170px;flex:0 0 auto}
+  .gauge .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .num b{font-size:40px;font-weight:900;line-height:1}
+  .gauge .num span{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-weight:800;font-size:13px}
+  .pill.ease{background:rgba(141,255,158,.15);color:var(--lime);border:1px solid rgba(141,255,158,.3)}
+  .pill.hold{background:rgba(255,209,102,.13);color:var(--amber);border:1px solid rgba(255,209,102,.3)}
+  .pill.press{background:rgba(255,90,110,.14);color:var(--red);border:1px solid rgba(255,90,110,.3)}
+  .bars{display:grid;gap:6px;margin-top:6px}
+  .bar{display:grid;grid-template-columns:120px 1fr 44px;gap:8px;align-items:center;font-size:13px}
+  .bar .track{height:12px;border-radius:6px;background:#0a1024;overflow:hidden;border:1px solid var(--line)}
+  .bar .fill{height:100%;background:var(--grad);width:0%}
+  .bar .pct{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  .hint{background:var(--panel2);border-left:3px solid var(--cyan);padding:10px 12px;border-radius:8px;margin-top:10px;font-weight:600}
+  .note{color:var(--muted);font-size:12px}
+  details.learn{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden}
+  details.learn>summary{cursor:pointer;padding:14px 16px;font-weight:800;list-style:none}
+  details.learn>summary::-webkit-details-marker{display:none}
+  details.learn>summary::before{content:'▸ ';color:var(--cyan)}
+  details.learn[open]>summary::before{content:'▾ '}
+  details.learn .body{padding:0 16px 16px;color:#d6e0ff}
+  details.learn .body code{background:#0a1024;padding:1px 6px;border-radius:6px;color:var(--cyan)}
+  .two{grid-template-columns:1fr 1fr}
+  .three{grid-template-columns:1.3fr 1fr 1fr}
+  @media(max-width:880px){.two,.three{grid-template-columns:1fr}}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:6px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+  .kbd{font:12px ui-monospace,monospace;background:#0a1024;border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+  .ribbon{background:linear-gradient(90deg,rgba(56,225,255,.12),rgba(255,92,200,.12));border:1px solid var(--line);
+    border-radius:12px;padding:10px 14px;color:#dfe8ff;font-size:13px;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="logo">🧠 Kitchen Sync · <span class="g">AI Lab</span></div>
+      <div class="tagline">A neural network built from scratch — no libraries. Watch a chef <b>teach itself to cook</b> with reinforcement learning, then meet an <b>AI Director</b> that predicts order-failure risk and calls the next best move.</div>
+    </div>
+    <div class="spacer"></div>
+    <a class="btn ghost" href="/">‹ Back to the game</a>
+  </header>
+
+  <div class="ribbon">💡 Everything here runs in <b>your browser</b> on a hand-written neural net. Nothing is pre-baked — press <b>Train</b> and watch the numbers learn in real time. New here? Start on the <b>Learn</b> tab.</div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-view="dojo">🤖 Self-Taught Chef (RL)</div>
+    <div class="tab" data-view="director">🎛️ AI Director</div>
+    <div class="tab" data-view="learn">📚 Learn</div>
+  </div>
+
+  <!-- ============================ RL DOJO ============================ -->
+  <section class="view active" id="view-dojo">
+    <div class="grid three">
+      <div class="panel">
+        <h3>The kitchen</h3>
+        <canvas id="envCanvas" height="320"></canvas>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="rlTrain">▶ Train</button>
+          <div class="seg" id="rlSpeed">
+            <button data-spd="1" class="on">Watch</button>
+            <button data-spd="40">Fast</button>
+            <button data-spd="500">Turbo</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <span class="note">Kitchen:</span>
+          <div class="seg" id="rlLayout">
+            <button data-lay="cozy" class="on">Cozy</button>
+            <button data-lay="galley">Galley</button>
+            <button data-lay="island">Island</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn sm" id="rlReset">↺ New brain</button>
+          <button class="btn sm" id="rlSave">💾 Save</button>
+          <button class="btn sm" id="rlLoad">📂 Load</button>
+        </div>
+        <p class="note" style="margin-top:10px">Green=crate · Blue=board · Gold=serve · Pink=sink. The chef sees only numbers — it learns where everything is from reward alone.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Learning progress</h3>
+        <div class="row">
+          <div class="stat"><div class="k">Episodes</div><div class="v" id="rlEp">0</div></div>
+          <div class="stat"><div class="k">Served / ep</div><div class="v" id="rlServed">0.0</div></div>
+          <div class="stat"><div class="k">Explore ε</div><div class="v" id="rlEps">1.00</div></div>
+        </div>
+        <canvas id="rewardCanvas" height="150" style="margin-top:10px"></canvas>
+        <p class="note">Average reward per episode. It starts near zero (random flailing) and climbs as the brain figures out the cook→serve loop.</p>
+        <h3 style="margin-top:14px">Q-values (what it wants to do now)</h3>
+        <div class="bars" id="qbars"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Shape your chef <span class="note">(reward design)</span></h3>
+        <p class="sub">These are the rewards the chef chases. Re-weight them and it re-learns a different personality — exactly how you'd hand a future AI teammate a role.</p>
+        <div id="rlSliders"></div>
+        <button class="btn sm" id="rlApply" style="margin-top:8px">Apply &amp; keep learning</button>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h3>🧠 The brain, live</h3>
+      <p class="sub">The actual neural network choosing the move above. Left = what it senses, right = the value it gives each action. Brighter node = more active; line colour = a weight (<span style="color:var(--cyan)">＋</span> / <span style="color:var(--mag)">－</span>).</p>
+      <canvas id="brainCanvas" height="260"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--cyan)"></span>positive weight</span>
+        <span><span class="dot" style="background:var(--mag)"></span>negative weight</span>
+        <span><span class="dot" style="background:#fff"></span>neuron activation</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ DIRECTOR ============================ -->
+  <section class="view" id="view-director">
+    <div class="grid two">
+      <div class="panel">
+        <h3>Live kitchen telemetry</h3>
+        <p class="sub">Every variable the Director watches. Drag them to describe a moment of play and the neural nets react instantly.</p>
+        <div id="dirSliders"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Director read-out</h3>
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <canvas id="gaugeCanvas" width="170" height="170"></canvas>
+            <div class="num"><b id="riskNum">–</b><span>failure risk</span></div>
+          </div>
+          <div style="flex:1;min-width:160px">
+            <div class="note">Next best action</div>
+            <div style="font-size:20px;font-weight:900" id="nextAct">—</div>
+            <div class="hint" id="dirHint">Train the Director to begin.</div>
+            <div style="margin-top:10px"><span class="pill hold" id="diffPill">—</span></div>
+            <div class="note" id="diffNote" style="margin-top:6px"></div>
+          </div>
+        </div>
+        <h3 style="margin-top:16px">Action probabilities</h3>
+        <div class="bars" id="actBars"></div>
+      </div>
+    </div>
+
+    <div class="grid three" style="margin-top:16px">
+      <div class="panel">
+        <h3>Train the Director</h3>
+        <p class="sub">Two nets learn from a simulated kitchen: one predicts failure (cross-entropy), one imitates a strong player's next move (behaviour cloning).</p>
+        <div class="row">
+          <button class="btn primary" id="dirTrain">▶ Train Director</button>
+          <button class="btn sm" id="dirReset">↺ Reset</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div class="stat"><div class="k">Epoch</div><div class="v" id="dEpoch">0</div></div>
+          <div class="stat"><div class="k">AUC</div><div class="v" id="dAuc">–</div></div>
+          <div class="stat"><div class="k">Accuracy</div><div class="v" id="dAcc">–</div></div>
+        </div>
+        <canvas id="dirLossCanvas" height="120" style="margin-top:10px"></canvas>
+        <p class="note">Loss falling = the failure-net getting sharper. AUC→1.0 means it ranks risky orders almost perfectly.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Is it trustworthy? (calibration)</h3>
+        <p class="sub">When it says "70% risk", do 70% really fail? Dots on the diagonal = honest probabilities.</p>
+        <canvas id="calibCanvas" height="200"></canvas>
+        <div class="row" style="margin-top:8px"><div class="stat"><div class="k">Brier score</div><div class="v" id="dBrier">–</div></div><span class="note">lower is better (0 = perfect)</span></div>
+      </div>
+
+      <div class="panel">
+        <h3>What's driving the risk? (explainability)</h3>
+        <p class="sub">Nudge each variable and measure how much the risk moves — the net's own sense of what matters right now.</p>
+        <div class="bars" id="importBars"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ LEARN ============================ -->
+  <section class="view" id="view-learn">
+    <div class="panel" style="margin-bottom:14px">
+      <h2>How this works — a 5-minute tour of ML</h2>
+      <p class="sub">No maths degree required. Everything below is running for real on the other two tabs.</p>
+    </div>
+    <div id="learnAccordion"></div>
+  </section>
+</div>
+
+<script src="js/ai/nn.js"></script>
+<script src="js/ai/kitchenEnv.js"></script>
+<script src="js/ai/dqn.js"></script>
+<script src="js/ai/director.js"></script>
+<script src="js/ai/lab.js"></script>
+</body>
+</html>
