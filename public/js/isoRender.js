@@ -107,11 +107,21 @@
     icing_dispenser:'icing_dispenser_plain',
     garnish_counter:'garnish_counter_plain',
     plate_stack:'plate_stack_plain',
+    plate_stack_clean_0:'plate_stack_clean_0_plain',
+    plate_stack_clean_1:'plate_stack_clean_1_plain',
+    plate_stack_clean_2:'plate_stack_clean_2_plain',
+    plate_stack_clean_3:'plate_stack_clean_3_plain',
+    plate_stack_clean_4:'plate_stack_clean_4_plain',
     serve_window:'serve_window_plain',
     serve_window_active:'serve_window_active_plain',
     trash:'trash_plain',
     sink:'sink_plain',
     sink_dirty:'sink_dirty_plain',
+    sink_dirty_0:'sink_dirty_0_plain',
+    sink_dirty_1:'sink_dirty_1_plain',
+    sink_dirty_2:'sink_dirty_2_plain',
+    sink_dirty_3:'sink_dirty_3_plain',
+    sink_dirty_4:'sink_dirty_4_plain',
   };
 
   // Cake World ambient decor (drawn by pushCakeDecor when level.decor==='cake').
@@ -989,9 +999,12 @@
       return GFX.has(variant) ? variant : key;
     }
 
+    isCakeWorld() {
+      return this.lvl.decor === 'cake' || this.lvl.levelId === 'cake-sweet-beginnings';
+    }
+
     stationArtKey(key) {
-      const cakeWorld = this.lvl.decor === 'cake' || this.lvl.levelId === 'cake-sweet-beginnings';
-      if (cakeWorld) return key;
+      if (this.isCakeWorld()) return key;
       const plain = PLAIN_STATION_KEY[key];
       return plain && GFX.has(plain) ? plain : key;
     }
@@ -1033,6 +1046,19 @@
       // Cake World: the mixing bowl shows its "full" art while it holds
       // ingredients/batter (filling, mixing, or done).
       if (c==='M' && s && s.contents && s.contents.length) key='mixing_bowl_full';
+
+      if (!this.isCakeWorld()) {
+        if (c==='P' && this.cur && this.cur.plates!==undefined) {
+          const supply = this.cur.plates;
+          const clean = supply===null ? 4 : Math.max(0, Math.min(4, Math.floor(supply || 0)));
+          key = `plate_stack_clean_${clean}`;
+        }
+        if (c==='K' && s && s.dirty!==undefined) {
+          const dirty = Math.max(0, Math.min(4, Math.floor(s.dirty || 0)));
+          key = `sink_dirty_${dirty}`;
+        }
+      }
+
       const stateKey = key;
       key = this.faceKey(this.stationArtKey(key), gx, gy);
       let rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, isoFixFor(key));
@@ -1064,7 +1090,7 @@
       }
       if (s.dirty!==undefined) {
         // The dirty-sink render already shows piled plates; don't double up.
-        if (stateKey !== 'sink_dirty') {
+        if (stateKey !== 'sink_dirty' && !/^sink_dirty_\d$/.test(stateKey)) {
           const n=Math.min(s.dirty,3);
           for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,30,30);
         }
