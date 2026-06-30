@@ -244,11 +244,21 @@
     icing_dispenser_plain:       { path: HD + 'ks-hd-icing-dispenser-station.png', scale: 1.10 },
     garnish_counter_plain:       { path: HD + 'ks-hd-garnish-counter-station.png', scale: 1.10 },
     plate_stack_plain:           { path: HD + 'ks-hd-plate-stack-station.png', scale: 1.02 },
+    plate_stack_clean_0_plain:   { path: HD + 'ks-hd-dish-rack-clean-0.png', scale: 1.02 },
+    plate_stack_clean_1_plain:   { path: HD + 'ks-hd-dish-rack-clean-1.png', scale: 1.02 },
+    plate_stack_clean_2_plain:   { path: HD + 'ks-hd-dish-rack-clean-2.png', scale: 1.02 },
+    plate_stack_clean_3_plain:   { path: HD + 'ks-hd-dish-rack-clean-3.png', scale: 1.02 },
+    plate_stack_clean_4_plain:   { path: HD + 'ks-hd-dish-rack-clean-4.png', scale: 1.02 },
     serve_window_plain:          { path: HD + 'ks-serve-window.png', scale: 1.22 },
     serve_window_active_plain:   { path: HD + 'ks-hd-serve-window-active.png', scale: 1.22 },
     trash_plain:                 { path: HD + 'ks-trash-can.png', scale: 0.92 },
     sink_plain:                  { path: HD + 'ks-sink.png', scale: 1.10 },
     sink_dirty_plain:            { path: HD + 'ks-sink-dirty.png', scale: 1.10 },
+    sink_dirty_0_plain:          { path: HD + 'ks-hd-sink-dirty-0.png', scale: 1.10 },
+    sink_dirty_1_plain:          { path: HD + 'ks-hd-sink-dirty-1.png', scale: 1.10 },
+    sink_dirty_2_plain:          { path: HD + 'ks-hd-sink-dirty-2.png', scale: 1.10 },
+    sink_dirty_3_plain:          { path: HD + 'ks-hd-sink-dirty-3.png', scale: 1.10 },
+    sink_dirty_4_plain:          { path: HD + 'ks-hd-sink-dirty-4.png', scale: 1.10 },
 
     // ── Ingredient crates ────────────────────────────────────────────────────
     // Front-facing HD crates where they exist; everything else gets the
