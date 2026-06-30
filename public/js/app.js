@@ -1283,13 +1283,23 @@
   // pick which image that is; the builder previews the choice live, and the
   // real game applies it on start. `null` / unknown → DEFAULT_WALLPAPER.
   const WALLPAPERS = [
-    { id: 'wood',    name: '🍪 Wood Board',   url: 'assets/images/cake-world/ks-game-board-wood-v2.png' },
-    { id: 'wood1',   name: '🪵 Classic Wood', url: 'assets/images/cake-world/ks-game-board-wood-v1.png' },
-    { id: 'cake',    name: '🎂 Cake Shop',    url: 'assets/images/cake-world/ks-cake-background1.png' },
+    { id: 'wood',    name: '🍪 Wood Board',   url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v2.png' },
+    { id: 'wood1',   name: '🪵 Classic Wood', url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v1.png' },
+    { id: 'cake',    name: '🎂 Cake Shop',    url: 'assets/images/cake-world/backgrounds/ks-cake-background1.png' },
     { id: 'diner',   name: '🍔 Diner',        url: 'assets/images/hd/ks-wall-diner.png' },
     { id: 'winter',  name: '❄️ Winter',       url: 'assets/images/hd/ks-wall-winter.png' },
     { id: 'beach',   name: '🏖️ Beach',        url: 'assets/images/hd/ks-wall-beach.png' },
     { id: 'bakery',  name: '🧁 Bakery',       url: 'assets/images/hd/ks-wall-bakery-back.png' },
+    // TV-kitchen & themed scenes — full-room backdrops (3048×1408, wall + floor)
+    { id: 'brady',         name: '📺 Brady Bunch',    url: 'assets/images/hd/ks-wall-diner-brady-bunch-kitchen-floor70-v1.png' },
+    { id: 'cheers',        name: '🍺 Cheers Bar',     url: 'assets/images/hd/ks-wall-diner-cheers-bar-floor70-v1.png' },
+    { id: 'goldengirls',   name: '🌴 Golden Girls',   url: 'assets/images/hd/ks-wall-diner-golden-girls-kitchen-floor70-v1.png' },
+    { id: 'lucy',          name: '❤️ I Love Lucy',    url: 'assets/images/hd/ks-wall-diner-i-love-lucy-kitchen-floor70-v1.png' },
+    { id: 'seinfeld',      name: '🗽 Seinfeld',       url: 'assets/images/hd/ks-wall-diner-seinfeld-apartment-floor70-v1.png' },
+    { id: 'wonka',         name: '🍫 Willy Wonka',    url: 'assets/images/hd/ks-wall-diner-willy-wonka-chocolate-room-floor70-v1.png' },
+    { id: 'oz',            name: '🌈 Oz Technicolor', url: 'assets/images/hd/ks-wall-diner-oz-technicolor-floor70-v1.png' },
+    { id: 'mediterranean', name: '🏺 Mediterranean',  url: 'assets/images/hd/ks-wall-diner-mediterranean-market-floor70-v1.png' },
+    { id: 'sage',          name: '🌿 Warm Sage',      url: 'assets/images/hd/ks-wall-diner-warm-sage-v1.png' },
   ];
   const DEFAULT_WALLPAPER = 'wood';
   const WALLPAPER_BY_ID = Object.fromEntries(WALLPAPERS.map((w) => [w.id, w]));
