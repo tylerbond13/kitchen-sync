@@ -2,7 +2,7 @@
 // character. Most clips are just "funny" (greetings, character select); the
 // rude/exasperated ones are reserved for screw-ups — burning food, missing an
 // order, or a rejected hand-off — so messing up earns a clip yelling at you.
-// Clips live in public/assets/audio/soundboard-clips/ and are listed (flat) in
+// Clips live in public/assets/audio/soundboard-clips/ and are listed in
 // that folder's manifest.json (regenerate with `npm run voices`). No clips? Every
 // call below is a graceful no-op, so nothing breaks.
 (function () {
@@ -12,7 +12,7 @@
   let lastAt = 0;
 
   // Mood tags. A clip not named here lands in the general "funny" pool (used for
-  // character select and as a fallback). Re-tag a clip by moving its filename;
+  // character select and as a fallback). Re-tag a clip by adding its filename;
   // brand-new clips keep working as general clips until you sort them.
   const ANGRY = [           // exasperated / insulting / panic — played on screw-ups
     'dirt-bag.mp3',
@@ -44,13 +44,16 @@
   // Pools are filtered against the manifest at load, so a clip only ever plays
   // if its file actually shipped. `funny` = everything not tagged above.
   const pools = { all: [], angry: [], happy: [], funny: [] };
+  function fileName(clipPath) {
+    return String(clipPath || '').split('/').pop();
+  }
   function buildPools(list) {
-    const has = (f) => list.includes(f);
+    const pathFor = (f) => list.find((clipPath) => fileName(clipPath) === f);
     pools.all = list.slice();
-    pools.angry = ANGRY.filter(has);
-    pools.happy = HAPPY.filter(has);
+    pools.angry = ANGRY.map(pathFor).filter(Boolean);
+    pools.happy = HAPPY.map(pathFor).filter(Boolean);
     const tagged = new Set([...ANGRY, ...HAPPY]);
-    pools.funny = list.filter((f) => !tagged.has(f));
+    pools.funny = list.filter((clipPath) => !tagged.has(fileName(clipPath)));
   }
 
   fetch('/' + BASE + 'manifest.json')
@@ -83,7 +86,7 @@
     try {
       const a = channel();
       a.pause();
-      a.src = '/' + BASE + encodeURIComponent(name);   // names may have spaces/()
+      a.src = '/' + BASE + name.split('/').map(encodeURIComponent).join('/');
       a.currentTime = 0;
       a.volume = 0.95;
       a.play().catch(() => {});
