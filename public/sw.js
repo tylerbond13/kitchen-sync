@@ -1,5 +1,5 @@
 // Kitchen Sync service worker: cache the static shell, never touch the socket.
-const CACHE = 'kitchen-sync-v11';
+const CACHE = 'kitchen-sync-v12';
 const SHELL = [
   '/',
   '/index.html',

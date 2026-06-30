@@ -915,6 +915,8 @@ class Game {
       grid: this.level.layout,
       crates: this.level.crates,
       facings: this.level.facings || null,   // explicit per-tile facing (builder)
+      charScale: this.level.charScale,       // character sprite size (builder; default 2×)
+      wallpaper: this.level.wallpaper || null, // board background image (builder)
       duration: this.level.duration,
       starThresholds: this.starGoals,
       autoChopAllowed: this.autoChopAllowed,
