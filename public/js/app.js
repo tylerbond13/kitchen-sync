@@ -1059,6 +1059,12 @@
 
     renderOrders(state.orders);
 
+    // AI Director HUD (advisory overlay, off by default). Guarded so it can
+    // never affect the game loop — see public/js/ai/director-hud.js.
+    if (window.DirectorHUD && window.DirectorHUD.enabled) {
+      try { window.DirectorHUD.update(state, renderer, profile.id, curStatic); } catch (e) {}
+    }
+
     for (const ev of state.events) {
       playEventSound(ev);
       if (ev.type === 'reject' && ev.playerId === profile.id) {
