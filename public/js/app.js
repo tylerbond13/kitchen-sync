@@ -712,9 +712,38 @@
         const edit = document.createElement('button');
         edit.className = 'level-edit';
         edit.textContent = '✏️';
-        edit.title = 'Rearrange this board before playing';
-        edit.onclick = (e) => { e.stopPropagation(); openBuilder({ from: 'lobby', levelId: lvl.id, title: `✏️ ${lvl.name}` }); };
+        edit.title = lvl.custom ? 'Edit this kitchen' : 'Rearrange this board for your crew';
+        edit.onclick = (e) => {
+          e.stopPropagation();
+          openBuilder({ from: 'lobby', levelId: lvl.id, custom: !!lvl.custom, title: `✏️ ${lvl.name}` });
+        };
         row.appendChild(edit);
+        // A crew can delete its own custom kitchens, or revert an edited
+        // built-in board to the original.
+        if (lvl.custom) {
+          const del = document.createElement('button');
+          del.className = 'level-edit level-del';
+          del.textContent = '🗑️';
+          del.title = 'Delete this kitchen';
+          del.onclick = (e) => {
+            e.stopPropagation();
+            if (!confirm(`Delete "${lvl.name}"? Its stars go too.`)) return;
+            SFX.tap();
+            socket.emit('delete_board', lvl.id.slice('custom:'.length), () => {});
+          };
+          row.appendChild(del);
+        } else if (lvl.edited) {
+          const reset = document.createElement('button');
+          reset.className = 'level-edit level-reset';
+          reset.textContent = '↺';
+          reset.title = 'Reset to the original board';
+          reset.onclick = (e) => {
+            e.stopPropagation();
+            SFX.tap();
+            socket.emit('save_override', { levelId: lvl.id, cfg: null }, () => {});
+          };
+          row.appendChild(reset);
+        }
       }
       $('level-list').appendChild(row);
     }
@@ -997,6 +1026,12 @@
       playEventSound(ev);
       if (ev.type === 'reject' && ev.playerId === profile.id) {
         if (navigator.vibrate) navigator.vibrate(60);
+        if (window.KSVoices) KSVoices.playFail();   // bad hand-off → someone yells
+      }
+      // Screw-ups earn an exasperated clip: a burned dish or an order that
+      // timed out. (burn/expire are crew-wide, so everyone hears the heckle.)
+      if ((ev.type === 'burn' || ev.type === 'expire') && window.KSVoices) {
+        KSVoices.playFail();
       }
       if (ev.type === 'serve') {
         renderer.spawnServeJuice(ev.x, ev.y, ev.points, ev.vip);
@@ -1123,6 +1158,11 @@
     ticketEls.clear();
     show('results');
     SFX.over();
+    // A spoken sign-off: a pleased line for a decent service, a heckle for a
+    // flop. Delayed a touch so it lands after the round-over sting.
+    if (window.KSVoices) {
+      setTimeout(() => { results.stars >= 2 ? KSVoices.playDelivery() : KSVoices.playFail(); }, 450);
+    }
 
     $('results-title').textContent = results.stars === 3 ? 'Perfection! 👑'
       : results.stars === 2 ? 'Great service!'
@@ -1231,7 +1271,9 @@
   // ---------- Level Builder (admin / pre-level board editing) ----------
   let catalog = null;
   let builderReturn = 'lobby';
-  const editor = { grid: [], brush: '#', ing: 'lettuce', dir: 'straight', recipes: new Set(), avatars: new Set() };
+  // target tracks what a Save writes to: a named custom level, an edit-override
+  // of a built-in level, or a brand-new build (named on save).
+  const editor = { grid: [], brush: '#', ing: 'lettuce', dir: 'straight', recipes: new Set(), avatars: new Set(), target: { kind: 'new' } };
 
   const PALETTE = [
     { t: '.', emoji: '⬜', label: 'Floor',   cls: 'floor' },
@@ -1279,10 +1321,11 @@
   function renderPresets() {
     const wrap = $('builder-presets'); wrap.innerHTML = '';
     const mk = (label, fn) => { const b = document.createElement('button'); b.className = 'preset-btn'; b.textContent = label; b.onclick = fn; wrap.appendChild(b); };
-    mk('⬜ Empty 7×6', () => { loadBoard(['.......', '.......', '.......', '.......', '.......', '...W...'], {}); renderGrid(); SFX.tap(); });
+    mk('⬜ Empty 7×6', () => { loadBoard(['.......', '.......', '.......', '.......', '.......', '...W...'], {}); editor.target = { kind: 'new' }; renderGrid(); SFX.tap(); });
     for (const p of (catalog.presets || [])) {
       mk(`${p.emoji || '🍳'} ${p.name}`, () => {
         loadBoard(p.layout, p.crates);
+        editor.target = { kind: 'new' }; // a preset is a starting point for a new build
         editor.recipes = new Set(p.recipes || []);
         if (p.duration) $('sl-duration').value = p.duration;
         if (Array.isArray(p.stars)) { $('st-1').value = p.stars[0]; $('st-2').value = p.stars[1]; $('st-3').value = p.stars[2]; }
@@ -1303,7 +1346,10 @@
         b.innerHTML = `${escapeHtml(name)} <span class="preset-del" title="Delete">×</span>`;
         b.onclick = (e) => {
           if (e.target.classList.contains('preset-del')) { socket.emit('delete_board', name, () => {}); return; }
-          loadConfig(saved[name]); SFX.tap();
+          loadConfig(saved[name]);
+          editor.target = { kind: 'custom', name }; // saving overwrites this board
+          $('board-name').value = name;
+          SFX.tap();
         };
         wrap.appendChild(b);
       }
@@ -1481,17 +1527,40 @@
   async function openBuilder(opts = {}) {
     await ensureCatalog();
     builderReturn = opts.from || 'lobby';
-    let preset = opts.preset;
-    if (!preset && opts.levelId) preset = (catalog.presets || []).find((p) => p.id === opts.levelId);
-    loadBoard(preset ? preset.layout : DEFAULT_LAYOUT, preset ? preset.crates : DEFAULT_CRATES);
-    editor.recipes = new Set(preset ? (preset.recipes || ['salad']) : ['salad', 'big_salad']);
-    editor.avatars = new Set((window.KSRender && KSRender.CUSTOMER_KEYS) || []);
     editor.brush = '#';
     editor.dir = 'straight';
     editor.ing = ((catalog.ingredients || [])[0] || { id: 'lettuce' }).id;
+
+    // Figure out what we're editing and grab any previously-saved config for it.
+    let savedCfg = null;
+    if (opts.levelId && opts.custom) {                       // a saved custom level
+      const name = opts.levelId.slice('custom:'.length);
+      editor.target = { kind: 'custom', name };
+      savedCfg = lobby && lobby.boards && lobby.boards[name];
+      $('board-name').value = name;
+    } else if (opts.levelId) {                               // a built-in level
+      editor.target = { kind: 'override', levelId: opts.levelId };
+      savedCfg = lobby && lobby.overrides && lobby.overrides[opts.levelId];
+      $('board-name').value = '';
+    } else {                                                 // a brand-new build
+      editor.target = { kind: 'new' };
+      $('board-name').value = '';
+    }
+
+    if (savedCfg) {
+      loadConfig(savedCfg); // crew's saved board + tuning for this level
+    } else {
+      // start from the built-in board (preset) or the default starter board
+      let preset = opts.preset;
+      if (!preset && opts.levelId) preset = (catalog.presets || []).find((p) => p.id === opts.levelId);
+      loadBoard(preset ? preset.layout : DEFAULT_LAYOUT, preset ? preset.crates : DEFAULT_CRATES);
+      editor.recipes = new Set(preset ? (preset.recipes || ['salad']) : ['salad', 'big_salad']);
+      editor.avatars = new Set((window.KSRender && KSRender.CUSTOMER_KEYS) || []);
+      if (preset && preset.duration) $('sl-duration').value = preset.duration;
+      if (preset && Array.isArray(preset.stars)) { $('st-1').value = preset.stars[0]; $('st-2').value = preset.stars[1]; $('st-3').value = preset.stars[2]; }
+    }
+
     $('builder-cratepick').hidden = true;
-    if (preset && preset.duration) $('sl-duration').value = preset.duration;
-    if (preset && Array.isArray(preset.stars)) { $('st-1').value = preset.stars[0]; $('st-2').value = preset.stars[1]; $('st-3').value = preset.stars[2]; }
     $('builder-title').textContent = opts.title || '🛠️ Level Builder';
     renderPresets(); renderPalette(); renderCratePick(); renderFacing(); renderGrid(); renderRecipes(); renderAvatars(); syncOutputs();
     show('builder');
@@ -1537,14 +1606,28 @@
     socket.emit('start_custom', boardConfig(), (res) => { if (res && res.error) toast(res.error); });
   }
   function saveCurrentBoard() {
-    const name = ($('board-name').value || '').trim();
-    if (!name) return toast('Name your board first.');
     if (!editor.recipes.size) return toast('Pick at least one recipe.');
+    const target = editor.target || { kind: 'new' };
+    // Editing a built-in level writes a per-crew override — no name needed; the
+    // level keeps its own slot and star record but uses your board from now on.
+    if (target.kind === 'override') {
+      SFX.tap();
+      socket.emit('save_override', { levelId: target.levelId, cfg: boardConfig() }, (res) => {
+        if (res && res.error) return toast(res.error);
+        toast('Saved — this level now uses your layout 💾');
+        show(builderReturn);
+      });
+      return;
+    }
+    // New build or editing a custom level: save under a name. It appears (or
+    // updates) at the bottom of the level selector.
+    const name = ($('board-name').value || '').trim();
+    if (!name) return toast('Name your kitchen first.');
     SFX.tap();
     socket.emit('save_board', { name, cfg: boardConfig() }, (res) => {
       if (res && res.error) return toast(res.error);
       toast(`Saved "${name}" 💾`);
-      $('board-name').value = '';
+      editor.target = { kind: 'custom', name }; // further saves overwrite it
     });
   }
   if ($('builder-back')) {

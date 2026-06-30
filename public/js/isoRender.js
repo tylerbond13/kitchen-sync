@@ -492,6 +492,15 @@
       for (const hit of hits) {
         if (wx < hit.x || wx > hit.x + hit.w ||
             wy < hit.y || wy > hit.y + hit.h) continue;
+        // A tall sprite (stove, oven, a counter with a plate on it) is drawn far
+        // above its tile, so its bounding rect overhangs the open floor in FRONT
+        // of it. Only let a sprite claim a tap that lands within its own one-tile
+        // footprint (the bottom band of the rect); taps on the upper overhang
+        // fall through to the floor below. This stops a chef sprinting down a
+        // one-wide lane from "tapping" the counters they pass — which used to
+        // drop or grab items as you ran by. To interact, tap the station's base.
+        const baseY = hit.y + hit.h;
+        if (wy < baseY - TILE_HEIGHT) continue;
         const u = (wx - hit.x) / hit.w, v = (wy - hit.y) / hit.h;
         if (GFX.alphaAt(hit.key, u, v)) return [hit.gx, hit.gy];
       }
