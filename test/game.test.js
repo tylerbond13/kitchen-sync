@@ -570,11 +570,40 @@ test('dishwashing loop: finite plates, dirty returns, washing restores supply', 
   assert.equal(sink.dirty, 1, 'dirty plate arrived at the sink');
   assert.equal(game.plateSupply, 0, 'still no clean plates');
 
-  // stand at the sink and scrub: supply comes back
+  // standing at the sink no longer auto-washes — you must tap to scrub
   standAt(game, p, sinkKey);
+  for (let i = 0; i < 30; i++) game.tick(0.1);
+  assert.equal(sink.dirty, 1, 'standing idle no longer washes');
+  assert.equal(game.plateSupply, 0);
+
+  // tap the sink to scrub one dish: supply comes back after the wash time
+  game.interact(p, sinkKey);
   for (let i = 0; i < 30; i++) game.tick(0.1); // > 2.5s wash
   assert.equal(sink.dirty, 0);
   assert.equal(game.plateSupply, 1, 'washed plate rejoined the stack');
+});
+
+test('sink washes one dish per tap — no auto-locking into the whole pile', () => {
+  const game = makeGame('burger-bay');
+  const p = game.players.p1;
+  const sinkKey = stationKey(game, 'sink');
+  const sink = game.stations[sinkKey];
+  sink.dirty = 3;
+  game.plateSupply = 0;
+  standAt(game, p, sinkKey);
+
+  // one tap scrubs exactly one dish, then stops
+  game.interact(p, sinkKey);
+  for (let i = 0; i < 60; i++) game.tick(0.1); // well past a single wash
+  assert.equal(sink.dirty, 2, 'one tap = one dish');
+  assert.equal(game.plateSupply, 1);
+  assert.equal(sink.washing, false, 'washing stops until the next tap');
+
+  // a second tap is required for the next dish
+  game.interact(p, sinkKey);
+  for (let i = 0; i < 60; i++) game.tick(0.1);
+  assert.equal(sink.dirty, 1, 'second tap = second dish');
+  assert.equal(game.plateSupply, 2);
 });
 
 test('levels without a sink keep infinite plates', () => {

@@ -1007,13 +1007,11 @@
           const n=Math.min(s.dirty,3);
           for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,30,30);
         }
-        if (s.dirty>0) {
-          this.glyph('🫧',sx+13,topY-14,12);
-          ctx.font='800 10px ui-rounded,system-ui';
-          ctx.textAlign='center'; ctx.fillStyle='#FF4070';
-          ctx.fillText(String(s.dirty),sx-17,topY-13);
-        }
+        if (s.dirty>0) this.glyph('🫧',sx+13,topY-14,12);
         if (s.progress>0) this.bar(sx, topY - 28, s.progress, '#5BADDE','#A8D8F8');
+        // Always show how many dirty dishes are waiting (0 when empty), above
+        // the wash bar — mirrors the clean-plate count on the dish rack.
+        this.countBadge(sx+20, topY-46, s.dirty, s.dirty>0, '#3E9BD6');
       }
       if (s.contents) {
         const n=s.contents.length;
@@ -1034,17 +1032,8 @@
       if (c==='P' && this.cur.plates!==undefined) {
         const supply=this.cur.plates;
         const label=supply===null?'∞':String(supply);
-        const empty=supply===0;
-        const bw=Math.max(18, 12 + label.length*7), bh=17;
-        const bx=sx+20-bw/2, by=topY-28;
-        ctx.fillStyle=empty?'#FF4070':'rgba(255,255,255,0.94)';
-        this.rrC(ctx,bx,by,bw,bh,bh/2); ctx.fill();
-        ctx.strokeStyle=empty?'rgba(130,20,55,0.45)':'rgba(45,22,52,0.22)';
-        ctx.lineWidth=1.3; this.rrC(ctx,bx,by,bw,bh,bh/2); ctx.stroke();
-        ctx.font='900 11px ui-rounded,system-ui';
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillStyle=empty?'#fff':'rgba(45,22,52,0.9)';
-        ctx.fillText(label,sx+20,by+bh/2+0.5);
+        // Clean-plate count on the dish rack (red when the stack is empty).
+        this.countBadge(sx+20, topY-28, label, supply===0, '#FF4070');
       }
     }
 
@@ -1257,6 +1246,20 @@
       ctx.fillStyle=bg; this.rrC(ctx,x0,y0,fw,h,h/2); ctx.fill();
       ctx.fillStyle='rgba(255,255,255,0.38)';
       this.rrC(ctx,x0+h*0.3,y0+h*0.15,fw-h*0.6,h*0.45,h*0.2); ctx.fill();
+    }
+    // Number pill centred at (cx, topY) — clean-plate supply on the rack, dirty
+    // count on the sink. `accent` tints it (red rack = empty, blue sink = dirty).
+    countBadge(cx, topY, label, accent, accentColor) {
+      const {ctx}=this; label=String(label);
+      const bw=Math.max(18, 12 + label.length*7), bh=17, bx=cx-bw/2, by=topY;
+      ctx.fillStyle = accent ? (accentColor||'#FF4070') : 'rgba(255,255,255,0.94)';
+      this.rrC(ctx,bx,by,bw,bh,bh/2); ctx.fill();
+      ctx.strokeStyle='rgba(45,22,52,0.30)'; ctx.lineWidth=1.3;
+      this.rrC(ctx,bx,by,bw,bh,bh/2); ctx.stroke();
+      ctx.font='900 11px ui-rounded,system-ui';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle = accent ? '#fff' : 'rgba(45,22,52,0.9)';
+      ctx.fillText(label, cx, by+bh/2+0.5);
     }
 
     // ── Canvas helpers ────────────────────────────────────────────────────────

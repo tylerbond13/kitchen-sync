@@ -165,7 +165,9 @@ class Game {
         } else if (c === TILE.TRASH) {
           this.stations[key] = { type: 'trash' };
         } else if (c === TILE.SINK) {
-          this.stations[key] = { type: 'sink', dirty: 0, progress: 0 };
+          // `washing` = a chef has tapped to scrub the current dish. Cleared
+          // when that one dish finishes, so each dish needs its own tap.
+          this.stations[key] = { type: 'sink', dirty: 0, progress: 0, washing: false };
         } else if (c === TILE.ICING) {
           // Cake World icing dispenser: stamps its current colour onto a baked
           // cake. Colour is fixed per level for now (a remote colour button is a
@@ -265,7 +267,9 @@ class Game {
     if (p.path.length) return false;
     const px = Math.floor(p.x), py = Math.floor(p.y);
     return Object.entries(this.stations).some(([key, s]) => {
-      const busySink = s.type === 'sink' && s.dirty > 0;
+      // Only locked mid-scrub (a tapped, in-progress dish) — once it finishes,
+      // the chef is free to move / run queued actions without re-tapping away.
+      const busySink = s.type === 'sink' && s.washing && s.dirty > 0;
       if (!busySink) return false;
       const [sx, sy] = key.split(',').map(Number);
       return Math.abs(px - sx) + Math.abs(py - sy) === 1;
@@ -556,7 +560,15 @@ class Game {
         break;
       }
       case 'sink': {
-        this.emit(s.dirty > 0 ? 'go' : 'reject', at); // washing happens by standing here
+        // One tap = scrub ONE dish. The wash loop clears `washing` when that
+        // dish is done, so the chef must tap again for the next one (no more
+        // getting auto-locked into scrubbing the whole pile at once).
+        if (s.dirty > 0) {
+          s.washing = true;
+          this.emit('go', at);
+        } else {
+          this.emit('reject', at); // nothing dirty to wash
+        }
         break;
       }
       case 'ice': {
@@ -784,17 +796,18 @@ class Game {
       const worker = Object.values(this.players).find((p) =>
         !p.path.length && Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1);
       let rate = 0;
-      if (worker) {
+      if (worker && s.washing) {
         worker.working = true;
-        rate = 1;
+        rate = 1;                  // a chef scrubs the dish they tapped to wash
       } else if (this.dishBot) {
-        rate = DISH_BOT_RATE;
+        rate = DISH_BOT_RATE;      // Dish-Bot upgrade keeps washing on its own
       }
       if (rate > 0) {
         s.progress += (dt * rate) / WASH_TIME;
         if (s.progress >= 1) {
           s.dirty--;
           s.progress = 0;
+          s.washing = false;       // one dish per tap — chef must tap again
           if (this.plateSupply !== null) this.plateSupply++;
           if (worker) worker.washed++;
           this.emit('washed', { x: sx, y: sy });
@@ -941,7 +954,9 @@ class Game {
       else if (s.type === 'board' && s.item) {
         stations[key] = { item: s.item, progress: s.item.prog || 0 };
       }
-      else if (s.type === 'sink' && (s.dirty > 0 || s.progress > 0)) {
+      // Always send the sink so the dirty count renders even at 0 (the dish
+      // rack shows the clean count, the sink shows how many are waiting).
+      else if (s.type === 'sink') {
         stations[key] = { dirty: s.dirty, progress: s.progress };
       }
       else if (s.type === 'cook' && (s.contents.length || s.state !== 'idle')) {

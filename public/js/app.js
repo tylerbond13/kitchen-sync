@@ -825,7 +825,7 @@
     'Tap a cutting board to start chopping — boards finish on their own',
     'Tap the stove to cook. Don’t let it burn! 🔥',
     'Grab a plate, tap counters to combine, then tap the green window to serve',
-    'Dirty dishes pile up at the sink 🫧 — stand there to scrub them clean',
+    'Dirty dishes pile up at the sink 🫧 — tap it to wash one dish at a time',
   ];
   let hintIdx = 0;
   let hintTimer = null;
