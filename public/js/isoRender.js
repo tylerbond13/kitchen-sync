@@ -415,7 +415,11 @@
       // The builder preview is look-only: you can't click ingredients to start
       // cutting them like the real game.
       if (!this.preview) {
-        canvas.addEventListener('pointerdown', (e) => {
+        // Stored (not anonymous) so destroy() can remove it — the <canvas> is
+        // reused across rounds, so a leaked listener would stack every replay
+        // and fire each tap N times (place+pickup cancelling out → "can't pick
+        // up what you put down" until a page refresh).
+        this._onPointerDown = (e) => {
           const rect = canvas.getBoundingClientRect();
           const cx = (e.clientX-rect.left)*(canvas.width/rect.width);
           const cy = (e.clientY-rect.top)*(canvas.height/rect.height);
@@ -423,12 +427,18 @@
           this.fx.push({kind:'ripple',x:wx,y:wy,t:0});
           const hit = this.pick(wx, wy);
           if (hit) this.onTap(hit[0], hit[1]);
-        });
+        };
+        canvas.addEventListener('pointerdown', this._onPointerDown);
       }
       requestAnimationFrame(()=>this.frame());
     }
 
-    destroy() { this.running=false; window.removeEventListener('resize',this.resize); this._ro && this._ro.disconnect(); }
+    destroy() {
+      this.running=false;
+      window.removeEventListener('resize',this.resize);
+      this._ro && this._ro.disconnect();
+      if (this._onPointerDown) this.canvas.removeEventListener('pointerdown', this._onPointerDown);
+    }
 
     // ── World space ⇄ canvas ──────────────────────────────────────────────────
     // World space uses the locked 64×32 tile constants. One uniform scale +
