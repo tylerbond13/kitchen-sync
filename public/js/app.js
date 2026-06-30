@@ -241,6 +241,7 @@
   // ---------- socket ----------
   const socket = io({ transports: ['websocket', 'polling'] });
   let myCode = sessionStorage.getItem('ks-code') || null;
+  let bootToBuilder = false; // sandbox default: the bare URL opens the BOND builder
   let lobby = null;
   let renderer = null;
   let exitedRound = false; // player bailed to the lobby mid-round
@@ -365,6 +366,7 @@
       updateMusic(res.radio || (res.lobby && res.lobby.music));
       if (res.game) {
         // a round is already running — jump in
+        bootToBuilder = false;
         startRound(res.game);
       } else {
         // no live round: if we were stuck on a dead game screen (round ended
@@ -375,7 +377,13 @@
           ticketEls.clear();
           toast('That round wrapped up — back to the kitchen!');
         }
-        show('lobby');
+        if (bootToBuilder) {
+          // sandbox default: drop straight into the BOND level builder
+          bootToBuilder = false;
+          openBuilder({ from: 'lobby' });
+        } else {
+          show('lobby');
+        }
       }
     });
   }
@@ -839,6 +847,8 @@
     gpEls.clear();
     // Auto-Chopper is always-on when the crew owns it — no in-game toggle.
     $('btn-autochop').hidden = true;
+    // The level's chosen backdrop (or the default wood board).
+    applyWallpaper($('canvas-wrap'), staticState.wallpaper);
     renderer = new KSRender.Renderer($('game-canvas'), staticState, profile.id, (x, y) => {
       SFX.tap();
       socket.emit('tap', { x, y });
@@ -1268,12 +1278,40 @@
     socket.emit('steer', { dx: 0, dy: 0 });
   });
 
+  // ---------- Background wallpaper (board backdrop) ----------
+  // The play area's backdrop is a CSS background on .canvas-wrap. A level can
+  // pick which image that is; the builder previews the choice live, and the
+  // real game applies it on start. `null` / unknown → DEFAULT_WALLPAPER.
+  const WALLPAPERS = [
+    { id: 'wood',    name: '🍪 Wood Board',   url: 'assets/images/cake-world/ks-game-board-wood-v2.png' },
+    { id: 'wood1',   name: '🪵 Classic Wood', url: 'assets/images/cake-world/ks-game-board-wood-v1.png' },
+    { id: 'cake',    name: '🎂 Cake Shop',    url: 'assets/images/cake-world/ks-cake-background1.png' },
+    { id: 'diner',   name: '🍔 Diner',        url: 'assets/images/hd/ks-wall-diner.png' },
+    { id: 'winter',  name: '❄️ Winter',       url: 'assets/images/hd/ks-wall-winter.png' },
+    { id: 'beach',   name: '🏖️ Beach',        url: 'assets/images/hd/ks-wall-beach.png' },
+    { id: 'bakery',  name: '🧁 Bakery',       url: 'assets/images/hd/ks-wall-bakery-back.png' },
+  ];
+  const DEFAULT_WALLPAPER = 'wood';
+  const WALLPAPER_BY_ID = Object.fromEntries(WALLPAPERS.map((w) => [w.id, w]));
+  function wallpaperUrl(id) {
+    return (WALLPAPER_BY_ID[id] || WALLPAPER_BY_ID[DEFAULT_WALLPAPER]).url;
+  }
+  function applyWallpaper(el, id) {
+    if (!el) return;
+    el.style.background = `#E8D3BF url('${wallpaperUrl(id)}') center center / cover no-repeat`;
+  }
+
   // ---------- Level Builder (admin / pre-level board editing) ----------
   let catalog = null;
   let builderReturn = 'lobby';
   // target tracks what a Save writes to: a named custom level, an edit-override
   // of a built-in level, or a brand-new build (named on save).
-  const editor = { grid: [], brush: '#', ing: 'lettuce', dir: 'straight', recipes: new Set(), avatars: new Set(), target: { kind: 'new' } };
+  const editor = {
+    grid: [], brush: '#', ing: 'lettuce', dir: 'straight',
+    recipes: new Set(), avatars: new Set(),
+    charScale: 2, wallpaper: DEFAULT_WALLPAPER,
+    target: { kind: 'new' },
+  };
 
   const PALETTE = [
     { t: '.', emoji: '⬜', label: 'Floor',   cls: 'floor' },
@@ -1409,6 +1447,7 @@
       g.appendChild(b);
     }));
     setupGridDrag();
+    schedulePreview();
   }
   // Tap a cell to place the brush; drag a placed piece to MOVE it; drag across
   // empty floor to paint. Pointer events cover both mouse and touch.
@@ -1500,7 +1539,7 @@
       toggle.onclick = () => {
         if (allSel) keys.forEach((k) => editor.avatars.delete(k));
         else keys.forEach((k) => editor.avatars.add(k));
-        renderAvatars(); SFX.tap();
+        renderAvatars(); schedulePreview(); SFX.tap();
       };
       head.appendChild(toggle);
       wrap.appendChild(head);
@@ -1511,7 +1550,7 @@
         const b = document.createElement('button');
         b.className = 'chip' + (editor.avatars.has(c.key) ? ' sel' : '');
         b.innerHTML = `${avatarThumbHtml(c.key)}${escapeHtml(c.name)}`;
-        b.onclick = () => { editor.avatars.has(c.key) ? editor.avatars.delete(c.key) : editor.avatars.add(c.key); renderAvatars(); SFX.tap(); };
+        b.onclick = () => { editor.avatars.has(c.key) ? editor.avatars.delete(c.key) : editor.avatars.add(c.key); renderAvatars(); schedulePreview(); SFX.tap(); };
         row.appendChild(b);
       }
       wrap.appendChild(row);
@@ -1523,6 +1562,62 @@
     $('out-ttl').textContent = $('sl-ttl').value + 's';
     $('out-maxopen').textContent = $('sl-maxopen').value;
     $('out-duration').textContent = $('sl-duration').value + 's';
+    const cs = $('out-charsize'); if (cs) cs.textContent = (+editor.charScale).toFixed(2).replace(/\.?0+$/, '') + '×';
+  }
+
+  // ── Look & feel: character size slider + wallpaper picker ──────────────────
+  function renderLookFeel() {
+    const slider = $('sl-charsize');
+    if (slider) slider.value = editor.charScale;
+    const wrap = $('builder-wallpapers');
+    if (wrap) {
+      wrap.innerHTML = '';
+      for (const w of WALLPAPERS) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'wp-btn' + (editor.wallpaper === w.id ? ' sel' : '');
+        b.style.backgroundImage = `url('${w.url}')`;
+        b.title = w.name;
+        b.innerHTML = `<span class="wp-name">${w.name}</span>`;
+        b.onclick = () => { editor.wallpaper = w.id; renderLookFeel(); schedulePreview(); SFX.tap(); };
+        wrap.appendChild(b);
+      }
+    }
+    syncOutputs();
+  }
+
+  // ── Live miniature preview — the board exactly as it'll play ───────────────
+  // Reuses the real renderer (real sprites, real spacing, the chosen wallpaper
+  // & character size) on a small canvas. Non-interactive: no game, no
+  // cutting — just a faithful picture of the level you're building.
+  let previewRenderer = null;
+  let previewTimer = null;
+  function destroyPreview() {
+    if (previewRenderer) { previewRenderer.destroy(); previewRenderer = null; }
+  }
+  function schedulePreview() {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(refreshPreview, 120);
+  }
+  function refreshPreview() {
+    const wrap = $('builder-preview-wrap');
+    const canvas = $('builder-preview-canvas');
+    if (!wrap || !canvas || !window.KSRender) return;
+    if (!$('screen-builder').classList.contains('active')) return;
+    if (!wrap.clientWidth || !wrap.clientHeight) return; // not laid out yet
+    const cfg = boardConfig();
+    applyWallpaper(wrap, cfg.wallpaper);
+    const ss = {
+      levelId: 'preview', name: cfg.name, theme: 'diner',
+      w: cfg.layout[0] ? cfg.layout[0].length : 0, h: cfg.layout.length,
+      grid: cfg.layout, crates: cfg.crates, facings: cfg.facings,
+      customers: cfg.customers, charScale: cfg.charScale, wallpaper: cfg.wallpaper,
+      seed: 1, decor: null, recipes: [],
+    };
+    destroyPreview();
+    previewRenderer = new KSRender.Renderer(canvas, ss, profile.id, () => {}, { preview: true });
+    previewRenderer.setPreviewScene([profile.chef || 'chef']);
+    requestAnimationFrame(() => previewRenderer && previewRenderer.resize());
   }
   async function openBuilder(opts = {}) {
     await ensureCatalog();
@@ -1548,7 +1643,7 @@
     }
 
     if (savedCfg) {
-      loadConfig(savedCfg); // crew's saved board + tuning for this level
+      loadConfig(savedCfg); // crew's saved board + tuning (restores charScale + wallpaper)
     } else {
       // start from the built-in board (preset) or the default starter board
       let preset = opts.preset;
@@ -1558,12 +1653,15 @@
       editor.avatars = new Set((window.KSRender && KSRender.CUSTOMER_KEYS) || []);
       if (preset && preset.duration) $('sl-duration').value = preset.duration;
       if (preset && Array.isArray(preset.stars)) { $('st-1').value = preset.stars[0]; $('st-2').value = preset.stars[1]; $('st-3').value = preset.stars[2]; }
+      editor.charScale = (preset && preset.charScale) || 2;
+      editor.wallpaper = (preset && preset.wallpaper) || DEFAULT_WALLPAPER;
     }
 
     $('builder-cratepick').hidden = true;
     $('builder-title').textContent = opts.title || '🛠️ Level Builder';
-    renderPresets(); renderPalette(); renderCratePick(); renderFacing(); renderGrid(); renderRecipes(); renderAvatars(); syncOutputs();
+    renderPresets(); renderPalette(); renderCratePick(); renderFacing(); renderGrid(); renderRecipes(); renderAvatars(); renderLookFeel(); syncOutputs();
     show('builder');
+    requestAnimationFrame(refreshPreview);
   }
   // Serialize the editor into the level config used to play AND to save.
   function boardConfig() {
@@ -1582,6 +1680,7 @@
       maxOpen: +$('sl-maxopen').value, duration: +$('sl-duration').value,
       stars: [+$('st-1').value, +$('st-2').value, +$('st-3').value],
       plates: 4, customers: [...editor.avatars],
+      charScale: +editor.charScale, wallpaper: editor.wallpaper,
     };
   }
   function loadConfig(cfg) {
@@ -1598,7 +1697,9 @@
     if (cfg.maxOpen) $('sl-maxopen').value = cfg.maxOpen;
     if (cfg.duration) $('sl-duration').value = cfg.duration;
     if (Array.isArray(cfg.stars)) { $('st-1').value = cfg.stars[0]; $('st-2').value = cfg.stars[1]; $('st-3').value = cfg.stars[2]; }
-    renderGrid(); renderRecipes(); renderAvatars(); syncOutputs();
+    if (cfg.charScale) editor.charScale = cfg.charScale;
+    editor.wallpaper = cfg.wallpaper || DEFAULT_WALLPAPER;
+    renderGrid(); renderRecipes(); renderAvatars(); renderLookFeel(); syncOutputs();
   }
   function playCustom() {
     if (!editor.recipes.size) return toast('Pick at least one recipe.');
@@ -1631,8 +1732,8 @@
     });
   }
   if ($('builder-back')) {
-    $('builder-back').onclick = () => { SFX.tap(); show(builderReturn); };
-    $('builder-play').onclick = playCustom;
+    $('builder-back').onclick = () => { SFX.tap(); destroyPreview(); show(builderReturn); };
+    $('builder-play').onclick = () => { destroyPreview(); playCustom(); };
     $('board-save').onclick = saveCurrentBoard;
     $('btn-open-builder').onclick = () => openBuilder({ from: 'lobby' });
     document.querySelectorAll('.builder-size .btn-mini').forEach((b) => {
@@ -1640,6 +1741,10 @@
     });
     ['sl-speed', 'sl-every', 'sl-ttl', 'sl-maxopen', 'sl-duration'].forEach((id) => {
       const el = $(id); if (el) el.addEventListener('input', syncOutputs);
+    });
+    const csEl = $('sl-charsize');
+    if (csEl) csEl.addEventListener('input', () => {
+      editor.charScale = +csEl.value; syncOutputs(); schedulePreview();
     });
   }
 
@@ -1660,6 +1765,10 @@
       // than the URL
       myCode = joinParam;
       sessionStorage.setItem('ks-code', joinParam);
+      // Entering the BOND admin kitchen (the sandbox) opens its level builder
+      // by default — even via ?join=BOND, which is what syncUrl writes once
+      // you're in. (Skipped over a live round; see joinCrew.)
+      if (joinParam === 'BOND') bootToBuilder = true;
       // (the connect handler's auto-rejoin performs the single join)
     } else {
       show('home');
@@ -1672,6 +1781,17 @@
         if (requireName()) joinCrew(joinParam);
       };
     }
+  } else if (!myCode || myCode === 'BOND') {
+    // Sandbox default: the bare URL (no ?join) drops you straight into the BOND
+    // admin kitchen's level builder — that's where the levels are being designed
+    // right now. Fires for a fresh visit AND for reloads of the BOND kitchen,
+    // but not if you've joined some other kitchen this session (that's
+    // remembered) and not over a live round (joinCrew jumps into the game).
+    myCode = 'BOND';
+    sessionStorage.setItem('ks-code', 'BOND');
+    bootToBuilder = true;
+    if (!profile.name) { profile.name = 'Chef'; saveProfile(); }
+    // (the connect handler's auto-rejoin performs the single join → builder)
   }
 
   // PWA service worker

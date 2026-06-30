@@ -38,16 +38,22 @@
   // diamonds. Squashing them toward the tile keeps their footprint inside
   // the flat square until front-facing art is swapped in.
   const ISO_FIX     = { squash: 0.88, dy: 3 };
-  const CHEF_H     = 118;                 // chef sprite height (world px) — ~1.9x
-                                          // the original 62 so chefs read big &
-                                          // characterful (the charm of the game)
-  const CUSTOMER_H = 132;                 // customer sprite height (world px) —
-                                          // ~1.65x the original 80; intentionally
-                                          // larger than the chef, but the queue
-                                          // overlaps less than the chef scale so
-                                          // the waiting line stays readable
+  const CHEF_H     = 118;                 // chef sprite BASE height (world px) —
+                                          // ~1.9x the original 62 so chefs read
+                                          // big & characterful. Multiplied at
+                                          // draw time by the level's charScale.
+  const CUSTOMER_H = 132;                 // customer sprite BASE height (world px)
+                                          // — ~1.65x the original 80; larger than
+                                          // the chef but the queue overlaps less
+                                          // so the waiting line stays readable.
   const CARRY_GAP  = 52;                  // held item floats this many px above
                                           // the chef's head (scaled with CHEF_H)
+  // Characters (chefs + customers) draw at charScale × their base height. The
+  // whole game ships at 2× by default ("big & characterful"); the Level Builder
+  // can override it per-board. resize() grows the back-wall headroom to match so
+  // tall hats never clip at the top edge.
+  const DEFAULT_CHAR_SCALE = 2;
+  const CHAR_SCALE_MIN = 0.4, CHAR_SCALE_MAX = 4;
   const SPRITE_FILL = 0.84;               // stations render at 84% of their
                                           // tile width — visual "air" between
                                           // counters; grid coords unchanged
@@ -342,12 +348,21 @@
 
   // ── The renderer ────────────────────────────────────────────────────────────
   class Renderer {
-    constructor(canvas, staticState, myId, onTap) {
+    constructor(canvas, staticState, myId, onTap, opts = {}) {
       this.canvas  = canvas;
       this.ctx     = canvas.getContext('2d');
       this.lvl     = staticState;          // flat 2D grid — read-only, never mutated
       this.myId    = myId;
       this.onTap   = onTap;
+      // Preview mode (Level Builder): draws the scene exactly as it'll play, but
+      // is non-interactive — no tap-to-cook, no live server state.
+      this.preview = !!opts.preview;
+      // Character (chef + customer) sprite multiplier — defaults to the global
+      // 2× and can be tuned per-board from the builder.
+      const cs = Number(staticState.charScale);
+      this.charScale = Number.isFinite(cs)
+        ? Math.max(CHAR_SCALE_MIN, Math.min(CHAR_SCALE_MAX, cs))
+        : DEFAULT_CHAR_SCALE;
       this.prev    = null; this.cur  = null;
       this.prevAt  = 0;    this.curAt = 0;
       this.fx      = [];                   // particles, in world space
@@ -397,15 +412,19 @@
       }
       this.resize();
 
-      canvas.addEventListener('pointerdown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const cx = (e.clientX-rect.left)*(canvas.width/rect.width);
-        const cy = (e.clientY-rect.top)*(canvas.height/rect.height);
-        const [wx, wy] = this.toWorld(cx, cy);
-        this.fx.push({kind:'ripple',x:wx,y:wy,t:0});
-        const hit = this.pick(wx, wy);
-        if (hit) this.onTap(hit[0], hit[1]);
-      });
+      // The builder preview is look-only: you can't click ingredients to start
+      // cutting them like the real game.
+      if (!this.preview) {
+        canvas.addEventListener('pointerdown', (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const cx = (e.clientX-rect.left)*(canvas.width/rect.width);
+          const cy = (e.clientY-rect.top)*(canvas.height/rect.height);
+          const [wx, wy] = this.toWorld(cx, cy);
+          this.fx.push({kind:'ripple',x:wx,y:wy,t:0});
+          const hit = this.pick(wx, wy);
+          if (hit) this.onTap(hit[0], hit[1]);
+        });
+      }
       requestAnimationFrame(()=>this.frame());
     }
 
@@ -421,9 +440,10 @@
     // the line grows downward, centered against the room's depth.
     queueSlot(i) {
       const { w, h } = this.lvl;
-      const QGAP = 1.35;                         // vertical tiles between waiting
-                                                 // customers — >1 so the (now
-                                                 // larger) sprites don't clump
+      const QGAP = 1.35 * (0.6 + 0.4 * this.charScale); // vertical tiles between
+                                                 // waiting customers — grows with
+                                                 // character size so the bigger
+                                                 // sprites don't clump together
       const col = w + 0.7;                       // one tile beyond the right wall
       const span = QGAP * (QUEUE_DEPTH - 1);
       const top = Math.max(0, (h - span) / 2);   // center the taller line vertically
@@ -448,8 +468,14 @@
         minGx=Math.min(minGx,q.x); maxGx=Math.max(maxGx,q.x); maxGy=Math.max(maxGy,q.y);
       }
       const PAD=10;
+      // Characters anchor at their feet and draw upward, so the back row needs
+      // enough room above the floor line that a (possibly 2×) head/hat never
+      // clips the top edge. Grow the headroom with charScale; never shrink it
+      // below the painted wall height.
+      const tallest = Math.max(CHEF_H, CUSTOMER_H) * this.charScale;
+      const headroom = Math.max(WALL_H, Math.ceil(tallest - TILE_HEIGHT * 0.5 + 12));
       this.ox = PAD + WALL_SIDE + Math.max(0,-minGx)*TILE_WIDTH; // room origin
-      this.oy = PAD + WALL_H;                                    // below the wall
+      this.oy = PAD + headroom;                                  // below the wall
       this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + WALL_SIDE + PAD;
       this.worldH = this.oy + (maxGy+1)*TILE_HEIGHT + 30 + PAD;
 
@@ -532,6 +558,38 @@
           this.colorOf[p.id]=PLAYER_COLORS[Object.keys(this.colorOf).length%PLAYER_COLORS.length];
       });
       for (const ev of state.events) this.addFx(ev);
+    }
+
+    // Level Builder: populate a frozen, non-interactive scene so the board reads
+    // exactly as it'll play — real station/crate sprites, the chosen wallpaper,
+    // a sample idle chef, and a full customer waiting line at the configured
+    // character size. There's no live game behind it, so stations stay empty.
+    setPreviewScene(chefKeys) {
+      const lvl = this.lvl;
+      // first couple of open floor tiles → where sample chefs stand
+      const floor = [];
+      for (let y = 0; y < lvl.h && floor.length < 2; y++)
+        for (let x = 0; x < lvl.w && floor.length < 2; x++)
+          if (lvl.grid[y] && lvl.grid[y][x] === '.') floor.push({ x, y });
+      const keys = (chefKeys && chefKeys.length) ? chefKeys : ['chef'];
+      const players = floor.map((f, i) => ({
+        id: 'preview-chef-' + i, name: '',
+        chef: keys[i % keys.length],
+        x: f.x + 0.5, y: f.y + 0.5,
+        carry: null, queue: [], moving: false,
+      }));
+      // a sample order per visible queue slot, so the waiting line fills in
+      const orders = [];
+      for (let i = 0; i < QUEUE_DEPTH; i++) {
+        orders.push({ id: i + 1, recipe: 'salad', name: '', needs: [], ttl: 60, ttlMax: 60 });
+      }
+      this.cur = { players, stations: {}, orders, events: [] };
+      this.prev = null;                       // no interpolation from a real frame
+      this.curAt = performance.now();
+      players.forEach((p) => {
+        if (!this.colorOf[p.id])
+          this.colorOf[p.id] = PLAYER_COLORS[Object.keys(this.colorOf).length % PLAYER_COLORS.length];
+      });
     }
 
     lerpPlayers() {
@@ -998,12 +1056,13 @@
       const isMe=p.id===this.myId;
       const chefKey = GFX.has(p.chef) ? p.chef : 'chef';
 
+      const H = CHEF_H * this.charScale;
       // Clean base: a single soft ground shadow. Player identity lives in
       // the floating name tag (multiplayer requirement), not base clutter.
-      this.contactShadow(sx, sy, 17, 6, 0.24);
+      this.contactShadow(sx, sy, 17 * this.charScale, 6 * this.charScale, 0.24);
 
-      const headTopY = sy - bounce - CHEF_H;
-      GFX.draw(ctx,chefKey,sx,sy-bounce-CHEF_H*0.52,CHEF_H*0.85,CHEF_H);
+      const headTopY = sy - bounce - H;
+      GFX.draw(ctx,chefKey,sx,sy-bounce-H*0.52,H*0.85,H);
 
       // Held item floats EXACTLY CARRY_GAP px above the chef's head.
       if (p.carry) {
@@ -1088,11 +1147,11 @@
 
     drawCustomer(q, sx, sy, now) {
       const {ctx}=this;
-      const CH=CUSTOMER_H;
+      const CH=CUSTOMER_H * this.charScale;
       const bob=Math.sin(now/320+q.i*2.1);
 
       // grounding shadow so the waiting line doesn't float on the walkway
-      this.contactShadow(sx, sy+4, 16, 6, 0.20);
+      this.contactShadow(sx, sy+4, 16 * this.charScale, 6 * this.charScale, 0.20);
       GFX.draw(ctx, this.customerKeyForOrder(q.order), sx, sy+bob-CH*0.5, CH*0.92, CH);
     }
 

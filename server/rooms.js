@@ -197,6 +197,10 @@ function buildCustomLevel(c) {
     plates: c.plates ? clampNum(c.plates, 1, 12, 4) : undefined,
     crates: (c.crates && typeof c.crates === 'object') ? c.crates : {},
     layout,
+    // cosmetic, builder-tunable: character (chef + customer) sprite size and the
+    // board's background wallpaper.
+    charScale: clampNum(c.charScale, 0.4, 4, 2),
+    wallpaper: (typeof c.wallpaper === 'string' && c.wallpaper) ? c.wallpaper.slice(0, 24) : null,
     speedMult: clampNum(c.speedMult, 0.25, 5, 1),
     customers: (Array.isArray(c.customers) && c.customers.length) ? c.customers.map(String) : null,
     facings: (c.facings && typeof c.facings === 'object')
