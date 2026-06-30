@@ -1,5 +1,5 @@
 // Kitchen Sync service worker: cache the static shell, never touch the socket.
-const CACHE = 'kitchen-sync-v12';
+const CACHE = 'kitchen-sync-v13';
 const SHELL = [
   '/',
   '/index.html',
@@ -11,6 +11,12 @@ const SHELL = [
   '/js/music.js',
   '/js/radio.js',
   '/js/sound.js',
+  '/ai-lab.html',
+  '/js/ai/nn.js',
+  '/js/ai/kitchenEnv.js',
+  '/js/ai/dqn.js',
+  '/js/ai/director.js',
+  '/js/ai/lab.js',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -42,11 +48,13 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
+          // cache each page under its OWN url (don't clobber the index shell
+          // with e.g. /ai-lab.html — that used to corrupt the offline app).
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put('/index.html', copy));
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
           return res;
         })
-        .catch(() => caches.match('/index.html'))
+        .catch(() => caches.match(e.request).then((hit) => hit || caches.match('/index.html')))
     );
     return;
   }
