@@ -1,5 +1,15 @@
 # Assets to Generate
 
+> **Update (asset sweep):** the cake-world folder is now organized into category
+> subfolders and documented in
+> [`public/assets/images/cake-world/ASSETS.md`](../../public/assets/images/cake-world/ASSETS.md)
+> (used vs available, click-to-view). Newly **wired since this doc was written:** the
+> Mixing Bowl (`M`), Icing Dispenser (`I`), Garnish Counter (`G`), the Level-15 cake
+> pantry (flour/eggs/chocolate/carrot/honeycomb crates + sprites), and all the ambient
+> `decor:'cake'` art (bees, butterflies, mascot, rug, sconces, display stand) — which
+> had been referenced in the renderer but never given manifest keys. Still parked:
+> finished-cake → recipe art mapping, and the extra station/UI/FX variants.
+
 The shopping list for the image-gen tool, ordered by what unblocks the soonest
 phase. Hand this list (plus [aesthetic.md](aesthetic.md)) to ChatGPT/Codex image
 gen. Everything follows the same spec so the set stays cohesive.
