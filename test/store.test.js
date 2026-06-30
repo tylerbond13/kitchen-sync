@@ -96,6 +96,56 @@ test('BOND admin kitchen: always exists, everything unlocked, rich wallet', () =
   assert.equal(store.ensureAdminCrew(), admin, 'idempotent');
 });
 
+test('saved boards surface as star-tracked custom levels', () => {
+  const rooms = require('../server/rooms');
+  const crew = store.restoreCrew({ code: 'BRDS', hostId: 'h', progress: {} });
+  const cfg = { layout: ['.W.', '.1.', '...'], crates: { 1: 'lettuce' }, recipes: ['salad'], stars: [100, 200, 300] };
+  assert.ok(store.saveBoard(crew, 'My Diner', cfg));
+
+  let custom = rooms.levelList(crew).find((l) => l.id === 'custom:My Diner');
+  assert.ok(custom, 'saved board appears in the level list');
+  assert.equal(custom.custom, true);
+  assert.equal(custom.section, 'custom');
+  assert.equal(custom.unlocked, true);
+  assert.equal(custom.stars, 0);
+
+  // stars track under the custom id, independent of built-in levels
+  store.recordLevelResult(crew, 'custom:My Diner', 250, 2, 4);
+  custom = rooms.levelList(crew).find((l) => l.id === 'custom:My Diner');
+  assert.equal(custom.stars, 2);
+  assert.equal(custom.bestScore, 250);
+
+  // deleting the board takes its star record with it
+  assert.ok(store.deleteBoard(crew, 'My Diner'));
+  assert.equal(rooms.levelList(crew).find((l) => l.id === 'custom:My Diner'), undefined);
+  assert.equal(crew.progress['custom:My Diner'], undefined);
+});
+
+test('editing a built-in level persists a per-crew override', () => {
+  const rooms = require('../server/rooms');
+  const crew = store.restoreCrew({ code: 'OVRD', hostId: 'h', progress: { 'salad-days': { stars: 1, bestScore: 0, plays: 1 } } });
+  const cfg = { layout: ['.W.', '.1.', '...'], crates: { 1: 'tomato' }, recipes: ['salad'], speedMult: 2, stars: [120, 240, 360] };
+  assert.ok(store.saveOverride(crew, 'salad-days', cfg));
+
+  const lvl = rooms.levelList(crew).find((l) => l.id === 'salad-days');
+  assert.equal(lvl.edited, true, 'flagged as edited');
+  assert.equal(lvl.stars, 1, 'keeps its own star record');
+
+  // reverting clears the override
+  assert.ok(store.saveOverride(crew, 'salad-days', null));
+  assert.equal(rooms.levelList(crew).find((l) => l.id === 'salad-days').edited, false);
+});
+
+test('device backups carry custom boards and overrides', () => {
+  const crew = store.restoreCrew({ code: 'BKUP', hostId: 'h', progress: {} });
+  store.mergeCrew(crew, {
+    boards: { 'Lost Kitchen': { layout: ['.W.', '...'], recipes: ['salad'] } },
+    overrides: { 'salad-days': { layout: ['.W.', '...'], recipes: ['salad'] } },
+  });
+  assert.ok(crew.boards['Lost Kitchen'], 'custom board restored from backup');
+  assert.ok(crew.overrides['salad-days'], 'override restored from backup');
+});
+
 test('mergePlayerStats takes per-counter maximums', () => {
   store.upsertPlayer({ id: 'p9', name: 'Z', avatar: 'z' });
   store.recordPlayerResult('p9', { delivered: 5, stars: 1 });

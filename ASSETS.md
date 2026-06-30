@@ -15,6 +15,10 @@ cook combos, crates, and themes in `server/levels.js`).
 
 Legend: ✅ have (HD) · 🟡 placeholder in use (works, but generic) · ⬜ missing
 
+> **Cake World art** lives in its own organized library —
+> [`public/assets/images/cake-world/ASSETS.md`](public/assets/images/cake-world/ASSETS.md)
+> (437 sprites in category folders, with click-to-view links and a used/available split).
+
 ## 1. Chef (player character)
 
 | Status | File | Notes |

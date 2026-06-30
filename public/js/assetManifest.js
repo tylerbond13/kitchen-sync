@@ -175,46 +175,62 @@
     // `flat: true` = straight-on art, renderer skips its iso squash.
     // Keys without a front-facing HD render yet use hand-built SVG stand-ins
     // (assets/images/flat/) — swap each back to its .png as regens land.
-    // Generic stations use the cake-world art set because it ships front + left
-    // + right facings (wired as <key>_left / <key>_right and picked by faceKey
-    // based on wall side / explicit facing). Stove + pot stay on diner art —
-    // there is no cake-world equivalent (cake world only has the mixer).
-    counter:        cw('ks-cw-empty-single-countertop-front-v1.png', { scale: 1.12 }),
-    counter_left:   cw('ks-cw-empty-single-countertop-left-v1.png',  { scale: 1.12 }),
-    counter_right:  cw('ks-cw-empty-single-countertop-right-v1.png', { scale: 1.12 }),
-    chopping_board:        cw('ks-cw-cutting-prep-station-front-v1.png', { scale: 1.16 }),
-    chopping_board_left:   cw('ks-cw-cutting-prep-station-left-v1.png',  { scale: 1.16 }),
-    chopping_board_right:  cw('ks-cw-cutting-prep-station-right-v1.png', { scale: 1.16 }),
-    chopping_board_active:        cw('ks-cw-cutting-prep-station-active-front-v1.png', { scale: 1.16 }),
-    chopping_board_active_left:   cw('ks-cw-cutting-prep-station-active-left-v1.png',  { scale: 1.16 }),
-    chopping_board_active_right:  cw('ks-cw-cutting-prep-station-active-right-v1.png', { scale: 1.16 }),
-    oven:           cw('ks-cw-dual-cake-oven-station-front-v1.png', { scale: 1.26 }),
-    oven_left:      cw('ks-cw-dual-cake-oven-station-left-v1.png',  { scale: 1.26 }),
-    oven_right:     cw('ks-cw-dual-cake-oven-station-right-v1.png', { scale: 1.26 }),
-    oven_active:        cw('ks-cw-dual-cake-oven-station-active-front-v1.png', { scale: 1.26 }),
-    oven_active_left:   cw('ks-cw-dual-cake-oven-station-active-left-v1.png',  { scale: 1.26 }),
-    oven_active_right:  cw('ks-cw-dual-cake-oven-station-active-right-v1.png', { scale: 1.26 }),
+    // Generic stations use the cake-world art set (assets/images/cake-world/
+    // stations/) because it ships front + left + right facings (wired as
+    // <key>_left / <key>_right and picked by faceKey from wall side / explicit
+    // facing). Stove + pot stay on diner HD art — cake world has no range, only
+    // the stand mixer / icing dispenser / garnish counter wired below.
+    counter:        cw('stations/ks-cw-empty-single-countertop-front-v1.png', { scale: 1.12 }),
+    counter_left:   cw('stations/ks-cw-empty-single-countertop-left-v1.png',  { scale: 1.12 }),
+    counter_right:  cw('stations/ks-cw-empty-single-countertop-right-v1.png', { scale: 1.12 }),
+    chopping_board:        cw('stations/ks-cw-cutting-prep-station-front-v1.png', { scale: 1.16 }),
+    chopping_board_left:   cw('stations/ks-cw-cutting-prep-station-left-v1.png',  { scale: 1.16 }),
+    chopping_board_right:  cw('stations/ks-cw-cutting-prep-station-right-v1.png', { scale: 1.16 }),
+    chopping_board_active:        cw('stations/ks-cw-cutting-prep-station-active-front-v1.png', { scale: 1.16 }),
+    chopping_board_active_left:   cw('stations/ks-cw-cutting-prep-station-active-left-v1.png',  { scale: 1.16 }),
+    chopping_board_active_right:  cw('stations/ks-cw-cutting-prep-station-active-right-v1.png', { scale: 1.16 }),
+    oven:           cw('stations/ks-cw-dual-cake-oven-station-front-v1.png', { scale: 1.26 }),
+    oven_left:      cw('stations/ks-cw-dual-cake-oven-station-left-v1.png',  { scale: 1.26 }),
+    oven_right:     cw('stations/ks-cw-dual-cake-oven-station-right-v1.png', { scale: 1.26 }),
+    oven_active:        cw('stations/ks-cw-dual-cake-oven-station-active-front-v1.png', { scale: 1.26 }),
+    oven_active_left:   cw('stations/ks-cw-dual-cake-oven-station-active-left-v1.png',  { scale: 1.26 }),
+    oven_active_right:  cw('stations/ks-cw-dual-cake-oven-station-active-right-v1.png', { scale: 1.26 }),
     stove:          { path: HD + 'ks-stove-pan.png' },
     stove_fire:     { path: HD + 'ks-stove-pan-fire.png' },
     pot:            { path: HD + 'ks-stockpot.png' },
-    plate_stack:       cw('ks-cw-stack-dishes-front-v1.png', { scale: 0.98 }),
-    plate_stack_left:  cw('ks-cw-stack-dishes-left-v1.png',  { scale: 0.98 }),
-    plate_stack_right: cw('ks-cw-stack-dishes-right-v1.png', { scale: 0.98 }),
-    serve_window:      cw('ks-cw-delivery-arch-counter-front-v1.png', { scale: 1.32 }),
-    serve_window_left: cw('ks-cw-delivery-arch-counter-left-v1.png',  { scale: 1.32 }),
-    serve_window_right:cw('ks-cw-delivery-arch-counter-right-v1.png', { scale: 1.32 }),
-    serve_window_active:       cw('ks-cw-delivery-arch-counter-active-front-v1.png', { scale: 1.32 }),
-    serve_window_active_left:  cw('ks-cw-delivery-arch-counter-active-left-v1.png',  { scale: 1.32 }),
-    serve_window_active_right: cw('ks-cw-delivery-arch-counter-active-right-v1.png', { scale: 1.32 }),
-    trash:          cw('ks-cw-trash-can-front-v1.png', { scale: 0.92 }),
-    trash_left:     cw('ks-cw-trash-can-left-v1.png',  { scale: 0.92 }),
-    trash_right:    cw('ks-cw-trash-can-right-v1.png', { scale: 0.92 }),
-    sink:           cw('ks-cw-dishwashing-station-empty-front-v1.png', { scale: 1.16 }),
-    sink_left:      cw('ks-cw-dishwashing-station-empty-left-v1.png',  { scale: 1.16 }),
-    sink_right:     cw('ks-cw-dishwashing-station-empty-right-v1.png', { scale: 1.16 }),
-    sink_dirty:        cw('ks-cw-dishwashing-station-active-front-v1.png', { scale: 1.16 }),
-    sink_dirty_left:   cw('ks-cw-dishwashing-station-active-left-v1.png',  { scale: 1.16 }),
-    sink_dirty_right:  cw('ks-cw-dishwashing-station-active-right-v1.png', { scale: 1.16 }),
+    // ── Cake World stations (grid M / I / G) ────────────────────────────────
+    // Mixing Bowl 'M': stand mixer, swaps to "full" art while it holds batter
+    // (isoRender keys mixing_bowl / mixing_bowl_full).
+    mixing_bowl:             cw('stations/ks-cw-mixer-empty-front-v1.png', { scale: 1.18 }),
+    mixing_bowl_left:        cw('stations/ks-cw-mixer-empty-left-v1.png',  { scale: 1.18 }),
+    mixing_bowl_right:       cw('stations/ks-cw-mixer-empty-right-v1.png', { scale: 1.18 }),
+    mixing_bowl_full:        cw('stations/ks-cw-mixer-full-front-v1.png',  { scale: 1.18 }),
+    mixing_bowl_full_left:   cw('stations/ks-cw-mixer-full-left-v1.png',   { scale: 1.18 }),
+    mixing_bowl_full_right:  cw('stations/ks-cw-mixer-full-right-v1.png',  { scale: 1.18 }),
+    // Icing Dispenser 'I': colour-selector medallion.
+    icing_dispenser:         cw('stations/ks-cw-icing-color-selector-front-v1.png', { scale: 1.16 }),
+    icing_dispenser_left:    cw('stations/ks-cw-icing-color-selector-left-v1.png',  { scale: 1.16 }),
+    icing_dispenser_right:   cw('stations/ks-cw-icing-color-selector-right-v1.png', { scale: 1.16 }),
+    // Garnish Counter 'G': topper caddy (single-view art; faceKey falls back).
+    garnish_counter:         cw('stations/ks-cw-garnish-counter.png', { scale: 1.16 }),
+    plate_stack:       cw('dishes/ks-cw-stack-dishes-front-v1.png', { scale: 0.98 }),
+    plate_stack_left:  cw('dishes/ks-cw-stack-dishes-left-v1.png',  { scale: 0.98 }),
+    plate_stack_right: cw('dishes/ks-cw-stack-dishes-right-v1.png', { scale: 0.98 }),
+    serve_window:      cw('stations/ks-cw-delivery-arch-counter-front-v1.png', { scale: 1.32 }),
+    serve_window_left: cw('stations/ks-cw-delivery-arch-counter-left-v1.png',  { scale: 1.32 }),
+    serve_window_right:cw('stations/ks-cw-delivery-arch-counter-right-v1.png', { scale: 1.32 }),
+    serve_window_active:       cw('stations/ks-cw-delivery-arch-counter-active-front-v1.png', { scale: 1.32 }),
+    serve_window_active_left:  cw('stations/ks-cw-delivery-arch-counter-active-left-v1.png',  { scale: 1.32 }),
+    serve_window_active_right: cw('stations/ks-cw-delivery-arch-counter-active-right-v1.png', { scale: 1.32 }),
+    trash:          cw('stations/ks-cw-trash-can-front-v1.png', { scale: 0.92 }),
+    trash_left:     cw('stations/ks-cw-trash-can-left-v1.png',  { scale: 0.92 }),
+    trash_right:    cw('stations/ks-cw-trash-can-right-v1.png', { scale: 0.92 }),
+    sink:           cw('stations/ks-cw-dishwashing-station-empty-front-v1.png', { scale: 1.16 }),
+    sink_left:      cw('stations/ks-cw-dishwashing-station-empty-left-v1.png',  { scale: 1.16 }),
+    sink_right:     cw('stations/ks-cw-dishwashing-station-empty-right-v1.png', { scale: 1.16 }),
+    sink_dirty:        cw('stations/ks-cw-dishwashing-station-active-front-v1.png', { scale: 1.16 }),
+    sink_dirty_left:   cw('stations/ks-cw-dishwashing-station-active-left-v1.png',  { scale: 1.16 }),
+    sink_dirty_right:  cw('stations/ks-cw-dishwashing-station-active-right-v1.png', { scale: 1.16 }),
 
     // ── Ingredient crates ────────────────────────────────────────────────────
     // Front-facing HD crates where they exist; everything else gets the
@@ -224,6 +240,12 @@
     crate_lettuce:    { path: HD + 'ks-lettuce-crate.png', flat: true },
     crate_tomato:     { path: HD + 'ks-tomato-crate.png', flat: true },
     crate_cucumber:   { path: HD + 'ks-cucumber-crate.png', flat: true },
+    // Cake World pantry crates (Level 15 'Sweet Beginnings' digits 1–5).
+    crate_flour:      cw('crates/ks-cw-crate-flour-front-v1.png'),
+    crate_eggs:       cw('crates/ks-cw-crate-eggs-front-v1.png'),
+    crate_chocolate:  cw('crates/ks-cw-crate-chocolate-front-v1.png'),
+    crate_carrot:     cw('crates/ks-cw-crate-carrots-front-v1.png'),
+    crate_honeycomb:  cw('crates/ks-cw-crate-honeycomb-front-v1.png'),
 
     // ── Ingredients: raw ─────────────────────────────────────────────────────
     lettuce:    { path: HD + 'ks-lettuce.png' },
@@ -245,6 +267,11 @@
     dough:      { path: HD + 'ks-dough.png' },
     milk:       { path: HD + 'ks-milk.png' },
     tortilla:   { path: HD + 'ks-tortilla.png' },
+    // Cake World pantry (replace emoji on Level 15; carrot reuses diner art).
+    flour:      { path: CW + 'ingredients/ks-cw-ingredient-flour-front-v1.png' },
+    eggs:       { path: CW + 'ingredients/ks-cw-ingredient-eggs-front-v1.png' },
+    chocolate:  { path: CW + 'ingredients/ks-cw-ingredient-chocolate-front-v1.png' },
+    honeycomb:  { path: CW + 'ingredients/ks-cw-ingredient-honeycomb-front-v1.png' },
 
     // ── Ingredients: chopped / cooked ───────────────────────────────────────
     // deplate: these two renders arrived ON a white plate — key it out so
@@ -331,5 +358,23 @@
     heart_empty:   'assets/images/ui/heart_empty.svg',
     ui_crown:      { path: HD + 'ks-ui-crown.png' },
     ui_coin:       { path: HD + 'ks-ui-coin.png' },
+
+    // ── Cake World ambient decor (drawn by isoRender.pushCakeDecor when a
+    //    level sets decor:'cake' — e.g. Level 15). Rug under the floor, mascot
+    //    + display stand as fixtures, wall sconces, and animated bee/butterfly
+    //    fliers. Frame keys match the cw_<thing>_<n> keys in isoRender. ───────
+    cw_rug_round:     cw('decor/cw-rug-round.png'),
+    cw_display_stand: cw('decor/cw-display-stand.png'),
+    cw_wall_sconce:   cw('decor/cw-wall-sconce.png'),
+    cw_mascot_1:      cw('decor/cw-mascot-1.png'),
+    cw_mascot_2:      cw('decor/cw-mascot-2.png'),
+    cw_mascot_3:      cw('decor/cw-mascot-3.png'),
+    cw_mascot_4:      cw('decor/cw-mascot-4.png'),
+    cw_bee_1:         cw('decor/cw-bee-1.png'),
+    cw_bee_2:         cw('decor/cw-bee-2.png'),
+    cw_bee_3:         cw('decor/cw-bee-3.png'),
+    cw_butterfly_1:   cw('decor/cw-butterfly-1.png'),
+    cw_butterfly_2:   cw('decor/cw-butterfly-2.png'),
+    cw_butterfly_3:   cw('decor/cw-butterfly-3.png'),
   };
 })();
