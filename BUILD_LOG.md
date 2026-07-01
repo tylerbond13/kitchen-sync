@@ -10,6 +10,9 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Coins-earned pill on the results screen (v1.21.1)
+- The results screen now shows a golden **"🪙 +{score} coins · 💰 {total} banked"** pill under the big score, making it obvious that your score banks 1:1 as coins and how much your crew now has to spend in the shop. Closes the score → coins → shop loop right at the moment of reward. _(Verified in-browser: pill renders under the score with payout + running total.)_
+
 ### First-run welcome / onboarding (v1.21.0)
 - New players now land on a friendly **one-time welcome card** on the home screen that explains the whole loop in three lines: ⭐ cook to earn stars (unlock characters + open levels), 🪙 bank coins to hire & train your AI Sous-Chef, 🎭 start with the Golden Girls and unlock the rest by playing. Dismisses for good with "Let's cook →" (stored per device; guests use sessionStorage). Ties together everything the progression work added so a newcomer isn't dropped in cold. _(Verified in-browser: shows on first visit, 3 rows + button; dismiss hides it and sets the flag so it won't reappear.)_
 
