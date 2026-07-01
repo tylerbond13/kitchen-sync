@@ -961,7 +961,9 @@ class Game {
       else if (s.type === 'sink') {
         stations[key] = { dirty: s.dirty, progress: s.progress };
       }
-      else if (s.type === 'cook' && (s.contents.length || s.state !== 'idle')) {
+      // Always send cook stations (even empty/idle) so the pot fill count (0-3)
+      // is always visible while ingredients are being added.
+      else if (s.type === 'cook') {
         stations[key] = {
           contents: s.contents,
           state: s.state,
