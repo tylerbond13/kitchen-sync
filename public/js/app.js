@@ -691,15 +691,16 @@
     renderLobby(state);
   });
 
-  // AI teammate mode label for the lobby toggle: null | 'prep' | 'expo'.
-  function botModeLabel(mode) {
-    return mode === 'expo' ? 'Expo 🍽️' : mode === 'prep' ? 'Prep 🔪' : 'Off';
+  // What the Sous-Chef can do, from the skills the crew has taught it in the shop.
+  function botCapSummary(caps) {
+    const verbs = { chop: 'chop', wash: 'wash up', cook: 'cook', plate: 'plate', serve: 'deliver' };
+    const list = (caps || []).map((c) => verbs[c]).filter(Boolean);
+    return list.length ? list.join(' · ') : null;
   }
-  // One-line description of what each teammate mode does. Tap to cycle.
-  function botModeHint(mode) {
-    if (mode === 'expo') return '🍽️ Cooks, plates & serves whole orders on its own. Tap to change.';
-    if (mode === 'prep') return '🔪 Chops prep, rescues food from burning & washes up. Tap to change.';
-    return 'Add an AI chef to your kitchen. Tap to turn on.';
+  function botHint(state) {
+    if (!state.botHired) return 'Hire your AI teammate in the Kitchen Shop below, then teach it skills.';
+    const skills = botCapSummary(state.botCaps) || 'no skills yet — teach it in the shop';
+    return `${state.bot ? 'On' : 'Off'} · it can: ${skills}. Tap to turn ${state.bot ? 'off' : 'on'}.`;
   }
 
   function renderLobby(state) {
@@ -801,9 +802,10 @@
     $('btn-open-builder').hidden = !iAmHost;
     const botBtn = $('btn-toggle-bot');
     if (botBtn) {
-      botBtn.textContent = `🤖 AI teammate: ${botModeLabel(state.bot)}`;
-      botBtn.classList.toggle('on', !!state.bot);
-      const bh = $('bot-hint'); if (bh) bh.textContent = botModeHint(state.bot);
+      botBtn.textContent = state.botHired ? `🤖 AI teammate: ${state.bot ? 'On' : 'Off'}` : '🤖 Hire a Sous-Chef →';
+      botBtn.classList.toggle('on', !!state.bot && !!state.botHired);
+      botBtn.classList.toggle('locked', !state.botHired);
+      const bh = $('bot-hint'); if (bh) bh.textContent = botHint(state);
     }
     renderShop(state);
     renderCrewStats(state);
@@ -815,6 +817,10 @@
   }
 
   // ---------- kitchen shop ----------
+  const SHOP_GROUPS = [
+    { id: 'sous', title: '🤖 AI Sous-Chef — hire, then teach it skills' },
+    { id: 'kitchen', title: '🍳 Kitchen Tools' },
+  ];
   function renderShop(state) {
     const card = $('shop-card');
     if (!state.wallet || !state.upgrades) { card.hidden = true; return; }
@@ -822,30 +828,41 @@
     $('shop-coins').textContent = `🪙 ${state.wallet.coins.toLocaleString()}`;
     const list = $('shop-list');
     list.innerHTML = '';
-    for (const [id, up] of Object.entries(state.upgrades)) {
-      const owned = !!state.wallet.upgrades[id];
-      const affordable = state.wallet.coins >= up.cost;
-      const row = document.createElement('div');
-      row.className = 'shop-row' + (owned ? ' owned' : '');
-      row.innerHTML = `
-        <div class="shop-emoji">${up.emoji}</div>
-        <div class="shop-info">
-          <div class="shop-name">${up.name}</div>
-          <div class="shop-desc">${up.desc}</div>
-        </div>
-        <button class="shop-buy" ${owned || !affordable ? 'disabled' : ''}>
-          ${owned ? '✓ Owned' : `🪙 ${up.cost.toLocaleString()}`}
-        </button>`;
-      if (!owned) {
-        row.querySelector('.shop-buy').onclick = () => {
-          SFX.tap();
-          socket.emit('buy_upgrade', id, (res) => {
-            if (res && res.error) toast(res.error);
-            else { SFX.serve(); toast(`${up.emoji} ${up.name} unlocked for the crew!`); }
-          });
-        };
+    const owned = state.wallet.upgrades || {};
+    const entries = Object.entries(state.upgrades);
+    for (const grp of SHOP_GROUPS) {
+      const rows = entries.filter(([, up]) => (up.group || 'kitchen') === grp.id);
+      if (!rows.length) continue;
+      const head = document.createElement('div');
+      head.className = 'shop-group-head';
+      head.textContent = grp.title;
+      list.appendChild(head);
+      for (const [id, up] of rows) {
+        const isOwned = !!owned[id];
+        const locked = up.needs && !owned[up.needs];
+        const affordable = state.wallet.coins >= up.cost;
+        const row = document.createElement('div');
+        row.className = 'shop-row' + (isOwned ? ' owned' : '') + (locked ? ' locked' : '');
+        row.innerHTML = `
+          <div class="shop-emoji">${up.emoji}</div>
+          <div class="shop-info">
+            <div class="shop-name">${up.name}</div>
+            <div class="shop-desc">${locked ? `🔒 Requires “${state.upgrades[up.needs].name}”` : up.desc}</div>
+          </div>
+          <button class="shop-buy" ${isOwned || locked || !affordable ? 'disabled' : ''}>
+            ${isOwned ? '✓ Owned' : locked ? '🔒' : `🪙 ${up.cost.toLocaleString()}`}
+          </button>`;
+        if (!isOwned && !locked) {
+          row.querySelector('.shop-buy').onclick = () => {
+            SFX.tap();
+            socket.emit('buy_upgrade', id, (res) => {
+              if (res && res.error) toast(res.error);
+              else { SFX.serve(); toast(`${up.emoji} ${up.name} unlocked for the crew!`); }
+            });
+          };
+        }
+        list.appendChild(row);
       }
-      list.appendChild(row);
     }
   }
 
@@ -1796,14 +1813,14 @@
     $('btn-open-builder').onclick = () => openBuilder({ from: 'lobby' });
     $('btn-toggle-bot').onclick = () => {
       SFX.tap();
-      const cur = lobby && lobby.bot;
-      const next = cur === 'prep' ? 'expo' : cur === 'expo' ? null : 'prep'; // Off→Prep→Expo→Off
+      if (!(lobby && lobby.botHired)) { toast('🤖 Hire a Sous-Chef in the Kitchen Shop first!'); return; }
+      const next = !(lobby && lobby.bot);
       if (lobby) lobby.bot = next;              // optimistic — server broadcast reconciles
       const b = $('btn-toggle-bot');
-      b.textContent = `🤖 AI teammate: ${botModeLabel(next)}`;
-      b.classList.toggle('on', !!next);
-      const bh = $('bot-hint'); if (bh) bh.textContent = botModeHint(next);
-      socket.emit('toggle_bot', next === null ? 'off' : next, () => {});
+      b.textContent = `🤖 AI teammate: ${next ? 'On' : 'Off'}`;
+      b.classList.toggle('on', next);
+      const bh = $('bot-hint'); if (bh) bh.textContent = botHint(lobby);
+      socket.emit('toggle_bot', next, () => {});
     };
     document.querySelectorAll('.builder-size .btn-mini').forEach((b) => {
       b.onclick = () => { resizeBoard(b.dataset.size); SFX.tap(); };
