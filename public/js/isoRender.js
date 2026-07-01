@@ -675,35 +675,32 @@
     easeOut(t) { return 1-(1-Math.min(t,1))**3; }
 
     // ── Juice ─────────────────────────────────────────────────────────────────
-    spawnServeJuice(gx, gy, points, vip) {
-      const [px, pyBase] = this.project(gx, gy);
-      const py = pyBase - BLOCK_LIFT;
-      const n = vip ? 22 : 14;
-      for (let i = 0; i < n; i++) {
-        const ang = (i / n) * Math.PI * 2;
-        const spd = 2.5 + Math.random() * 3.5;
-        this.fx.push({
-          kind: 'coin', x: px, y: py, t: 0,
-          vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd * 0.5 - 2,
-          rot: Math.random() * Math.PI * 2, vrot: (Math.random() - 0.5) * 0.3,
-          size: vip ? 9 : 7,
-        });
-      }
-      this.fx.push({ kind: 'points', x: px, y: py - 14, text: `+${points}`, t: 0, color: vip ? '#FFD700' : '#3DC9A0' });
-      this.fx.push({ kind: 'ring', x: px, y: py, t: 0, maxR: 36, color: vip ? '#FFD700' : '#FF6FAE' });
-    }
-
     addFx(ev) {
       const at=(x,y)=>{ const [px,py]=this.project(x,y); return [px, py-BLOCK_LIFT]; };
       const cols=['#FF6FAE','#FFD23F','#3DC9A0','#C09BFF','#FF8251','#5BADDE'];
       if (ev.type==='serve') {
         const [px,py]=at(ev.x,ev.y);
-        this.fx.push({kind:'points',x:px,y:py,text:`+${ev.points}`,t:0});
-        for (let i=0;i<16;i++) this.fx.push({
+        const vip = !!ev.vip;
+        const combo = (this.cur && this.cur.combo) || 0;
+        const gold = vip || combo >= 3;
+        // floating score — bigger for VIPs / hot combos
+        this.fx.push({kind:'points',x:px,y:py-6,text:`+${ev.points}`,t:0,color: gold ? '#FFB018' : '#3DC9A0', big: vip || ev.points >= 130});
+        // a shower of coins, more for a bigger tip
+        const coins = Math.max(8, Math.min(26, Math.round(ev.points / 11)));
+        for (let i=0;i<coins;i++){
+          const ang=(i/coins)*Math.PI*2;
+          const spd=2.4+Math.random()*3.4;
+          this.fx.push({kind:'coin',x:px,y:py,t:0,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd*0.5-2.4,rot:Math.random()*Math.PI*2,vrot:(Math.random()-0.5)*0.3,size: vip?9:7});
+        }
+        // burst ring that grows with the combo
+        this.fx.push({kind:'ring',x:px,y:py,t:0,maxR: 34 + combo*7, color: gold ? '#FFD23F' : '#FF6FAE'});
+        for (let i=0;i<(vip?18:12);i++) this.fx.push({
           kind:'confetti',x:px,y:py,t:0,
           vx:(Math.random()-0.5)*8,vy:-Math.random()*9-2,
           color:cols[i%cols.length],shape:i%3,rot:Math.random()*Math.PI*2,
         });
+        // combo flourish — the streak escalates the celebration
+        if (combo >= 2) this.fx.push({kind:'points',x:px,y:py-32,text:`COMBO ×${combo}!`,t:0,color:'#FF7AAE', big:true});
       } else if (ev.type==='burn') {
         const [px,py]=at(ev.x,ev.y);
         this.fx.push({kind:'points',x:px,y:py,text:'🔥 burned!',t:0,color:'#FF6040'});
@@ -1274,8 +1271,8 @@
           ctx.beginPath(); ctx.arc(f.x,f.y,(f.t/0.4)*ts*0.7,0,Math.PI*2); ctx.stroke();
         } else if(f.kind==='points'){
           const a=1-f.t/1.2; if(a<=0) return false;
-          const sz=ts*0.44;
-          ctx.font=`800 ${sz}px ui-rounded,system-ui`;
+          const sz=ts*(f.big?0.64:0.44);
+          ctx.font=`900 ${sz}px ui-rounded,system-ui`;
           ctx.textAlign='center'; ctx.textBaseline='middle';
           ctx.globalAlpha=Math.min(1,a*2)*0.4; ctx.fillStyle='#000';
           ctx.fillText(f.text,f.x+1,f.y-f.t*ts*1.2+1);
