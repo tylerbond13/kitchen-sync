@@ -90,11 +90,22 @@
       const br = (px[corners[0]]+px[corners[1]]+px[corners[2]]+px[corners[3]])/4;
       const bg = (px[corners[0]+1]+px[corners[1]+1]+px[corners[2]+1]+px[corners[3]+1])/4;
       const bb = (px[corners[0]+2]+px[corners[1]+2]+px[corners[2]+2]+px[corners[3]+2])/4;
-      const TOL = 2400; // squared RGB distance — flat AI backgrounds are uniform
-      const near = (o) => {
-        const dr=px[o]-br, dg=px[o+1]-bg, db=px[o+2]-bb;
-        return dr*dr + dg*dg + db*db < TOL;
+      const dist2 = (o) => { const dr=px[o]-br, dg=px[o+1]-bg, db=px[o+2]-bb; return dr*dr+dg*dg+db*db; };
+      const push4 = (i, arr) => {
+        const ix = i % sw, iy = (i / sw) | 0;
+        if (ix > 0)    arr.push(i-1);
+        if (ix < sw-1) arr.push(i+1);
+        if (iy > 0)    arr.push(i-sw);
+        if (iy < sh-1) arr.push(i+sw);
       };
+      const removed = new Uint8Array(sw*sh);
+
+      // Phase 1 — remove the FLAT studio card only: flood from the border, eating
+      // just pixels very close to the corner colour. A tight threshold means the
+      // subtly-shaded light parts of a sprite (white plates, a white dress) are
+      // NOT mistaken for background, so they stop being punched into see-through
+      // holes. (The old single loose pass ate ~70% of pale characters.)
+      const CORE = 600; // squared RGB distance — flat card + mild compression noise
       const seen = new Uint8Array(sw*sh);
       const stack = [];
       for (let ix=0; ix<sw; ix++) { stack.push(ix, (sh-1)*sw + ix); }
@@ -103,14 +114,24 @@
         const i = stack.pop();
         if (seen[i]) continue;
         seen[i] = 1;
-        const o = i*4;
-        if (!near(o)) continue;
-        px[o+3] = 0;
-        const ix = i % sw, iy = (i / sw) | 0;
-        if (ix > 0)    stack.push(i-1);
-        if (ix < sw-1) stack.push(i+1);
-        if (iy > 0)    stack.push(i-sw);
-        if (iy < sh-1) stack.push(i+sw);
+        if (dist2(i*4) > CORE) continue;
+        px[i*4+3] = 0; removed[i] = 1;
+        push4(i, stack);
+      }
+
+      // Phase 2 — feather the thin anti-aliased halo where sprite meets card,
+      // up to 2 pixels deep. Bounded depth means it can clean the edge without
+      // ever eating into the sprite body.
+      const EDGE = 3200;
+      let frontier = [];
+      for (let i=0; i<sw*sh; i++) if (removed[i]) push4(i, frontier);
+      for (let ring=0; ring<2; ring++) {
+        const next = [];
+        for (const i of frontier) {
+          if (removed[i] || px[i*4+3] === 0) continue;
+          if (dist2(i*4) <= EDGE) { px[i*4+3] = 0; removed[i] = 1; push4(i, next); }
+        }
+        frontier = next;
       }
     }
 
