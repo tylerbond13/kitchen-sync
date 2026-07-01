@@ -877,6 +877,7 @@
       const bh = $('bot-hint'); if (bh) bh.textContent = botHint(state);
     }
     renderShop(state);
+    renderProgress(state);
     renderCrewStats(state);
     renderMusic(state.music || musicState);
 
@@ -940,6 +941,33 @@
     if (!state.crewStats) { el.textContent = ''; return; }
     const s = state.crewStats;
     el.textContent = `🍽️ ${s.meals.toLocaleString()} meals served · 🎮 ${s.rounds} rounds · 🪙 ${s.earned.toLocaleString()} earned all-time`;
+  }
+
+  // At-a-glance progression: stars, 3★ levels, characters unlocked, Sous-Chef
+  // skills, and your next character unlock.
+  function renderProgress(state) {
+    const el = $('progress-banner');
+    if (!el || !state.levels) { if (el) el.innerHTML = ''; return; }
+    const camp = state.levels.filter((l) => l.section !== 'custom');
+    const starTotal = camp.reduce((n, l) => n + l.stars, 0);
+    const starMax = camp.length * 3;
+    const threeStar = camp.filter((l) => l.stars === 3).length;
+    const charsUnlocked = CHEFS.filter((c) => chefUnlocked(c.key)).length;
+    const botSkills = (state.botCaps || []).length;
+    const nextChef = CHEFS
+      .filter((c) => !chefUnlocked(c.key) && CHEF_UNLOCK[c.key])
+      .sort((a, b) => CHEF_UNLOCK[a.key] - CHEF_UNLOCK[b.key])[0];
+    const nextHint = nextChef
+      ? `🎭 Next character: ${escapeHtml(nextChef.name)} at ${CHEF_UNLOCK[nextChef.key]}★ — you have ${myStars}★`
+      : '🎉 Every character unlocked!';
+    el.innerHTML = `
+      <div class="prog-chips">
+        <span class="prog-chip">⭐ ${starTotal}/${starMax}</span>
+        <span class="prog-chip">🏆 ${threeStar}/${camp.length} 3★</span>
+        <span class="prog-chip">🎭 ${charsUnlocked}/${CHEFS.length} chefs</span>
+        <span class="prog-chip">🤖 ${state.botHired ? `${botSkills}/5 skills` : 'not hired'}</span>
+      </div>
+      <div class="prog-next">${nextHint}</div>`;
   }
 
   function escapeHtml(s) {

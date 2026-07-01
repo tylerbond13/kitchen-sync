@@ -500,6 +500,17 @@ input[type="text"]:focus {
 .member-name { font-size: 11.5px; font-weight: 700; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .levels-card { flex: 1; }
+.progress-banner { margin: 0 0 10px; }
+.progress-banner:empty { display: none; }
+.prog-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.prog-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11.5px; font-weight: 800; color: var(--ink);
+  background: linear-gradient(135deg, #FFF3F9 0%, #FFFBEA 100%);
+  border: 1.5px solid rgba(255,111,174,.14); border-radius: 10px;
+  padding: 4px 9px;
+}
+.prog-next { margin-top: 6px; font-size: 11px; font-weight: 700; color: var(--bubblegum); }
 .level-list { display: flex; flex-direction: column; gap: 10px; }
 .level-row {
   display: flex; align-items: center; gap: 12px;
@@ -1600,6 +1611,7 @@ input[type="text"]:focus {
 
       <div class="card levels-card">
         <div class="card-title">Levels</div>
+        <div class="progress-banner" id="progress-banner"></div>
         <div class="level-list" id="level-list"></div>
       </div>
 
