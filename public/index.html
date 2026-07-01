@@ -516,6 +516,53 @@ input[type="text"]:focus {
 .section-head .sec-emoji { font-size: 18px; }
 .section-head .sec-stars { margin-left: auto; font-size: 12px; color: var(--gold); font-weight: 800; }
 
+/* ── Level roadmap: the campaign as a progression map of compact stage nodes ── */
+.level-list.roadmap { gap: 4px; }
+.level-list.roadmap .section-head { margin: 14px 2px 2px; }
+.level-group {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  padding: 8px 4px 12px 22px;
+  position: relative;
+}
+/* a dotted trail runs down the left of each stage, like a path on a map */
+.level-group::before {
+  content: ''; position: absolute; left: 9px; top: 4px; bottom: 10px; width: 3px;
+  background: repeating-linear-gradient(180deg, rgba(255,111,174,.5) 0 5px, transparent 5px 11px);
+  border-radius: 2px;
+}
+.roadmap-node {
+  flex: 0 0 auto; width: 88px;
+  flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px;
+  padding: 8px 6px 7px; border-radius: 16px; position: relative; overflow: visible;
+}
+.roadmap-node .level-name, .roadmap-node .level-blurb, .roadmap-node .level-play { display: none; }
+.roadmap-node .level-info { flex: 0 0 auto; width: 100%; min-width: 0; text-align: center; }
+.roadmap-node .level-emoji { font-size: 34px; line-height: 1; }
+.roadmap-node .level-stars { font-size: 13px; letter-spacing: 0; }
+.roadmap-node .level-stars .muted { display: none; }  /* best-score is too much on a compact node */
+.roadmap-node::after {
+  content: attr(data-name);
+  display: block; width: 100%; margin-top: 1px;
+  font-size: 9.5px; font-weight: 700; color: var(--ink-soft); line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.roadmap-node:not(.locked)[data-stars="1"],
+.roadmap-node:not(.locked)[data-stars="2"],
+.roadmap-node:not(.locked)[data-stars="3"] {
+  background: linear-gradient(135deg, #FFF2F8 0%, #FFFBEA 100%);
+  border-color: rgba(240,193,90,.32);
+}
+.roadmap-node.current {
+  border-color: var(--bubblegum);
+  box-shadow: 0 0 0 4px rgba(255,111,174,.16), 0 4px 14px rgba(255,111,174,.22);
+}
+.roadmap-node.locked { opacity: .5; filter: grayscale(.85); }
+.roadmap-node .level-edit {
+  position: absolute; top: -6px; right: -6px; margin: 0;
+  padding: 3px 6px; font-size: 11px; border-radius: 9px;
+}
+.roadmap-node .level-edit.level-del, .roadmap-node .level-edit.level-reset { top: auto; bottom: -6px; right: -6px; }
+
 /* ============ Game HUD ============ */
 #screen-game { padding: calc(var(--sat) + 8px) 8px calc(var(--sab) + 8px); gap: 8px; }
 .game-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
