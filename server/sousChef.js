@@ -118,12 +118,14 @@ class SousChef {
     }) || null;
   }
 
-  // How many of `ing` are chopped/staged/chopping across the kitchen (+ carried).
+  // How many of `ing` are chopped/staged/chopping across the kitchen (+ carried,
+  // + already committed into a cooker), so the bot never over-produces.
   supply(ing) {
     let n = 0;
     for (const s of Object.values(this.game.stations)) {
       const it = s.item;
       if (it && it.id === ing && (it.state === 'chopped' || it.state === 'raw') && CHOPPABLE.has(ing)) n++;
+      if (s.contents) for (const ci of s.contents) if (ci.id === ing && CHOPPABLE.has(ing)) n++;
     }
     const c = this.game.players[this.botId].carry;
     if (c && c.id === ing && !c.kind) n++;
@@ -201,6 +203,82 @@ class SousChef {
     return null;
   }
 
+  // ---- cook-loading (expo): start the cooks orders need ---------------------
+  // Cook combos whose output is (transitively) needed by an open order.
+  neededCombos() {
+    const out = [], seen = new Set();
+    const add = (token, depth) => {
+      if (depth > 4 || !token || token.includes('#') || seen.has(token)) return;
+      const combo = COOK_COMBOS.find((c) => comboOutToken(c.out) === token);
+      if (!combo) return;
+      seen.add(token);
+      out.push(combo);
+      for (const inp of combo.inputs) add(inp, depth + 1);
+    };
+    for (const o of this.game.orders) for (const t of RECIPES[o.recipe].needs) add(t, 0);
+    return out;
+  }
+
+  dishNeed(dishToken) {
+    return this.game.orders.filter((o) => RECIPES[o.recipe].needs.includes(dishToken)).length;
+  }
+
+  // How many of a combo's dish are already loose, cooking/done, or filling.
+  dishComing(combo) {
+    const dishToken = comboOutToken(combo.out);
+    let n = 0;
+    for (const s of Object.values(this.game.stations)) {
+      if (s.type !== 'cook') { if (s.item && itemToken(s.item) === dishToken) n++; continue; }
+      if ((s.state === 'cooking' || s.state === 'done') && s.contents[0] && itemToken(s.contents[0]) === dishToken) n++;
+      else if (s.state === 'idle' && s.contents.length && s.tool === combo.tool && isSubset(s.contents.map(itemToken), combo.inputs)) n++;
+    }
+    return n;
+  }
+
+  // Where to grab a cook input from: a raw crate, or a loose item on a board/counter.
+  cookSourceFor(token) {
+    const dot = token.lastIndexOf('.'); const id = token.slice(0, dot), state = token.slice(dot + 1);
+    if (state === 'raw') { const cr = (this.index().crates[id] || [])[0]; if (cr) return cr; }
+    for (const [key, s] of Object.entries(this.game.stations)) {
+      if ((s.type === 'board' || s.type === 'counter') && s.item && itemToken(s.item) === token) {
+        const [x, y] = key.split(',').map(Number); return { x, y };
+      }
+    }
+    return null;
+  }
+
+  // The next input to grab for an under-supplied, needed cook — the tile to grab it from.
+  loadInput() {
+    for (const combo of this.neededCombos()) {
+      if (this.dishNeed(comboOutToken(combo.out)) <= this.dishComing(combo)) continue;
+      let cooker = null, best = -1;
+      for (const [key, s] of Object.entries(this.game.stations)) {
+        if (s.type !== 'cook' || s.tool !== combo.tool || s.state !== 'idle') continue;
+        if (!isSubset(s.contents.map(itemToken), combo.inputs)) continue;
+        if (s.contents.length > best) { best = s.contents.length; cooker = key; }
+      }
+      if (!cooker) continue;
+      const remaining = multisetDiff(combo.inputs, this.game.stations[cooker].contents.map(itemToken));
+      for (const tok of remaining) {
+        const src = this.cookSourceFor(tok);
+        if (src) return src;
+      }
+    }
+    return null;
+  }
+
+  // An idle cooker that would accept a carried `token` toward a needed combo.
+  cookerWanting(token) {
+    for (const [key, s] of Object.entries(this.game.stations)) {
+      if (s.type !== 'cook' || s.state !== 'idle') continue;
+      const have = s.contents.map(itemToken);
+      if (this.neededCombos().some((c) => c.tool === s.tool && isSubset(have.concat(token), c.inputs))) {
+        const [x, y] = key.split(',').map(Number); return { x, y };
+      }
+    }
+    return null;
+  }
+
   // ---- PREP mode: chop / rescue / wash / clear boards -----------------------
   decidePrep(p) {
     const carry = p.carry;
@@ -249,18 +327,30 @@ class SousChef {
       if (!onTrack && carry.kind === 'plate' && idx.trash[0]) return idx.trash[0];
       return null;                                   // components not ready yet — wait
     }
-    if (carry && !carry.kind && carry.state === 'raw' && CHOPPABLE.has(carry.id))
-      return this.freeBoard() || this.freeCounter() || null;   // chop it
-    if (carry) return this.freeCounter() || null;    // loose component/dish → set down; we plate via a plate
+    // Carrying a loose ingredient: drop it into a cooker that wants it (start a
+    // cook), else chop it, else set it down.
+    if (carry && !carry.kind) {
+      const cooker = this.cookerWanting(itemToken(carry));
+      if (cooker) return cooker;
+      if (carry.state === 'raw' && CHOPPABLE.has(carry.id)) return this.freeBoard() || this.freeCounter() || null;
+      return this.freeCounter() || null;
+    }
+    if (carry) return this.freeCounter() || null;    // a dish/other → set down; we plate via a plate
 
     // Hands free.
     if (this.freeCounter()) {                        // rescue a finishing dish
       const done = this.doneCooker();
       if (done) { const [x, y] = done[0].split(',').map(Number); return { x, y }; }
     }
+    const load = this.loadInput();                   // start/continue a cook the orders need
+    if (load) return load;
     if (idx.plates[0] && this.hasCompletableOrder()) return idx.plates[0]; // grab a plate to build
     const chop = this.grabForChop();                 // else produce a missing component
     if (chop) return chop;
+    if (this.freeCounter()) {                         // clear a full board onto a counter
+      const b = this.finishedChopBoard();
+      if (b) return b;
+    }
     if (g.plateSupply !== null && this.dirtyCount() > 0 && idx.sinks[0]) return idx.sinks[0];
     return null;
   }
