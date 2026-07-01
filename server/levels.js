@@ -116,13 +116,23 @@ const CHOPPABLE = new Set([
 ]);
 
 // Kitchen Shop upgrades — persist per crew, bought with banked score coins.
+// `group` buckets them in the shop UI; `needs` is a prerequisite upgrade id.
+// The AI Sous-Chef is earned, not given: hire it, then teach it each skill.
 const UPGRADES = {
-  auto_chopper: { name: 'Auto-Chopper',    emoji: '🤖', desc: 'Boards chop 35% faster when toggled on in-game', cost: 800 },
-  fast_shoes:   { name: 'Speedy Sneakers', emoji: '👟', desc: 'All chefs move 12% faster', cost: 1000 },
-  nonstick:     { name: 'Non-Stick Pans',  emoji: '🍳', desc: '+3 seconds before food burns', cost: 1200 },
-  extra_plate:  { name: 'Bonus Plate',     emoji: '🍽️', desc: '+1 plate in the stack', cost: 1500 },
-  dish_bot:     { name: 'Dish-Bot 3000',   emoji: '🫧', desc: 'The sink slowly washes dishes by itself', cost: 2000 },
-  turbo_stove:  { name: 'Turbo Burners',   emoji: '🔥', desc: 'Everything cooks 15% faster', cost: 2500 },
+  // ── AI Sous-Chef progression ──
+  sous_chef:  { name: 'Hire a Sous-Chef',  emoji: '🤖', desc: 'An AI teammate you can toggle into any round', cost: 600,  group: 'sous' },
+  sous_chop:  { name: 'Teach: Chopping',   emoji: '🔪', desc: 'It preps ingredients on the cutting boards',   cost: 700,  group: 'sous', needs: 'sous_chef' },
+  sous_wash:  { name: 'Teach: Dishwashing', emoji: '🫧', desc: 'It keeps the plate stack clean at the sink',   cost: 700,  group: 'sous', needs: 'sous_chef' },
+  sous_cook:  { name: 'Teach: Cooking',    emoji: '🍲', desc: 'It loads pots & ovens and saves food from burning', cost: 1200, group: 'sous', needs: 'sous_chop' },
+  sous_plate: { name: 'Teach: Plating',    emoji: '🍽️', desc: 'It assembles orders onto plates',              cost: 1400, group: 'sous', needs: 'sous_chef' },
+  sous_serve: { name: 'Teach: Delivery',   emoji: '🛎️', desc: 'It serves finished orders at the window',       cost: 1800, group: 'sous', needs: 'sous_plate' },
+  // ── Kitchen tools ──
+  fast_shoes:   { name: 'Speedy Sneakers', emoji: '👟', desc: 'All chefs move 12% faster', cost: 1000, group: 'kitchen' },
+  turbo_stove:  { name: 'Turbo Burners',   emoji: '🔥', desc: 'Everything cooks 15% faster', cost: 1600, group: 'kitchen' },
+  nonstick:     { name: 'Non-Stick Pans',  emoji: '🍳', desc: '+3 seconds before food burns', cost: 1200, group: 'kitchen' },
+  extra_plate:  { name: 'Bonus Plate',     emoji: '🍽️', desc: '+1 clean plate in the stack', cost: 1400, group: 'kitchen' },
+  auto_chopper: { name: 'Auto-Chopper',    emoji: '⚙️', desc: 'Cutting boards chop twice as fast', cost: 900, group: 'kitchen' },
+  dish_bot:     { name: 'Dish-Bot 3000',   emoji: '🧽', desc: 'The sink slowly washes dishes on its own', cost: 1800, group: 'kitchen' },
 };
 
 const SECTIONS = [

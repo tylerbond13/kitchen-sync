@@ -11,6 +11,19 @@ const BOT_ID = 'bot:sous-chef';
 function botProfile() {
   return { id: BOT_ID, name: 'Sous-Chef', avatar: '🤖', chef: 'chef', connected: true, bot: true };
 }
+// The Sous-Chef is earned in the shop: hire it, then teach it each skill.
+const BOT_SKILLS = { sous_chop: 'chop', sous_wash: 'wash', sous_cook: 'cook', sous_plate: 'plate', sous_serve: 'serve' };
+function isBotHired(crew) {
+  if (crew.code === store.ADMIN_CODE) return true;
+  return !!(crew.wallet && crew.wallet.upgrades && crew.wallet.upgrades.sous_chef);
+}
+function botCaps(crew) {
+  if (crew.code === store.ADMIN_CODE) return new Set(Object.values(BOT_SKILLS));
+  const u = (crew.wallet && crew.wallet.upgrades) || {};
+  const caps = new Set();
+  for (const [id, skill] of Object.entries(BOT_SKILLS)) if (u[id]) caps.add(skill);
+  return caps;
+}
 const MAX_PLAYERS = 8;
 const MAX_RADIO_QUEUE = 12;
 const VIDEO_ID_RE = /^[\w-]{11}$/;
@@ -164,7 +177,9 @@ function lobbyState(room) {
     boards: room.crew.boards || {},
     overrides: room.crew.overrides || {},
     inGame: !!room.game && room.game.phase === 'playing',
-    bot: room.botMode || null, // AI teammate mode for the next round: null|'prep'|'expo'
+    bot: !!room.wantBot,                       // is the Sous-Chef toggled on for next round
+    botHired: isBotHired(room.crew),           // owns 'Hire a Sous-Chef'
+    botCaps: [...botCaps(room.crew)],          // skills taught: chop/wash/cook/plate/serve
   };
 }
 
@@ -271,8 +286,9 @@ function startGame(io, room, levelId, custom) {
 
   const roster = [...room.players.values()].filter((p) => p.connected);
   if (!roster.length) return { error: 'No players' };
-  // The AI teammate joins the round as an extra chef when a mode is toggled on.
-  if (room.botMode) roster.push(botProfile());
+  // The AI teammate joins the round as an extra chef when it's toggled on AND hired.
+  const useBot = room.wantBot && isBotHired(room.crew);
+  if (useBot) roster.push(botProfile());
 
   store.ensureCrewExtras(room.crew);
   room.exited = new Set();
@@ -280,7 +296,7 @@ function startGame(io, room, levelId, custom) {
     upgrades: room.crew.wallet.upgrades,
     autoChop: room.crew.settings.autoChop,
   });
-  room.sousChef = room.botMode ? new SousChef(room.game, BOT_ID, room.botMode) : null;
+  room.sousChef = useBot ? new SousChef(room.game, BOT_ID, botCaps(room.crew)) : null;
   roomBroadcast(io, room, 'game_start', room.game.staticState());
   // rounds own the speakers: drop whatever was playing, then start the queue
   if (room.radio) stopRadio(io, room);
@@ -423,21 +439,21 @@ function attach(io) {
       ack(startGame(io, joined.room, null, cfg));
     });
 
-    // Set the AI teammate (Sous-Chef) mode for the next round. Any crew member
-    // can change it. Pass 'prep' | 'expo' | 'off'; omit to cycle
-    // Off → Prep → Expo → Off. It joins when the round starts.
-    socket.on('toggle_bot', (mode, ack) => {
+    // Toggle the AI teammate (Sous-Chef) on/off for the next round. It must be
+    // hired in the Kitchen Shop first; once in the round it uses whatever skills
+    // the crew has taught it. Pass true/false, or omit to toggle.
+    socket.on('toggle_bot', (on, ack) => {
       if (typeof ack !== 'function') ack = () => {};
       if (!joined) return ack({ error: 'Not in a kitchen' });
       const room = joined.room;
-      if (mode === 'prep' || mode === 'expo') room.botMode = mode;
-      else if (mode === 'off' || mode === null) room.botMode = null;
-      else {
-        const order = [null, 'prep', 'expo'];
-        room.botMode = order[(order.indexOf(room.botMode || null) + 1) % order.length];
+      if (!isBotHired(room.crew)) {
+        room.wantBot = false;
+        roomBroadcast(io, room, 'lobby', lobbyState(room));
+        return ack({ error: 'Hire a Sous-Chef in the Kitchen Shop first!' });
       }
+      room.wantBot = on === undefined ? !room.wantBot : !!on;
       roomBroadcast(io, room, 'lobby', lobbyState(room));
-      ack({ ok: true, bot: room.botMode || null });
+      ack({ ok: true, bot: !!room.wantBot });
     });
 
     socket.on('tap', ({ x, y }) => {
@@ -544,6 +560,10 @@ function attach(io) {
       const up = UPGRADES[id];
       if (!up) return ack({ error: 'Unknown upgrade' });
       const crew = joined.room.crew;
+      store.ensureCrewExtras(crew);
+      if (up.needs && !crew.wallet.upgrades[up.needs]) {
+        return ack({ error: `Unlock "${UPGRADES[up.needs].name}" first` });
+      }
       if (!store.buyUpgrade(crew, id, up.cost)) {
         return ack({ error: 'Not enough coins yet — keep cooking!' });
       }

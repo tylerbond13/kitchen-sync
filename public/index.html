@@ -918,6 +918,11 @@ input[type="text"]:focus {
 .crew-stats { margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
 .shop-coins { float: right; color: var(--ink); font-weight: 800; }
 .shop-list { display: flex; flex-direction: column; gap: 8px; }
+.shop-group-head {
+  font-size: 11px; font-weight: 900; letter-spacing: .02em; text-transform: uppercase;
+  color: var(--bubblegum); margin: 8px 2px 2px;
+}
+.shop-group-head:first-child { margin-top: 0; }
 .shop-row {
   display: flex; align-items: center; gap: 10px;
   background: linear-gradient(135deg, #FFF8FC 0%, #FFF3F8 100%);
@@ -925,6 +930,8 @@ input[type="text"]:focus {
   border: 1.5px solid rgba(255, 111, 174, 0.10);
 }
 .shop-row.owned { opacity: .6; }
+.shop-row.locked { opacity: .55; filter: grayscale(.35); }
+.btn-secondary.locked { opacity: .82; filter: saturate(.6); }
 .shop-emoji { font-size: 24px; }
 .shop-info { flex: 1; min-width: 0; }
 .shop-name { font-weight: 800; font-size: 13.5px; }

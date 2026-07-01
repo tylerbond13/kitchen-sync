@@ -24,10 +24,10 @@ test('chopsForRecipe expands a recipe to the chops it ultimately needs', () => {
   assert.deepEqual(chopsForRecipe('chocolate_cake'), []);
 });
 
-test('Sous-Chef preps chopped ingredients during a live round', () => {
+test('Sous-Chef with only the chopping skill preps ingredients', () => {
   const salad = LEVELS.find((l) => l.id === 'salad-days');
   const game = new Game(salad, roster());
-  const bot = new SousChef(game, BOT_ID);
+  const bot = new SousChef(game, BOT_ID, ['chop']);
   const dt = 1 / 12;
   for (let i = 0; i < 12 * 30; i++) { bot.think(dt); game.tick(dt); } // ~30 sim-seconds
 
@@ -38,10 +38,10 @@ test('Sous-Chef preps chopped ingredients during a live round', () => {
   assert.ok(game.players[BOT_ID], 'bot chef exists in the sim');
 });
 
-test('Sous-Chef rescues a finished dish off the stove before it burns', () => {
+test('Sous-Chef (cooking skill) rescues a finished dish off the stove before it burns', () => {
   const soup = LEVELS.find((l) => l.id === 'soups-on'); // has a pot + a sink
   const game = new Game(soup, roster());
-  const bot = new SousChef(game, BOT_ID);
+  const bot = new SousChef(game, BOT_ID, ['cook']);
   // Stage a finished dish sitting on a cook station, about to burn.
   const key = Object.keys(game.stations).find((k) => game.stations[k].type === 'cook');
   const cooker = game.stations[key];
@@ -64,33 +64,41 @@ test('Sous-Chef rescues a finished dish off the stove before it burns', () => {
   assert.ok(staged, 'the rescued dish should be staged on a counter');
 });
 
-test('Sous-Chef expo mode plates and serves a salad on its own', () => {
+test('Sous-Chef with chop+plate+deliver serves a salad on its own', () => {
   const salad = LEVELS.find((l) => l.id === 'salad-days');
   const game = new Game(salad, roster());
-  const bot = new SousChef(game, BOT_ID, 'expo');
+  const bot = new SousChef(game, BOT_ID, ['chop', 'plate', 'serve']);
   const dt = 1 / 12;
   for (let i = 0; i < 12 * 60; i++) { bot.think(dt); game.tick(dt); } // ~60 sim-seconds
-  assert.ok(game.deliveredCount > 0, `expo bot should have served a dish (delivered=${game.deliveredCount}, score=${game.score})`);
+  assert.ok(game.deliveredCount > 0, `bot should have served a dish (delivered=${game.deliveredCount}, score=${game.score})`);
 });
 
-test('Sous-Chef expo mode cooks, plates and serves soup on its own', () => {
-  const soup = LEVELS.find((l) => l.id === 'soups-on'); // needs the pot: chop → cook → plate → serve
+test('Sous-Chef with the full skill set cooks, plates and serves soup on its own', () => {
+  const soup = LEVELS.find((l) => l.id === 'soups-on'); // chop → cook → plate → serve
   const game = new Game(soup, roster());
-  const bot = new SousChef(game, BOT_ID, 'expo');
+  const bot = new SousChef(game, BOT_ID, ['chop', 'cook', 'plate', 'serve']);
   const dt = 1 / 12;
   for (let i = 0; i < 12 * 90; i++) { bot.think(dt); game.tick(dt); } // ~90 sim-seconds
-  assert.ok(game.deliveredCount > 0, `expo bot should cook + serve a soup (delivered=${game.deliveredCount}, score=${game.score})`);
+  assert.ok(game.deliveredCount > 0, `bot should cook + serve a soup (delivered=${game.deliveredCount}, score=${game.score})`);
 });
 
-test('Sous-Chef never crashes the sim on any level in either mode', () => {
+test('Sous-Chef does nothing without skills, and never crashes on any level / skill set', () => {
   const dt = 1 / 12;
-  for (const mode of ['prep', 'expo']) {
+  const skillSets = [[], ['chop'], ['chop', 'wash'], ['chop', 'cook', 'plate', 'serve', 'wash']];
+  // With no skills taught, the bot exists but never acts.
+  const salad = LEVELS.find((l) => l.id === 'salad-days');
+  const idle = new Game(salad, roster());
+  const idleBot = new SousChef(idle, BOT_ID, []);
+  for (let i = 0; i < 12 * 20; i++) { idleBot.think(dt); idle.tick(dt); }
+  assert.equal(idle.deliveredCount, 0, 'a skill-less bot should never deliver');
+  // No crashes for any skill set on any level.
+  for (const caps of skillSets) {
     for (const level of LEVELS) {
       const game = new Game(level, roster());
-      const bot = new SousChef(game, BOT_ID, mode);
+      const bot = new SousChef(game, BOT_ID, caps);
       assert.doesNotThrow(() => {
         for (let i = 0; i < 12 * 12; i++) { bot.think(dt); game.tick(dt); }
-      }, `${level.id} (${mode}): bot loop threw`);
+      }, `${level.id} [${caps.join(',')}]: bot loop threw`);
     }
   }
 });

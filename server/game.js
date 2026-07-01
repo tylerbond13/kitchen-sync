@@ -5,7 +5,7 @@ const { ING, DISHES, RECIPES, COOK_COMBOS, CHOPPABLE } = require('./levels');
 
 const SPEED = 4.08 * 2.5; // tiles per second (2.5× the original base speed)
 const CHOP_TIME = 2.2;    // seconds for a board to finish chopping
-const AUTO_CHOP_RATE = 1.35; // upgrade toggle: hands-free boards chop faster
+const AUTO_CHOP_RATE = 2.0; // Auto-Chopper upgrade: boards chop twice as fast
 const CHOP_SOUND_EVERY = 0.55;
 const WASH_TIME = 2.5;    // seconds of standing at the sink, per plate
 const DISH_BOT_RATE = WASH_TIME / 9; // upgrade: ~1 plate every 9s, unmanned
