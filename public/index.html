@@ -1095,11 +1095,24 @@ input[type="text"]:focus {
   border: 1.5px solid rgba(255, 111, 174, 0.12);
   animation: tut-pop .2s ease;
 }
-/* the dish ticket reused from the game, enlarged for the tutorial */
-.tutorial-card .ticket-dish-img { width: 64px; height: 64px; }
-.tutorial-card .ticket-name { font-size: 16px; font-weight: 900; white-space: normal; overflow: visible; text-overflow: clip; }
-.tutorial-card .ticket-ingredients { gap: 8px; margin-top: 6px; }
-.tutorial-card .ticket-mini-img, .tutorial-card .ticket-mini svg.art { width: 30px; height: 30px; }
+/* The dish ticket is reused from the game, but for the tutorial it's restyled
+   as a clean, centered card — drop the nested order-card frame + 2-column grid
+   so the face never overlaps the title and the steps get room to breathe. */
+.tutorial-card .ticket {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  width: auto; padding: 4px 4px 0;
+  background: none; box-shadow: none; border: 0; border-radius: 0; animation: none;
+}
+.tutorial-card .ticket-dish-img { width: 66px; height: 66px; }
+.tutorial-card .ticket-body { width: 100%; min-width: 0; }
+.tutorial-card .ticket-headline { justify-content: center; gap: 10px; margin-bottom: 8px; }
+.tutorial-card .ticket-customer { flex: 0 0 44px; width: 44px; height: 44px; }
+.tutorial-card .ticket-name { font-size: 17px; font-weight: 900; white-space: normal; overflow: visible; text-overflow: clip; }
+.tutorial-card .ticket-ingredients { justify-content: center; gap: 12px; margin-top: 2px; flex-wrap: wrap; }
+.tutorial-card .ticket-ingredient { width: 48px; flex: 0 0 48px; }
+.tutorial-card .ticket-mini { width: 38px; height: 38px; }
+.tutorial-card .ticket-mini-img, .tutorial-card .ticket-mini svg.art { width: 36px; height: 36px; }
+.tutorial-card .ticket-prep span { width: 26px; height: 26px; font-size: 16px; }
 .tutorial-steps { margin-top: 12px; display: flex; flex-direction: column; gap: 9px; }
 .tutorial-step {
   display: flex; align-items: center; gap: 10px;
@@ -1118,7 +1131,10 @@ input[type="text"]:focus {
   gap: 10px; margin-top: 16px;
 }
 .tutorial-skip { color: var(--ink-soft); font-weight: 800; padding: 8px 6px; }
-.tutorial-next { flex: 0 0 auto; padding: 11px 20px; }
+/* Keep the Next button hugging its label (the global .btn is width:100%) and
+   give it a single, clean shadow instead of the heavy stacked one. */
+.tutorial-foot .btn { width: auto; }
+.tutorial-next { flex: 0 0 auto; padding: 12px 22px; box-shadow: 0 4px 0 #C03070, 0 6px 16px rgba(224, 80, 142, .28); }
 .tutorial-dots { display: flex; gap: 6px; }
 .tutorial-dots span {
   width: 8px; height: 8px; border-radius: 50%;
