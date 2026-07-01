@@ -130,6 +130,15 @@ class SousChef {
     const dirty = this.dirtyCount();
     const idx = this.index();
 
+    // Rescue a finished dish before it burns — grab it off the stove (it gets
+    // staged on a counter next tick for the human to plate). Only if there's a
+    // free counter to set it on, so the bot never gets stuck holding it.
+    if (this.freeCounter()) {
+      const done = Object.entries(this.game.stations)
+        .find(([, s]) => s.type === 'cook' && s.state === 'done');
+      if (done) { const [x, y] = done[0].split(',').map(Number); return { x, y }; }
+    }
+
     // Plate stack empty with dishes waiting → wash right now.
     if (plates !== null && plates <= 0 && dirty > 0 && idx.sinks[0]) return idx.sinks[0];
 
