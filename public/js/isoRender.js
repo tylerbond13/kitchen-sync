@@ -1045,9 +1045,12 @@
       // registers as a precise hit region for reverse-depth click picking.
       let key = STATION_KEY[c] || 'counter';
       if (c==='B' && s && s.item && s.item.state === 'raw') key='chopping_board_active';
-      if (c==='S' && s && s.contents) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'stove_fire' : 'stove_full';
-      if (c==='O' && s && s.contents) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'pot_active' : 'pot_full';
-      if (c==='V' && s && s.contents) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'oven_active' : 'oven';
+      // Cook stations are now always sent (for the fill count); only swap to the
+      // "full"/active art once something's actually in them or they're cooking.
+      const cookActive = s && s.contents && (s.contents.length || s.state !== 'idle');
+      if (c==='S' && cookActive) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'stove_fire' : 'stove_full';
+      if (c==='O' && cookActive) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'pot_active' : 'pot_full';
+      if (c==='V' && cookActive) key=(s.state==='cooking'||s.state==='done'||s.state==='burned') ? 'oven_active' : 'oven';
       if (c==='K' && s && s.dirty > 0) key='sink_dirty';
       // Cake World: the mixing bowl shows its "full" art while it holds
       // ingredients/batter (filling, mixing, or done).
@@ -1116,6 +1119,12 @@
             const off=n>1?(i-(n-1)/2)*10:0;
             this.drawItem(it,sx+off,topY-5,n>1?17:23,false);
           });
+          // Fill count on multi-item cookers (pots/ovens/mixers): while adding
+          // ingredients it's hard to eyeball how many are in, so always show
+          // 0 / 1 / 2 / 3. Once it's cooking, the progress bar takes over.
+          if ((c==='O'||c==='V'||c==='M') && s.state==='idle') {
+            this.countBadge(sx+19, topY-12, n, n>0, '#F5943B');
+          }
           if (s.state==='cooking') {
             this.bar(sx, topY - 28, s.progress, '#FFD23F','#FFF0A0');
             if(Math.floor(now/280)%2) this.glyph('💨',sx+14,topY-19,12);
