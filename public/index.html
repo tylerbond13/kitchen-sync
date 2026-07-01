@@ -377,61 +377,64 @@ input[type="text"]:focus {
 /* ============ Chef picker ============ */
 .chef-grid {
   display: grid;
-  /* Bigger portraits: ~2 columns on phones, more on wide screens, never
-     overflowing — the cells flex between 150px and 1fr. */
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
+  /* Dense Super-Smash-style grid — the whole roster reads in one glance, many
+     small square portraits per row instead of a long scroll. */
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 7px;
   margin-bottom: 14px;
 }
 .chef-section-head {
   grid-column: 1 / -1;
   display: flex; align-items: center; gap: 7px;
-  font-size: 14px; font-weight: 900; color: var(--ink);
-  margin: 14px 2px 2px;
-  padding-bottom: 6px;
+  font-size: 13px; font-weight: 900; color: var(--ink);
+  margin: 12px 2px 1px;
+  padding-bottom: 5px;
   border-bottom: 2px solid rgba(255, 111, 174, 0.18);
 }
 .chef-section-head:first-child { margin-top: 0; }
-.chef-section-emoji { font-size: 17px; }
+.chef-section-emoji { font-size: 16px; }
+.chef-section-tally { margin-left: auto; font-size: 11px; font-weight: 800; color: var(--bubblegum); }
 .chef-cell {
   font: inherit;
   min-width: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 7px;
-  padding: 11px 6px 9px;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px;
+  padding: 4px 3px 3px;
   background: var(--cream);
   border: 2px solid transparent;
-  border-radius: 18px;
+  border-radius: 12px;
   color: var(--ink);
   cursor: pointer;
+  position: relative;
   transition: transform .1s, border-color .1s, background .1s, box-shadow .1s;
 }
-.chef-cell:active { transform: scale(.96); }
+.chef-cell:active { transform: scale(.94); }
 .chef-cell.sel {
   border-color: var(--bubblegum);
   background: #FFF0F8;
-  box-shadow: 0 0 0 3px rgba(255, 111, 174, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 111, 174, 0.18);
 }
+.chef-cell.locked { opacity: .52; filter: grayscale(.85); cursor: help; }
+.chef-cell.locked img { filter: grayscale(.9) drop-shadow(0 2px 4px rgba(45, 22, 52, 0.14)); }
 .chef-cell img {
   width: 100%;
-  max-width: 100%;
-  height: 186px;            /* ~1.9x the old 100px — portraits read much bigger */
-  object-fit: contain;
+  aspect-ratio: 1;
+  height: auto;
+  object-fit: cover;
+  object-position: center top;   /* frame the face at the top of the figure */
+  border-radius: 10px;
   pointer-events: none;
-  filter: drop-shadow(0 4px 6px rgba(45, 22, 52, 0.18));
+  filter: drop-shadow(0 2px 4px rgba(45, 22, 52, 0.16));
 }
 .chef-cell span {
   width: 100%;
-  /* two-word names wrap to a second line instead of being cut off; cap at
-     two lines so the grid rows stay even */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-align: center;
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 1.2;
-  min-height: 2.4em; /* reserve both lines so single-line names align */
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.15;
 }
 .profile-stats { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
 

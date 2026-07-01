@@ -168,13 +168,36 @@
   const chefGrid = $('chef-grid');
   const chefByKey = new Map(CHEFS.map((c) => [c.key, c]));
 
+  // Character progression: you start with a tiny cast (the Golden Girls + the
+  // house chef) and unlock the rest by banking stars across your games. `myStars`
+  // is the player's lifetime starsEarned, synced from the server on `hello`.
+  let myStars = 0;
+  const STARTER_CHEFS = new Set(['chef', 'grandma_rose', 'betty_white', 'blanche_devereaux', 'dorothy_zbornak']);
+  const CHEF_UNLOCK = (() => {
+    const ordered = [], seen = new Set();
+    for (const sec of CHEF_SECTIONS) for (const k of sec.keys) if (chefByKey.has(k) && !seen.has(k)) { seen.add(k); ordered.push(k); }
+    for (const c of CHEFS) if (!seen.has(c.key)) { seen.add(c.key); ordered.push(c.key); }
+    const map = {}; let n = 0;
+    for (const k of ordered) { if (STARTER_CHEFS.has(k)) continue; n++; map[k] = n * 2; } // stars needed, in roster order
+    return map;
+  })();
+  function chefUnlocked(key) { return STARTER_CHEFS.has(key) || myStars >= (CHEF_UNLOCK[key] || 0); }
+
   function makeChefCell(chef) {
     const cell = document.createElement('button');
     cell.className = 'chef-cell';
     cell.type = 'button';
     cell.dataset.chef = chef.key;
-    cell.innerHTML = `${chefImgHtml(chef.key, 'chef-picker-img')}<span>${escapeHtml(chef.name)}</span>`;
+    const unlocked = chefUnlocked(chef.key);
+    if (!unlocked) cell.classList.add('locked');
+    const label = unlocked ? escapeHtml(chef.name) : `🔒 ${CHEF_UNLOCK[chef.key]}★`;
+    cell.innerHTML = `${chefImgHtml(chef.key, 'chef-picker-img')}<span>${label}</span>`;
     cell.onclick = () => {
+      if (!chefUnlocked(chef.key)) {
+        SFX.tap();
+        toast(`🔒 ${chef.name} unlocks at ${CHEF_UNLOCK[chef.key]}★ — you have ${myStars}★. Keep cooking!`);
+        return;
+      }
       profile.chef = chef.key;
       saveProfile();
       refreshPicker();
@@ -189,27 +212,31 @@
     return cell;
   }
 
-  function addChefSectionHead(section) {
+  function addChefSectionHead(section, unlockedCount, total) {
     const h = document.createElement('div');
     h.className = 'chef-section-head';
-    h.innerHTML = `<span class="chef-section-emoji">${section.emoji}</span>${escapeHtml(section.name)}`;
+    const tally = (total != null) ? `<span class="chef-section-tally">${unlockedCount}/${total}</span>` : '';
+    h.innerHTML = `<span class="chef-section-emoji">${section.emoji}</span>${escapeHtml(section.name)}${tally}`;
     chefGrid.appendChild(h);
   }
 
-  (function renderChefSections() {
+  function renderChefSections() {
+    chefGrid.innerHTML = '';
     const placed = new Set();
     for (const section of CHEF_SECTIONS) {
       const members = section.keys.map((k) => chefByKey.get(k)).filter(Boolean);
       if (!members.length) continue;
-      addChefSectionHead(section);
+      const nUnlocked = members.filter((c) => chefUnlocked(c.key)).length;
+      addChefSectionHead(section, nUnlocked, members.length);
       for (const chef of members) { chefGrid.appendChild(makeChefCell(chef)); placed.add(chef.key); }
     }
     const leftovers = CHEFS.filter((c) => !placed.has(c.key));
     if (leftovers.length) {
-      addChefSectionHead({ name: 'More Stars', emoji: '⭐' });
+      addChefSectionHead({ name: 'More Stars', emoji: '⭐' }, leftovers.filter((c) => chefUnlocked(c.key)).length, leftovers.length);
       for (const chef of leftovers) chefGrid.appendChild(makeChefCell(chef));
     }
-  })();
+  }
+  renderChefSections();
 
   $('name-input').value = profile.name;
   $('name-input').addEventListener('change', () => {
@@ -272,6 +299,8 @@
       if (res && res.ok) {
         savePlayerBackup(res.player);
         renderProfileStats(res.player);
+        const stars = (res.player && res.player.stats && res.player.stats.starsEarned) || 0;
+        if (stars !== myStars) { myStars = stars; renderChefSections(); refreshPicker(); }
       }
     });
   }
