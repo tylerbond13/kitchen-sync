@@ -1022,6 +1022,18 @@ input[type="text"]:focus {
 }
 .shop-row.owned { opacity: .6; }
 .shop-row.locked { opacity: .55; filter: grayscale(.35); }
+/* You can afford this right now — draw the eye to it. */
+.shop-row.can-buy {
+  border-color: #F0CE6A;
+  background: linear-gradient(135deg, #FFFBEC 0%, #FFF4D6 100%);
+  box-shadow: 0 0 0 2px rgba(240, 206, 106, 0.35);
+  animation: shop-glow 2.2s ease-in-out infinite;
+}
+@keyframes shop-glow {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(240, 206, 106, 0.30); }
+  50%      { box-shadow: 0 0 0 3px rgba(240, 206, 106, 0.55); }
+}
+.shop-short { color: #C08A2E; font-weight: 800; white-space: nowrap; }
 .btn-secondary.locked { opacity: .82; filter: saturate(.6); }
 .shop-emoji { font-size: 24px; }
 .shop-info { flex: 1; min-width: 0; }
