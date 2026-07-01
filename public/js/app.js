@@ -751,7 +751,10 @@
     }
 
     $('level-list').innerHTML = '';
+    $('level-list').classList.add('roadmap');   // render the campaign as a progression map
     let lastSection = null;
+    let currentGroup = null;
+    let currentMarked = false;
     for (const lvl of state.levels) {
       if (lvl.section !== lastSection) {
         lastSection = lvl.section;
@@ -766,9 +769,16 @@
             <span class="sec-stars">★ ${earned}/${secLevels.length * 3}</span>`;
           $('level-list').appendChild(head);
         }
+        currentGroup = document.createElement('div');
+        currentGroup.className = 'level-group';
+        $('level-list').appendChild(currentGroup);
       }
       const row = document.createElement('div');
-      row.className = 'level-row' + (lvl.unlocked ? '' : ' locked');
+      row.className = 'level-row roadmap-node' + (lvl.unlocked ? '' : ' locked');
+      row.dataset.name = `${lvl.n}. ${lvl.name}`;
+      row.dataset.stars = lvl.stars;
+      // Mark the first unlocked level that isn't fully starred as "you are here".
+      if (lvl.unlocked && lvl.stars < 3 && !currentMarked) { row.classList.add('current'); currentMarked = true; }
       const stars = [1, 2, 3].map((i) => `<span class="${lvl.stars >= i ? '' : 'off'}">★</span>`).join('');
       row.innerHTML = `
         <div class="level-emoji">${lvl.unlocked ? lvl.emoji : '🔒'}</div>
@@ -825,7 +835,7 @@
           row.appendChild(reset);
         }
       }
-      $('level-list').appendChild(row);
+      (currentGroup || $('level-list')).appendChild(row);
     }
 
     $('btn-open-builder').hidden = !iAmHost;
