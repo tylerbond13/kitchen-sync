@@ -695,6 +695,12 @@
   function botModeLabel(mode) {
     return mode === 'expo' ? 'Expo 🍽️' : mode === 'prep' ? 'Prep 🔪' : 'Off';
   }
+  // One-line description of what each teammate mode does. Tap to cycle.
+  function botModeHint(mode) {
+    if (mode === 'expo') return '🍽️ Cooks, plates & serves whole orders on its own. Tap to change.';
+    if (mode === 'prep') return '🔪 Chops prep, rescues food from burning & washes up. Tap to change.';
+    return 'Add an AI chef to your kitchen. Tap to turn on.';
+  }
 
   function renderLobby(state) {
     lobby = state;
@@ -797,6 +803,7 @@
     if (botBtn) {
       botBtn.textContent = `🤖 AI teammate: ${botModeLabel(state.bot)}`;
       botBtn.classList.toggle('on', !!state.bot);
+      const bh = $('bot-hint'); if (bh) bh.textContent = botModeHint(state.bot);
     }
     renderShop(state);
     renderCrewStats(state);
@@ -1795,6 +1802,7 @@
       const b = $('btn-toggle-bot');
       b.textContent = `🤖 AI teammate: ${botModeLabel(next)}`;
       b.classList.toggle('on', !!next);
+      const bh = $('bot-hint'); if (bh) bh.textContent = botModeHint(next);
       socket.emit('toggle_bot', next === null ? 'off' : next, () => {});
     };
     document.querySelectorAll('.builder-size .btn-mini').forEach((b) => {
