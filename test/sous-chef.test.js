@@ -31,9 +31,10 @@ test('Sous-Chef preps chopped ingredients during a live round', () => {
   const dt = 1 / 12;
   for (let i = 0; i < 12 * 30; i++) { bot.think(dt); game.tick(dt); } // ~30 sim-seconds
 
+  // prep bot leaves chopped ingredients out (on boards, or cleared onto counters)
   const chopped = Object.values(game.stations)
-    .filter((s) => s.type === 'board' && s.item && s.item.state === 'chopped').length;
-  assert.ok(chopped >= 1, `bot should leave chopped prep on a board (found ${chopped})`);
+    .filter((s) => (s.type === 'board' || s.type === 'counter') && s.item && s.item.state === 'chopped').length;
+  assert.ok(chopped >= 1, `bot should leave chopped prep out for the crew (found ${chopped})`);
   assert.ok(game.players[BOT_ID], 'bot chef exists in the sim');
 });
 
@@ -63,13 +64,24 @@ test('Sous-Chef rescues a finished dish off the stove before it burns', () => {
   assert.ok(staged, 'the rescued dish should be staged on a counter');
 });
 
-test('Sous-Chef never crashes the sim on any level', () => {
+test('Sous-Chef expo mode plates and serves a salad on its own', () => {
+  const salad = LEVELS.find((l) => l.id === 'salad-days');
+  const game = new Game(salad, roster());
+  const bot = new SousChef(game, BOT_ID, 'expo');
   const dt = 1 / 12;
-  for (const level of LEVELS) {
-    const game = new Game(level, roster());
-    const bot = new SousChef(game, BOT_ID);
-    assert.doesNotThrow(() => {
-      for (let i = 0; i < 12 * 12; i++) { bot.think(dt); game.tick(dt); }
-    }, `${level.id}: bot loop threw`);
+  for (let i = 0; i < 12 * 60; i++) { bot.think(dt); game.tick(dt); } // ~60 sim-seconds
+  assert.ok(game.deliveredCount > 0, `expo bot should have served a dish (delivered=${game.deliveredCount}, score=${game.score})`);
+});
+
+test('Sous-Chef never crashes the sim on any level in either mode', () => {
+  const dt = 1 / 12;
+  for (const mode of ['prep', 'expo']) {
+    for (const level of LEVELS) {
+      const game = new Game(level, roster());
+      const bot = new SousChef(game, BOT_ID, mode);
+      assert.doesNotThrow(() => {
+        for (let i = 0; i < 12 * 12; i++) { bot.think(dt); game.tick(dt); }
+      }, `${level.id} (${mode}): bot loop threw`);
+    }
   }
 });

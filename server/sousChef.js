@@ -1,16 +1,19 @@
 // Sous-Chef — a server-side AI teammate that plays a chef alongside the crew.
 //
-// v1 "prep mode": the bot does the grunt work a human hates, reliably and
-// without ever fighting you for plates or the serving window:
-//   • keeps the cutting boards stocked with the CHOPPED ingredients the active
-//     orders need (chopping is hands-free once food is on a board, so the bot
-//     just shuttles raws from crates to boards and moves on), and
-//   • washes dirty dishes when the plate stack runs low.
+// Two modes:
+//   • 'prep'  — the grunt-work assistant: keeps the boards stocked with the
+//               chopped ingredients orders need, rescues finished dishes off the
+//               stove, washes dishes, and clears finished chops onto counters so
+//               it never stands idle in front of full boards.
+//   • 'expo'  — the expediter: assembles orders on plates from whatever's ready
+//               (chopped/cooked/raw components + rescued dishes) and SERVES them.
+//               For chop-only recipes (salads) it's fully autonomous; for cooked
+//               dishes it plates + serves what the crew (or its own rescue) stages.
 //
-// It drives its chef through the exact same public methods a socket client
-// uses (game.tap), so the authoritative sim treats it like any other player.
-// A smarter/learned policy can slot in behind the same `decide()` seam later.
+// It drives its chef through the exact same public methods a socket client uses
+// (game.tap), so the authoritative sim treats it like any other player.
 const { RECIPES, COOK_COMBOS, CHOPPABLE } = require('./levels');
+const { itemToken, multisetEqual, isSubset } = require('./game');
 
 function comboOutToken(out) {
   return out.kind === 'dish' ? `${out.id}.dish` : `${out.id}.${out.state}`;
@@ -46,30 +49,47 @@ function chopsForRecipe(recipeId) {
   return out; // ingredient ids, with multiplicity
 }
 
+// tokens in `need` that `have` doesn't cover (multiset difference)
+function multisetDiff(need, have) {
+  const counts = {};
+  for (const t of have) counts[t] = (counts[t] || 0) + 1;
+  const missing = [];
+  for (const t of need) {
+    if (counts[t] > 0) counts[t]--;
+    else missing.push(t);
+  }
+  return missing;
+}
+
 class SousChef {
-  constructor(game, botId) {
+  constructor(game, botId, mode = 'prep') {
     this.game = game;
     this.botId = botId;
+    this.mode = mode === 'expo' ? 'expo' : 'prep';
     this.acc = 0;        // decision throttle accumulator
     this._idx = null;    // cached static station index (positions never move)
   }
 
   index() {
     if (this._idx) return this._idx;
-    const crates = {}, boards = [], counters = [], sinks = [];
+    const crates = {}, boards = [], counters = [], sinks = [], serves = [], plates = [], trash = [];
     for (const [key, s] of Object.entries(this.game.stations)) {
       const [x, y] = key.split(',').map(Number);
-      if (s.type === 'crate') (crates[s.ing] || (crates[s.ing] = [])).push({ key, x, y });
-      else if (s.type === 'board') boards.push({ key, x, y });
-      else if (s.type === 'counter') counters.push({ key, x, y });
-      else if (s.type === 'sink') sinks.push({ key, x, y });
+      const at = { key, x, y };
+      if (s.type === 'crate') (crates[s.ing] || (crates[s.ing] = [])).push(at);
+      else if (s.type === 'board') boards.push(at);
+      else if (s.type === 'counter') counters.push(at);
+      else if (s.type === 'sink') sinks.push(at);
+      else if (s.type === 'serve') serves.push(at);
+      else if (s.type === 'plates') plates.push(at);
+      else if (s.type === 'trash') trash.push(at);
     }
-    this._idx = { crates, boards, counters, sinks };
+    this._idx = { crates, boards, counters, sinks, serves, plates, trash };
     return this._idx;
   }
 
-  // Called each server tick before the sim ticks. Decides at most a few times a
-  // second, and only when the bot is idle (not walking / mid-scrub).
+  // Called each server tick before the sim ticks. Decides a few times a second,
+  // and only when the bot is idle (not walking / mid-scrub).
   think(dt) {
     const g = this.game;
     const p = g.players[this.botId];
@@ -78,22 +98,27 @@ class SousChef {
     this.acc += dt;
     if (this.acc < 0.18) return;
     this.acc = 0;
-    const target = this.decide(p);
+    const target = this.mode === 'expo' ? this.decideExpo(p) : this.decidePrep(p);
     if (target) g.tap(this.botId, target.x, target.y);
   }
 
-  freeBoard() {
-    return this.index().boards.find((b) => !this.game.stations[b.key].item) || null;
-  }
-  freeCounter() {
-    return this.index().counters.find((c) => !this.game.stations[c.key].item) || null;
-  }
-  dirtyCount() {
-    return this.index().sinks.reduce((n, s) => n + (this.game.stations[s.key].dirty || 0), 0);
+  // ---- shared helpers -------------------------------------------------------
+  freeBoard() { return this.index().boards.find((b) => !this.game.stations[b.key].item) || null; }
+  freeCounter() { return this.index().counters.find((c) => !this.game.stations[c.key].item) || null; }
+  dirtyCount() { return this.index().sinks.reduce((n, s) => n + (this.game.stations[s.key].dirty || 0), 0); }
+  doneCooker() {
+    return Object.entries(this.game.stations).find(([, s]) => s.type === 'cook' && s.state === 'done') || null;
   }
 
-  // How many of `ing` are already chopped or staged/chopping across the kitchen
-  // (plus one if the bot is carrying it) — so the bot never over-produces.
+  // A board holding a FINISHED chopped item (grabbable), if any.
+  finishedChopBoard() {
+    return this.index().boards.find((b) => {
+      const it = this.game.stations[b.key].item;
+      return it && !it.kind && it.state === 'chopped';
+    }) || null;
+  }
+
+  // How many of `ing` are chopped/staged/chopping across the kitchen (+ carried).
   supply(ing) {
     let n = 0;
     for (const s of Object.values(this.game.stations)) {
@@ -105,7 +130,6 @@ class SousChef {
     return n;
   }
 
-  // Chopped-ingredient demand across the currently-open orders.
   demand() {
     const need = {};
     for (const o of this.game.orders) {
@@ -114,51 +138,131 @@ class SousChef {
     return need;
   }
 
-  decide(p) {
-    const carry = p.carry;
-
-    // Carrying a raw choppable → drop it on a free board to chop (or a counter
-    // if every board is busy — rare race).
-    if (carry && !carry.kind && carry.state === 'raw' && CHOPPABLE.has(carry.id)) {
-      return this.freeBoard() || this.freeCounter() || null;
-    }
-    // Carrying anything else (shouldn't usually happen) → set it down.
-    if (carry) return this.freeCounter() || null;
-
-    // Hands free.
-    const plates = this.game.plateSupply;   // null = infinite (no sink level)
-    const dirty = this.dirtyCount();
+  // Grab a raw for the most-needed, under-supplied chopped ingredient this
+  // kitchen stocks and has a free board for. Returns the crate tile or null.
+  grabForChop() {
+    if (!this.freeBoard()) return null;
     const idx = this.index();
+    const need = this.demand();
+    let bestIng = null, best = 0;
+    for (const ing of Object.keys(need)) {
+      if (!(idx.crates[ing] || []).length) continue;
+      const deficit = need[ing] - this.supply(ing);
+      if (deficit > best) { best = deficit; bestIng = ing; }
+    }
+    return bestIng ? idx.crates[bestIng][0] : null;
+  }
 
-    // Rescue a finished dish before it burns — grab it off the stove (it gets
-    // staged on a counter next tick for the human to plate). Only if there's a
-    // free counter to set it on, so the bot never gets stuck holding it.
+  // A tile to grab a component matching `token` from: a raw crate, a loose item
+  // on a board/counter, or a finished cook station.
+  sourceFor(token) {
+    const g = this.game, idx = this.index();
+    const dot = token.lastIndexOf('.');
+    const id = token.slice(0, dot), state = token.slice(dot + 1);
+    if (state === 'raw') {
+      const cr = (idx.crates[id] || [])[0];
+      if (cr) return cr;
+    }
+    for (const [key, s] of Object.entries(g.stations)) {
+      if ((s.type === 'board' || s.type === 'counter') && s.item && itemToken(s.item) === token) {
+        const [x, y] = key.split(',').map(Number); return { x, y };
+      }
+    }
+    if (state === 'dish' || state === 'cooked') {
+      for (const [key, s] of Object.entries(g.stations)) {
+        if (s.type === 'cook' && s.state === 'done' && s.contents[0] && itemToken(s.contents[0]) === token) {
+          const [x, y] = key.split(',').map(Number); return { x, y };
+        }
+      }
+    }
+    return null;
+  }
+
+  hasCompletableOrder() {
+    return this.game.orders.some((o) => RECIPES[o.recipe].needs.every((tok) => this.sourceFor(tok)));
+  }
+
+  // Given a plate/stack, the next tile to grab a still-missing component from,
+  // for whichever open order the plate is closest to finishing.
+  nextPlateAdd(plate) {
+    const have = plate.contents.map(itemToken);
+    let bestMissing = null, bestLen = Infinity;
+    for (const o of this.game.orders) {
+      const needs = RECIPES[o.recipe].needs;
+      if (!isSubset(have, needs)) continue;
+      const missing = multisetDiff(needs, have);
+      if (missing.length < bestLen) { bestLen = missing.length; bestMissing = missing; }
+    }
+    if (!bestMissing) return null;
+    for (const tok of bestMissing) {
+      const src = this.sourceFor(tok);
+      if (src) return src;
+    }
+    return null;
+  }
+
+  // ---- PREP mode: chop / rescue / wash / clear boards -----------------------
+  decidePrep(p) {
+    const carry = p.carry;
+    if (carry && !carry.kind && carry.state === 'raw' && CHOPPABLE.has(carry.id))
+      return this.freeBoard() || this.freeCounter() || null;
+    if (carry) return this.freeCounter() || null; // carrying something else → set it down
+
+    const idx = this.index();
+    const plates = this.game.plateSupply;
+    const dirty = this.dirtyCount();
+
+    // Rescue a finished dish before it burns (staged on a counter next tick).
     if (this.freeCounter()) {
-      const done = Object.entries(this.game.stations)
-        .find(([, s]) => s.type === 'cook' && s.state === 'done');
+      const done = this.doneCooker();
       if (done) { const [x, y] = done[0].split(',').map(Number); return { x, y }; }
     }
-
-    // Plate stack empty with dishes waiting → wash right now.
+    // Plate stack empty with dishes waiting → wash now.
     if (plates !== null && plates <= 0 && dirty > 0 && idx.sinks[0]) return idx.sinks[0];
-
-    // Prep: grab a raw for the most-needed, under-supplied chopped ingredient
-    // that this kitchen actually stocks and has a board free for.
-    if (this.freeBoard()) {
-      const need = this.demand();
-      let bestIng = null, best = 0;
-      for (const ing of Object.keys(need)) {
-        if (!(idx.crates[ing] || []).length) continue; // not stocked here
-        const deficit = need[ing] - this.supply(ing);
-        if (deficit > best) { best = deficit; bestIng = ing; }
-      }
-      if (bestIng) return idx.crates[bestIng][0];
-    }
-
-    // Otherwise keep the plates clean.
+    // Prep: chop what the orders need.
+    const chop = this.grabForChop();
+    if (chop) return chop;
+    // Keep plates clean.
     if (plates !== null && dirty > 0 && idx.sinks[0]) return idx.sinks[0];
+    // Nothing to chop/wash but boards are full of finished chops → clear one onto
+    // a counter so a board frees up (and the prepped food is easy to grab).
+    if (this.freeCounter()) {
+      const b = this.finishedChopBoard();
+      if (b) return b;
+    }
+    return null;
+  }
 
-    return null; // nothing useful to do — idle
+  // ---- EXPO mode: assemble on plates and serve ------------------------------
+  decideExpo(p) {
+    const g = this.game, idx = this.index();
+    const carry = p.carry;
+
+    if (carry && (carry.kind === 'plate' || carry.kind === 'stack')) {
+      const tokens = carry.contents.map(itemToken);
+      if (idx.serves[0] && g.orders.some((o) => multisetEqual(tokens, RECIPES[o.recipe].needs)))
+        return idx.serves[0];                       // complete → serve
+      const add = this.nextPlateAdd(carry);
+      if (add) return add;                           // add a still-missing component
+      // Stuck: on-track for no order (e.g. its order expired) → trash & restart.
+      const onTrack = g.orders.some((o) => isSubset(tokens, RECIPES[o.recipe].needs));
+      if (!onTrack && carry.kind === 'plate' && idx.trash[0]) return idx.trash[0];
+      return null;                                   // components not ready yet — wait
+    }
+    if (carry && !carry.kind && carry.state === 'raw' && CHOPPABLE.has(carry.id))
+      return this.freeBoard() || this.freeCounter() || null;   // chop it
+    if (carry) return this.freeCounter() || null;    // loose component/dish → set down; we plate via a plate
+
+    // Hands free.
+    if (this.freeCounter()) {                        // rescue a finishing dish
+      const done = this.doneCooker();
+      if (done) { const [x, y] = done[0].split(',').map(Number); return { x, y }; }
+    }
+    if (idx.plates[0] && this.hasCompletableOrder()) return idx.plates[0]; // grab a plate to build
+    const chop = this.grabForChop();                 // else produce a missing component
+    if (chop) return chop;
+    if (g.plateSupply !== null && this.dirtyCount() > 0 && idx.sinks[0]) return idx.sinks[0];
+    return null;
   }
 }
 
