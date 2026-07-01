@@ -73,6 +73,15 @@ test('Sous-Chef expo mode plates and serves a salad on its own', () => {
   assert.ok(game.deliveredCount > 0, `expo bot should have served a dish (delivered=${game.deliveredCount}, score=${game.score})`);
 });
 
+test('Sous-Chef expo mode cooks, plates and serves soup on its own', () => {
+  const soup = LEVELS.find((l) => l.id === 'soups-on'); // needs the pot: chop → cook → plate → serve
+  const game = new Game(soup, roster());
+  const bot = new SousChef(game, BOT_ID, 'expo');
+  const dt = 1 / 12;
+  for (let i = 0; i < 12 * 90; i++) { bot.think(dt); game.tick(dt); } // ~90 sim-seconds
+  assert.ok(game.deliveredCount > 0, `expo bot should cook + serve a soup (delivered=${game.deliveredCount}, score=${game.score})`);
+});
+
 test('Sous-Chef never crashes the sim on any level in either mode', () => {
   const dt = 1 / 12;
   for (const mode of ['prep', 'expo']) {
