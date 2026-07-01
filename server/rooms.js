@@ -164,7 +164,7 @@ function lobbyState(room) {
     boards: room.crew.boards || {},
     overrides: room.crew.overrides || {},
     inGame: !!room.game && room.game.phase === 'playing',
-    bot: !!room.wantBot, // AI teammate toggled on for the next round
+    bot: room.botMode || null, // AI teammate mode for the next round: null|'prep'|'expo'
   };
 }
 
@@ -271,8 +271,8 @@ function startGame(io, room, levelId, custom) {
 
   const roster = [...room.players.values()].filter((p) => p.connected);
   if (!roster.length) return { error: 'No players' };
-  // The AI teammate joins the round as an extra chef when toggled on.
-  if (room.wantBot) roster.push(botProfile());
+  // The AI teammate joins the round as an extra chef when a mode is toggled on.
+  if (room.botMode) roster.push(botProfile());
 
   store.ensureCrewExtras(room.crew);
   room.exited = new Set();
@@ -280,7 +280,7 @@ function startGame(io, room, levelId, custom) {
     upgrades: room.crew.wallet.upgrades,
     autoChop: room.crew.settings.autoChop,
   });
-  room.sousChef = room.wantBot ? new SousChef(room.game, BOT_ID) : null;
+  room.sousChef = room.botMode ? new SousChef(room.game, BOT_ID, room.botMode) : null;
   roomBroadcast(io, room, 'game_start', room.game.staticState());
   // rounds own the speakers: drop whatever was playing, then start the queue
   if (room.radio) stopRadio(io, room);
@@ -423,15 +423,21 @@ function attach(io) {
       ack(startGame(io, joined.room, null, cfg));
     });
 
-    // Toggle the AI teammate (Sous-Chef) for the next round. Any crew member
-    // can flip it; omit the value to just toggle. It joins when the round starts.
-    socket.on('toggle_bot', (on, ack) => {
+    // Set the AI teammate (Sous-Chef) mode for the next round. Any crew member
+    // can change it. Pass 'prep' | 'expo' | 'off'; omit to cycle
+    // Off → Prep → Expo → Off. It joins when the round starts.
+    socket.on('toggle_bot', (mode, ack) => {
       if (typeof ack !== 'function') ack = () => {};
       if (!joined) return ack({ error: 'Not in a kitchen' });
       const room = joined.room;
-      room.wantBot = on === undefined ? !room.wantBot : !!on;
+      if (mode === 'prep' || mode === 'expo') room.botMode = mode;
+      else if (mode === 'off' || mode === null) room.botMode = null;
+      else {
+        const order = [null, 'prep', 'expo'];
+        room.botMode = order[(order.indexOf(room.botMode || null) + 1) % order.length];
+      }
       roomBroadcast(io, room, 'lobby', lobbyState(room));
-      ack({ ok: true, bot: !!room.wantBot });
+      ack({ ok: true, bot: room.botMode || null });
     });
 
     socket.on('tap', ({ x, y }) => {
