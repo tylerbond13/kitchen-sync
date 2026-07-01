@@ -304,6 +304,7 @@ input[type="text"]:focus {
   border: 1.5px solid rgba(255, 111, 174, 0.18);
 }
 .btn-secondary:active { box-shadow: 0 1px 0 var(--cream-deep); }
+.btn-secondary.on { background: linear-gradient(170deg, var(--mint) 0%, var(--mint-deep) 100%); color: #fff; border-color: transparent; box-shadow: 0 4px 0 var(--mint-deep), 0 8px 20px rgba(127,207,203,.25); }
 .btn:disabled { filter: grayscale(.6) opacity(.6); pointer-events: none; }
 
 .home-actions { display: flex; flex-direction: column; gap: 12px; }
@@ -1489,6 +1490,7 @@ input[type="text"]:focus {
         <div class="level-list" id="level-list"></div>
       </div>
 
+      <button class="btn btn-secondary" id="btn-toggle-bot">🤖 AI teammate: Off</button>
       <button class="btn btn-secondary" id="btn-open-builder" hidden>🛠️ Build / Test a Level</button>
 
       <div class="lobby-foot">
