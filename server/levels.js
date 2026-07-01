@@ -130,6 +130,7 @@ const SECTIONS = [
   { id: 'winter', name: 'Winter Wonderland', emoji: '❄️', blurb: 'Cozy food for cold days.' },
   { id: 'beach',  name: 'Beach Club',        emoji: '🏖️', blurb: 'Sun, sand, and smoothies.' },
   { id: 'cake',   name: 'Cake World',        emoji: '🎂', blurb: 'Bake the dream cakes. (Beta)' },
+  { id: 'bonus',  name: 'Bonus Kitchen',     emoji: '🏆', blurb: 'Crew-built boards, gone official.' },
 ];
 
 const LEVELS = [
@@ -141,7 +142,7 @@ const LEVELS = [
     blurb: 'Chop it like it’s hot. Salads only — learn the ropes.',
     emoji: '🥗',
     duration: 150,
-    stars: [300, 540, 780],
+    stars: [820, 1430, 2040],
     crates: { 1: 'lettuce', 2: 'tomato', 3: 'cucumber' },
     layout: [
       '.1B2B3.#.#.',
@@ -160,7 +161,7 @@ const LEVELS = [
     blurb: 'Chop the meat, fire the pan — build it right on the bun!',
     emoji: '🍔',
     duration: 160,
-    stars: [330, 600, 900],
+    stars: [750, 1320, 1880],
     plates: 4,
     crates: { 1: 'bun', 2: 'patty', 3: 'lettuce', 4: 'cheese' },
     layout: [
@@ -180,7 +181,7 @@ const LEVELS = [
     blurb: 'Three chopped veggies in the pot. Stir crazy.',
     emoji: '🥣',
     duration: 170,
-    stars: [380, 660, 980],
+    stars: [1200, 2090, 2990],
     plates: 4,
     crates: { 1: 'onion', 2: 'tomato' },
     layout: [
@@ -200,7 +201,7 @@ const LEVELS = [
     blurb: 'Rice in the pot, fish on the board. Teamwork time.',
     emoji: '🍣',
     duration: 170,
-    stars: [400, 720, 1040],
+    stars: [1440, 2520, 3600],
     plates: 4,
     crates: { 1: 'rice', 2: 'fish', 3: 'seaweed' },
     layout: [
@@ -220,7 +221,7 @@ const LEVELS = [
     blurb: 'Dough, sauce, cheese, oven. Hot and fast.',
     emoji: '🍕',
     duration: 180,
-    stars: [430, 780, 1130],
+    stars: [1640, 2880, 4110],
     plates: 4,
     crates: { 1: 'dough', 2: 'tomato', 3: 'cheese' },
     layout: [
@@ -240,7 +241,7 @@ const LEVELS = [
     blurb: 'Everything, everywhere, all at once. The full menu.',
     emoji: '👑',
     duration: 210,
-    stars: [520, 950, 1400],
+    stars: [960, 1670, 2390],
     plates: 6,
     crates: { 1: 'lettuce', 2: 'tomato', 3: 'bun', 4: 'patty', 5: 'cheese', 6: 'onion' },
     layout: [
@@ -264,7 +265,7 @@ const LEVELS = [
     blurb: 'Warm mugs for cold hands. Milk in, chocolate chopped.',
     emoji: '☕',
     duration: 150,
-    stars: [300, 560, 820],
+    stars: [1450, 2540, 3630],
     plates: 4,
     crates: { 1: 'milk', 2: 'cocoa' },
     layout: [
@@ -284,7 +285,7 @@ const LEVELS = [
     blurb: 'Potato, carrot, onion — the holy trinity of warm.',
     emoji: '🥘',
     duration: 170,
-    stars: [380, 700, 1030],
+    stars: [640, 1120, 1600],
     plates: 4,
     crates: { 1: 'potato', 2: 'carrot', 3: 'onion', 4: 'milk', 5: 'cocoa' },
     layout: [
@@ -304,7 +305,7 @@ const LEVELS = [
     blurb: 'Stew, cocoa, and onion soup. The lodge is packed.',
     emoji: '⛄',
     duration: 190,
-    stars: [450, 830, 1230],
+    stars: [870, 1530, 2180],
     plates: 5,
     crates: { 1: 'potato', 2: 'carrot', 3: 'onion', 4: 'milk', 5: 'cocoa' },
     layout: [
@@ -326,7 +327,7 @@ const LEVELS = [
     blurb: 'The blizzard brought everyone in. Everything, faster.',
     emoji: '🌨️',
     duration: 210,
-    stars: [520, 960, 1420],
+    stars: [650, 1200, 1780],
     plates: 5,
     crates: { 1: 'potato', 2: 'carrot', 3: 'onion', 4: 'tomato', 5: 'milk', 6: 'cocoa' },
     layout: [
@@ -350,7 +351,7 @@ const LEVELS = [
     blurb: 'Three fruits, one blender, zero stress. (Some stress.)',
     emoji: '🍹',
     duration: 160,
-    stars: [340, 620, 900],
+    stars: [480, 870, 1260],
     plates: 4,
     crates: { 1: 'pineapple', 2: 'strawberry', 3: 'banana' },
     layout: [
@@ -370,7 +371,7 @@ const LEVELS = [
     blurb: 'Fish tacos, no plate needed — the tortilla IS the plate.',
     emoji: '🌮',
     duration: 160,
-    stars: [360, 660, 980],
+    stars: [480, 880, 1310],
     plates: 4,
     crates: { 1: 'tortilla', 2: 'fish', 3: 'lettuce' },
     layout: [
@@ -390,7 +391,7 @@ const LEVELS = [
     blurb: 'Rice in the pot, fish on the board, cucumber on deck.',
     emoji: '🐟',
     duration: 170,
-    stars: [400, 740, 1080],
+    stars: [580, 1080, 1580],
     plates: 4,
     crates: { 1: 'rice', 2: 'fish', 3: 'cucumber' },
     layout: [
@@ -410,7 +411,7 @@ const LEVELS = [
     blurb: 'Tacos and poke for days. Hydrate and dominate.',
     emoji: '🌞',
     duration: 200,
-    stars: [500, 920, 1350],
+    stars: [700, 1290, 1890],
     plates: 5,
     crates: { 1: 'rice', 2: 'fish', 3: 'cucumber', 4: 'tortilla', 5: 'lettuce' },
     layout: [
@@ -437,7 +438,7 @@ const LEVELS = [
     blurb: 'Chop, mix, bake, ice & garnish. Three dream cakes — the full bakery.',
     emoji: '🎂',
     duration: 190,
-    stars: [180, 380, 600],
+    stars: [280, 590, 930],
     icing: 'pink',     // the I station's fixed colour (a remote colour button is later)
     topper: 'sprinkles', // the G station's stocked topper
     crates: { 1: 'flour', 2: 'eggs', 3: 'chocolate', 4: 'carrot', 5: 'honeycomb' },
@@ -452,6 +453,37 @@ const LEVELS = [
       '.T...W#W.P.',
     ],
     orders: { recipes: ['chocolate_cake', 'carrot_cake', 'honeycomb_cake'], every: 6, ttl: 60, maxOpen: 5 },
+  },
+
+  // ============ BONUS KITCHEN ============
+  // A crew build promoted to a permanent level (saved in the editor as
+  // "salad-1"). It's a free-form board, so `bonus: true` marks it always-open
+  // and exempt from the campaign board template (see test/game.test.js). It
+  // already ships at the fast tuning it was built and scored on (best 2550 solo),
+  // so its star goals need no order-rate bump — 3★ sits just under that score.
+  {
+    id: 'tylers-salad-bar',
+    n: 16, section: 'bonus', theme: 'diner', bonus: true,
+    name: "Tyler's Salad Bar",
+    blurb: 'A crew original — three-veg salads at full tilt.',
+    emoji: '🥗',
+    duration: 150,
+    stars: [1430, 2500, 3570],
+    plates: 4,
+    speedMult: 1.25,
+    charScale: 1.5,
+    wallpaper: 'brady',
+    crates: { 1: 'lettuce', 2: 'tomato', 3: 'cucumber' },
+    facings: { '0,1': 'right', '6,1': 'left', '0,2': 'right', '6,2': 'left', '0,3': 'right', '6,3': 'left', '0,4': 'right', '6,4': 'left' },
+    layout: [
+      '.123##.',
+      'B.....#',
+      'B.###.#',
+      'B.###.#',
+      '#.....#',
+      '.P#T#W.',
+    ],
+    orders: { recipes: ['salad', 'big_salad'], every: 6, ttl: 60, maxOpen: 5 },
   },
 ];
 

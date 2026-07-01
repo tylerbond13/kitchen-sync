@@ -48,19 +48,23 @@ test('every level layout is valid and reachable', () => {
         if (c === 'W') serves.push({ x, y });
       }
     }
-    assert.equal(boards.length, 2, `${level.id} has two cutting boards`);
-    assert.ok(boards.every((b) => b.y === 0), `${level.id} boards are on top row`);
-    assert.equal(Math.abs(boards[0].x - boards[1].x), 2, `${level.id} boards have one tile between them`);
-    const boardSep = level.layout[0][(boards[0].x + boards[1].x) / 2];
-    assert.match(boardSep, /[#1-9]/, `${level.id} board separator is a crate or counter`);
+    // Bonus/community boards are free-form editor builds, exempt from the fixed
+    // campaign template (2 cutting boards up top, 2 delivery counters below).
+    if (!level.bonus) {
+      assert.equal(boards.length, 2, `${level.id} has two cutting boards`);
+      assert.ok(boards.every((b) => b.y === 0), `${level.id} boards are on top row`);
+      assert.equal(Math.abs(boards[0].x - boards[1].x), 2, `${level.id} boards have one tile between them`);
+      const boardSep = level.layout[0][(boards[0].x + boards[1].x) / 2];
+      assert.match(boardSep, /[#1-9]/, `${level.id} board separator is a crate or counter`);
 
-    const bottomY = level.layout.length - 1;
-    assert.equal(serves.length, 2, `${level.id} has two delivery counters`);
-    assert.ok(serves.every((s) => s.y === bottomY), `${level.id} delivery counters are on bottom row`);
-    assert.equal(Math.abs(serves[0].x - serves[1].x), 2, `${level.id} delivery counters have one tile between them`);
-    const serveSep = level.layout[bottomY][(serves[0].x + serves[1].x) / 2];
-    assert.equal(serveSep, '#', `${level.id} delivery counters have an empty counter between them`);
-    // every station must be reachable from spawn
+      const bottomY = level.layout.length - 1;
+      assert.equal(serves.length, 2, `${level.id} has two delivery counters`);
+      assert.ok(serves.every((s) => s.y === bottomY), `${level.id} delivery counters are on bottom row`);
+      assert.equal(Math.abs(serves[0].x - serves[1].x), 2, `${level.id} delivery counters have one tile between them`);
+      const serveSep = level.layout[bottomY][(serves[0].x + serves[1].x) / 2];
+      assert.equal(serveSep, '#', `${level.id} delivery counters have an empty counter between them`);
+    }
+    // every station must be reachable from spawn (all levels, incl. bonus)
     const spawn = game.spawnTiles[0];
     for (const [key, s] of Object.entries(game.stations)) {
       if (s.type === 'counter') continue; // corner counters can be decorative

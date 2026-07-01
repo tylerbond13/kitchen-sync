@@ -18,10 +18,10 @@ function levelList(crew) {
     const prog = crew.progress[lvl.id] || { stars: 0, bestScore: 0 };
     const prevId = i > 0 ? LEVELS[i - 1].id : null;
     // beta levels (e.g. Cake World) are always open so they're easy to try.
-    const unlocked = adminCrew || lvl.beta || i === 0 || (crew.progress[prevId] || {}).stars >= 1;
+    const unlocked = adminCrew || lvl.beta || lvl.bonus || i === 0 || (crew.progress[prevId] || {}).stars >= 1;
     return {
       id: lvl.id, n: lvl.n, name: lvl.name, blurb: lvl.blurb, emoji: lvl.emoji,
-      section: lvl.section || 'diner', beta: !!lvl.beta,
+      section: lvl.section || 'diner', beta: !!lvl.beta, bonus: !!lvl.bonus,
       stars: prog.stars, bestScore: prog.bestScore, unlocked,
       thresholds: lvl.stars,
       edited: !!crew.overrides[lvl.id], // this crew rearranged the stock board
