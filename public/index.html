@@ -198,6 +198,16 @@ body:has(#screen-game.active) {
   letter-spacing: 0.3px;
 }
 
+/* First-run welcome — a one-time orientation to the play → unlock loop. */
+.welcome-card { text-align: left; position: relative; }
+.welcome-card h2 { margin: 0 0 8px; font-size: 17px; }
+.welcome-card .wc-row {
+  display: flex; gap: 9px; align-items: flex-start;
+  font-size: 13.5px; line-height: 1.35; margin: 7px 0; color: var(--ink);
+}
+.welcome-card .wc-emoji { font-size: 18px; flex: 0 0 auto; line-height: 1.2; }
+.welcome-card .wc-dismiss { width: 100%; margin-top: 12px; }
+
 /* ============ Cards ============ */
 .card {
   background: var(--card);
@@ -1536,6 +1546,14 @@ input[type="text"]:focus {
         <h1>Kitchen Sync</h1>
         <p class="tagline">Cook together, apart 🍴</p>
       </header>
+
+      <div class="card welcome-card" id="welcome-card" hidden>
+        <h2>👋 Welcome to the kitchen!</h2>
+        <div class="wc-row"><span class="wc-emoji">⭐</span><span>Cook levels to earn <b>stars</b> — they unlock new <b>characters</b> and open the next <b>levels</b>.</span></div>
+        <div class="wc-row"><span class="wc-emoji">🪙</span><span>Cooking banks <b>coins</b>. Spend them to hire an <b>AI Sous-Chef</b> and teach it to chop, cook, plate &amp; serve.</span></div>
+        <div class="wc-row"><span class="wc-emoji">🎭</span><span>You start with the <b>Golden Girls</b> &amp; friends — pick your chef below and unlock the rest by playing.</span></div>
+        <button class="btn btn-primary wc-dismiss" id="btn-welcome-done">Let's cook →</button>
+      </div>
 
       <div class="card profile-card">
         <label class="field-label">Who's cooking?</label>

@@ -409,6 +409,18 @@
   }
   $('btn-how-home').onclick = () => openTutorial('home');
   $('btn-how-lobby').onclick = () => openTutorial('lobby');
+
+  // First-run welcome: a one-time orientation to the play → unlock loop. Shown
+  // once per device; dismissed for good on tap. Guests use sessionStorage.
+  const WELCOME_KEY = 'ks-welcomed';
+  let welcomed = true;
+  try { welcomed = !!profileStore.getItem(WELCOME_KEY); } catch (_) {}
+  if (!welcomed) $('welcome-card').hidden = false;
+  $('btn-welcome-done').onclick = () => {
+    SFX.tap();
+    $('welcome-card').hidden = true;
+    try { profileStore.setItem(WELCOME_KEY, '1'); } catch (_) {}
+  };
   document.querySelectorAll('.tut-back').forEach((b) => {
     b.onclick = () => { SFX.tap(); show(tutReturn); };
   });
