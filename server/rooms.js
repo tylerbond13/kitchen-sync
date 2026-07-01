@@ -208,7 +208,7 @@ function buildCustomLevel(c) {
       : null,
     orders: {
       recipes,
-      every: clampNum(c.every, 3, 60, 14),
+      every: clampNum(c.every, 3, 60, 6),
       ttl: clampNum(c.ttl, 15, 240, 60),
       maxOpen: clampNum(c.maxOpen, 1, 8, 4),
     },
@@ -398,7 +398,7 @@ function attach(io) {
     socket.on('start_game', (levelId, ack) => {
       if (typeof ack !== 'function') ack = () => {};
       if (!joined) return ack({ error: 'Not in a kitchen' });
-      if (joined.playerId !== effectiveHost(joined.room)) return ack({ error: 'Only the host can start' });
+      // Any crew member can start a level — no host gate.
       ack(startGame(io, joined.room, levelId));
     });
 
@@ -407,7 +407,7 @@ function attach(io) {
     socket.on('start_custom', (cfg, ack) => {
       if (typeof ack !== 'function') ack = () => {};
       if (!joined) return ack({ error: 'Not in a kitchen' });
-      if (joined.playerId !== effectiveHost(joined.room)) return ack({ error: 'Only the host can start' });
+      // Any crew member can start a custom/test round — no host gate.
       ack(startGame(io, joined.room, null, cfg));
     });
 

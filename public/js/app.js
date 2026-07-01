@@ -736,14 +736,18 @@
           <div class="level-blurb">${lvl.blurb}</div>
           <div class="level-stars">${stars}${lvl.bestScore ? ` <span class="muted small">best ${lvl.bestScore}</span>` : ''}</div>
         </div>
-        ${iAmHost && lvl.unlocked ? '<div class="level-play">Play</div>' : ''}`;
-      if (iAmHost && lvl.unlocked) {
+        ${lvl.unlocked ? '<div class="level-play">Play</div>' : ''}`;
+      // Any crew member can start a level.
+      if (lvl.unlocked) {
         row.onclick = () => {
           SFX.tap();
           socket.emit('start_game', lvl.id, (res) => {
             if (res && res.error) toast(res.error);
           });
         };
+      }
+      // Board management (edit / delete / reset) stays host-only.
+      if (iAmHost && lvl.unlocked) {
         const edit = document.createElement('button');
         edit.className = 'level-edit';
         edit.textContent = '✏️';
@@ -788,16 +792,9 @@
     renderCrewStats(state);
     renderMusic(state.music || musicState);
 
-    $('lobby-hint').textContent = !iAmHost
-      ? `Waiting for ${nameOf(state.hostId)} to pick a level…`
-      : online.length === 1
-        ? 'Cook solo, or share the code 📤 to add chefs — tap a level to start!'
-        : 'You’re the host — tap a level to start cooking!';
-  }
-
-  function nameOf(id) {
-    const p = lobby && lobby.players.find((x) => x.id === id);
-    return p ? p.name : 'the host';
+    $('lobby-hint').textContent = online.length === 1
+      ? 'Cook solo, or share the code 📤 to add chefs — tap a level to start!'
+      : 'Anyone can start — tap a level to start cooking!';
   }
 
   // ---------- kitchen shop ----------
@@ -1694,6 +1691,7 @@
       loadBoard(preset ? preset.layout : DEFAULT_LAYOUT, preset ? preset.crates : DEFAULT_CRATES);
       editor.recipes = new Set(preset ? (preset.recipes || ['salad']) : ['salad', 'big_salad']);
       editor.avatars = new Set((window.KSRender && KSRender.CUSTOMER_KEYS) || []);
+      $('sl-every').value = (preset && preset.every) || 6; // new builds default to a 6s order cadence
       if (preset && preset.duration) $('sl-duration').value = preset.duration;
       if (preset && Array.isArray(preset.stars)) { $('st-1').value = preset.stars[0]; $('st-2').value = preset.stars[1]; $('st-3').value = preset.stars[2]; }
       editor.charScale = (preset && preset.charScale) || 2;
