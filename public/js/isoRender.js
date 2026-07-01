@@ -756,7 +756,13 @@
       // THE SORT: lower on screen ⇒ drawn later ⇒ rendered on top.
       renderQueue.sort((a, b) => a.screenY - b.screenY);
       this._labels = [];
+      this._overlays = [];              // station contents — always drawn on top
       for (const item of renderQueue) item.draw();
+
+      // Station contents (food, cook items, progress bars, counts) render ABOVE
+      // the chefs, so a chef (or the AI bot) standing in front never hides what's
+      // on the surface — you can always read the ingredient and its state.
+      for (const o of this._overlays) o();
 
       // Name labels render after the whole queue so geometry never buries them.
       for (const L of this._labels) {
@@ -1069,53 +1075,58 @@
       if (rect) this._hits.push({ ...rect, gx, gy, key, d: sy });
       const topY = sy - BLOCK_LIFT;
 
-      // Crates without dedicated art: counter + ingredient sprite on top.
-      if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 17);
+      // Everything that sits ON the surface (ingredients, cook contents, progress
+      // bars, counts) is deferred to the always-on-top overlay pass so a chef
+      // standing in front can never hide it.
+      this._overlays.push(() => {
+        // Crates without dedicated art: counter + ingredient sprite on top.
+        if (ing) this.drawBare({id:ing, state:'raw'}, sx, topY - 5, 17);
 
-      // Clean-plate count on the dish rack. Drawn BEFORE the `!s` bail below:
-      // plate-stack tiles carry no per-station dynamic state, so `s` is
-      // undefined for them — the supply count lives on the global cur.plates.
-      if (c==='P' && this.cur && this.cur.plates!==undefined) {
-        const supply=this.cur.plates;
-        const label=supply===null?'∞':String(supply);
-        this.countBadge(sx+20, topY-28, label, supply===0, '#FF4070');
-      }
-
-      if (!s) return;
-
-      if (s.item) {
-        this.drawItem(s.item, sx, topY - 4, 23);
-        if (c==='B' && s.item.state==='raw' && s.progress>0)
-          this.bar(sx, topY - 28, s.progress, '#3DC9A0','#A8F0D8');
-      }
-      if (s.dirty!==undefined) {
-        // The dirty-sink render already shows piled plates; don't double up.
-        if (stateKey !== 'sink_dirty' && !/^sink_dirty_\d$/.test(stateKey)) {
-          const n=Math.min(s.dirty,3);
-          for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,30,30);
+        // Clean-plate count on the dish rack. Drawn BEFORE the `!s` bail below:
+        // plate-stack tiles carry no per-station dynamic state, so `s` is
+        // undefined for them — the supply count lives on the global cur.plates.
+        if (c==='P' && this.cur && this.cur.plates!==undefined) {
+          const supply=this.cur.plates;
+          const label=supply===null?'∞':String(supply);
+          this.countBadge(sx+20, topY-28, label, supply===0, '#FF4070');
         }
-        if (s.dirty>0) this.glyph('🫧',sx+13,topY-14,12);
-        if (s.progress>0) this.bar(sx, topY - 28, s.progress, '#5BADDE','#A8D8F8');
-        // Always show how many dirty dishes are waiting (0 when empty), above
-        // the wash bar — mirrors the clean-plate count on the dish rack.
-        this.countBadge(sx+20, topY-46, s.dirty, s.dirty>0, '#3E9BD6');
-      }
-      if (s.contents) {
-        const n=s.contents.length;
-        s.contents.forEach((it,i)=>{
-          const off=n>1?(i-(n-1)/2)*10:0;
-          this.drawItem(it,sx+off,topY-5,n>1?17:23,false);
-        });
-        if (s.state==='cooking') {
-          this.bar(sx, topY - 28, s.progress, '#FFD23F','#FFF0A0');
-          if(Math.floor(now/280)%2) this.glyph('💨',sx+14,topY-19,12);
-        } else if (s.state==='done') {
-          this.bar(sx, topY - 28, s.progress, s.progress>0.6?'#FF6040':'#3DC9A0', s.progress>0.6?'#FFA090':'#A8F0D8');
-          this.glyph('✅',sx+15,topY-18,12);
-        } else if (s.state==='burned') {
-          if(Math.floor(now/250)%2) this.glyph('💨',sx,topY-20,17);
+
+        if (!s) return;
+
+        if (s.item) {
+          this.drawItem(s.item, sx, topY - 4, 23);
+          if (c==='B' && s.item.state==='raw' && s.progress>0)
+            this.bar(sx, topY - 28, s.progress, '#3DC9A0','#A8F0D8');
         }
-      }
+        if (s.dirty!==undefined) {
+          // The dirty-sink render already shows piled plates; don't double up.
+          if (stateKey !== 'sink_dirty' && !/^sink_dirty_\d$/.test(stateKey)) {
+            const n=Math.min(s.dirty,3);
+            for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,30,30);
+          }
+          if (s.dirty>0) this.glyph('🫧',sx+13,topY-14,12);
+          if (s.progress>0) this.bar(sx, topY - 28, s.progress, '#5BADDE','#A8D8F8');
+          // Always show how many dirty dishes are waiting (0 when empty), above
+          // the wash bar — mirrors the clean-plate count on the dish rack.
+          this.countBadge(sx+20, topY-46, s.dirty, s.dirty>0, '#3E9BD6');
+        }
+        if (s.contents) {
+          const n=s.contents.length;
+          s.contents.forEach((it,i)=>{
+            const off=n>1?(i-(n-1)/2)*10:0;
+            this.drawItem(it,sx+off,topY-5,n>1?17:23,false);
+          });
+          if (s.state==='cooking') {
+            this.bar(sx, topY - 28, s.progress, '#FFD23F','#FFF0A0');
+            if(Math.floor(now/280)%2) this.glyph('💨',sx+14,topY-19,12);
+          } else if (s.state==='done') {
+            this.bar(sx, topY - 28, s.progress, s.progress>0.6?'#FF6040':'#3DC9A0', s.progress>0.6?'#FFA090':'#A8F0D8');
+            this.glyph('✅',sx+15,topY-18,12);
+          } else if (s.state==='burned') {
+            if(Math.floor(now/250)%2) this.glyph('💨',sx,topY-20,17);
+          }
+        }
+      });
     }
 
     // ── Chef ──────────────────────────────────────────────────────────────────
