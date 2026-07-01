@@ -1033,8 +1033,72 @@
         <span class="prog-chip">🎭 ${charsUnlocked}/${CHEFS.length} chefs</span>
         <span class="prog-chip">🤖 ${state.botHired ? `${botSkills}/5 skills` : 'not hired'}</span>
       </div>
-      <div class="prog-next">${nextHint}</div>`;
+      <div class="prog-next">${nextHint}</div>
+      <button class="prog-milestones" id="btn-milestones" type="button">🏅 See all milestones ›</button>`;
+    const mb = el.querySelector('#btn-milestones');
+    if (mb) mb.onclick = openMilestones;
+    if (milestonesOpen) renderMilestones();
   }
+
+  // ---------- milestones ----------
+  // Concrete goals layered over the progression systems, all derived from data
+  // already in the lobby state + your lifetime stars. A light "collect them all".
+  let milestonesOpen = false;
+  function milestoneList(state) {
+    const cs = state.crewStats || { meals: 0, rounds: 0, earned: 0 };
+    const camp = (state.levels || []).filter((l) => l.section !== 'custom');
+    const threeStar = camp.filter((l) => l.stars === 3).length;
+    const unlockedLevels = camp.filter((l) => l.unlocked).length;
+    const charsUnlocked = CHEFS.filter((c) => chefUnlocked(c.key)).length;
+    const botSkills = (state.botCaps || []).length;
+    const nLevels = camp.length || 1;
+    return [
+      { emoji: '🍳', title: 'First Service',   desc: 'Cook your first round',            cur: cs.rounds,                target: 1 },
+      { emoji: '⭐', title: 'Rising Star',     desc: 'Earn 3 stars on any level',        cur: threeStar,                target: 1 },
+      { emoji: '🤖', title: 'Hire Help',       desc: 'Hire your AI Sous-Chef',           cur: state.botHired ? 1 : 0,   target: 1 },
+      { emoji: '🎓', title: 'Master Teacher',  desc: 'Teach the Sous-Chef all 5 skills', cur: botSkills,                target: 5 },
+      { emoji: '👨‍🍳', title: 'Seasoned Crew',  desc: 'Play 25 rounds together',          cur: cs.rounds,                target: 25 },
+      { emoji: '🎭', title: 'Growing Cast',    desc: 'Unlock 10 characters',             cur: charsUnlocked,            target: 10 },
+      { emoji: '🗺️', title: 'Trailblazer',     desc: 'Unlock every campaign level',      cur: unlockedLevels,           target: nLevels },
+      { emoji: '🍽️', title: 'Line Cook',       desc: 'Serve 100 meals as a crew',        cur: cs.meals,                 target: 100 },
+      { emoji: '💰', title: 'Big Earner',      desc: 'Bank 10,000 coins all-time',       cur: cs.earned,                target: 10000 },
+      { emoji: '🏆', title: 'Perfectionist',   desc: '3-star every campaign level',      cur: threeStar,                target: nLevels },
+      { emoji: '🍴', title: 'Head Chef',       desc: 'Serve 500 meals as a crew',        cur: cs.meals,                 target: 500 },
+      { emoji: '🌟', title: 'Full Ensemble',   desc: 'Unlock every character',           cur: charsUnlocked,            target: CHEFS.length },
+    ];
+  }
+  function renderMilestones() {
+    const state = lobby || {};
+    const items = milestoneList(state);
+    const done = items.filter((m) => m.cur >= m.target).length;
+    $('milestones-count').textContent = `${done}/${items.length} unlocked`;
+    $('milestones-list').innerHTML = items.map((m) => {
+      const complete = m.cur >= m.target;
+      const pct = Math.min(100, Math.round((m.cur / m.target) * 100));
+      const cur = Math.min(m.cur, m.target);
+      return `<div class="ms-row${complete ? ' done' : ''}">
+        <div class="ms-emoji">${m.emoji}</div>
+        <div class="ms-info">
+          <div class="ms-title">${escapeHtml(m.title)} ${complete ? '<span class="ms-check">✓</span>' : ''}</div>
+          <div class="ms-desc">${escapeHtml(m.desc)}</div>
+          <div class="ms-bar"><i style="width:${pct}%"></i></div>
+        </div>
+        <div class="ms-count">${cur.toLocaleString()}/${m.target.toLocaleString()}</div>
+      </div>`;
+    }).join('');
+  }
+  function openMilestones() {
+    SFX.tap();
+    milestonesOpen = true;
+    renderMilestones();
+    const modal = $('milestones-modal');
+    modal.hidden = false;
+    // Wire close on open — the modal is parsed after app.js runs, so binding at
+    // setup time would miss it. Idempotent (assigns the same handlers each open).
+    $('btn-milestones-close').onclick = closeMilestones;
+    modal.onclick = (e) => { if (e.target === modal) closeMilestones(); };
+  }
+  function closeMilestones() { SFX.tap(); milestonesOpen = false; $('milestones-modal').hidden = true; }
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
