@@ -10,6 +10,10 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Fix: revive the AI-teammate toggle + chef-modal close (v1.22.1)
+- **Important regression fix.** The in-lobby character switcher (v1.19.0) bound the chef-modal's close button at page-setup time — but that modal is parsed *after* app.js runs, so the lookup returned null and **threw**, silently killing every binding after it in that block: the **🤖 AI teammate On/Off toggle**, the builder's board-size buttons, and the tuning-slider live outputs. And the chef modal's own ✕/backdrop never wired up, so it could trap you.
+- Fix: bind the chef-modal close + backdrop **when the modal opens** (element guaranteed to exist), and removed the throwing setup-time lines so everything below them binds again. _(Verified in-browser: bot toggle responds — shows "Hire a Sous-Chef first" when un-hired — chef modal opens *and* closes, builder controls bound.)_ Same bind-on-open pattern now used by the new Milestones modal.
+
 ### Milestones — concrete goals across every system (v1.22.0)
 - New **🏅 Milestones** panel (opened from "See all milestones ›" under the lobby progress banner) with 12 goals layered over all the progression systems — First Service, Rising Star (any 3★), Hire Help, Master Teacher (all 5 bot skills), Seasoned Crew (25 rounds), Growing Cast / Full Ensemble (characters), Trailblazer (all levels), Line Cook / Head Chef (100 / 500 meals), Big Earner (10k coins), Perfectionist (3★ everything). Each shows a live progress bar + count and turns green with a ✓ when complete; the header tallies "X/12 unlocked". All derived from data already in the lobby state — a light "collect them all" that gives players goals beyond the next star. _(Verified in-browser: 12 rows render with correct progress, completed ones flip green, open/close/backdrop all work.)_
 

@@ -281,7 +281,12 @@
   function openChefModal() {
     chefModalOpen = true;
     renderChefGrid($('chef-modal-grid'), { lobby: true, crew: (lobby && lobby.players) || [] });
-    $('chef-modal').hidden = false;
+    const modal = $('chef-modal');
+    modal.hidden = false;
+    // Wire close on open — the modal is parsed after app.js runs, so a setup-time
+    // bind would silently miss it (leaving the modal impossible to dismiss).
+    $('btn-chef-modal-close').onclick = () => { SFX.tap(); closeChefModal(); };
+    modal.onclick = (e) => { if (e.target === modal) closeChefModal(); };
   }
   function closeChefModal() { chefModalOpen = false; $('chef-modal').hidden = true; }
   window.__openChefModal = openChefModal; // (bound to the lobby button below)
@@ -2051,8 +2056,9 @@
     $('board-save').onclick = saveCurrentBoard;
     $('btn-open-builder').onclick = () => openBuilder({ from: 'lobby' });
     $('btn-change-chef').onclick = () => { SFX.tap(); openChefModal(); };
-    $('btn-chef-modal-close').onclick = () => { SFX.tap(); closeChefModal(); };
-    $('chef-modal').onclick = (e) => { if (e.target === $('chef-modal')) closeChefModal(); };
+    // NB: the chef-modal close + backdrop are bound inside openChefModal — the
+    // modal is parsed after app.js, so binding them here throws on a null element
+    // and kills every binding below (the bot toggle, builder controls, sliders).
     $('btn-toggle-bot').onclick = () => {
       SFX.tap();
       if (!(lobby && lobby.botHired)) { toast('🤖 Hire a Sous-Chef in the Kitchen Shop first!'); return; }
