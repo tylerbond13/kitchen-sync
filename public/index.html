@@ -1269,6 +1269,14 @@ input[type="text"]:focus {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+.results-coins {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin: 2px auto 4px; padding: 6px 16px; border-radius: 999px;
+  background: linear-gradient(180deg, #FFF6D8, #FFE9A8);
+  border: 1px solid #F0CE6A; color: #7A5A12; font-weight: 800; font-size: 15px;
+  box-shadow: 0 2px 0 #E9C55E;
+}
+.results-coins .rc-total { color: #9A7A32; font-weight: 700; font-size: 13px; opacity: .85; }
 .results-stats { display: flex; justify-content: center; gap: 18px; font-weight: 700; color: var(--ink-soft); }
 .results-players { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 8px 0; }
 .rp { display: flex; flex-direction: column; align-items: center; font-size: 12px; font-weight: 700; }
@@ -1885,6 +1893,7 @@ input[type="text"]:focus {
         <span class="star" data-i="0">★</span><span class="star" data-i="1">★</span><span class="star" data-i="2">★</span>
       </div>
       <div class="big-score" id="results-score">0</div>
+      <div class="results-coins" id="results-coins" hidden></div>
       <div class="results-stats" id="results-stats"></div>
       <div class="results-awards" id="results-awards"></div>
       <div class="results-players" id="results-players"></div>

@@ -1399,6 +1399,18 @@
       : results.stars === 1 ? 'Order up!'
       : 'Kitchen nightmare… 😅';
     $('results-score').textContent = '0';
+    // Your score banks 1:1 as coins — show the payout + running total so the
+    // score→coins→shop loop is legible right at the moment of reward.
+    const coinsEl = $('results-coins');
+    const earned = results.score || 0;
+    const banked = results.crew && results.crew.wallet && results.crew.wallet.coins;
+    if (earned > 0) {
+      coinsEl.hidden = false;
+      coinsEl.innerHTML = `🪙 +${earned} coins` +
+        (typeof banked === 'number' ? ` <span class="rc-total">· 💰 ${banked} banked</span>` : '');
+    } else {
+      coinsEl.hidden = true;
+    }
     $('results-stats').innerHTML =
       `<span>🍽️ ${results.delivered} served</span><span>💨 ${results.missed} missed</span>`;
 
