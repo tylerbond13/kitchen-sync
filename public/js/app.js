@@ -172,6 +172,7 @@
   // house chef) and unlock the rest by banking stars across your games. `myStars`
   // is the player's lifetime starsEarned, synced from the server on `hello`.
   let myStars = 0;
+  let starsSynced = false; // first hello sets the baseline silently (no unlock toasts)
   const STARTER_CHEFS = new Set(['chef', 'grandma_rose', 'betty_white', 'blanche_devereaux', 'dorothy_zbornak']);
   const CHEF_UNLOCK = (() => {
     const ordered = [], seen = new Set();
@@ -182,6 +183,23 @@
     return map;
   })();
   function chefUnlocked(key) { return STARTER_CHEFS.has(key) || myStars >= (CHEF_UNLOCK[key] || 0); }
+
+  // When banked stars cross a character's unlock threshold (post-game), celebrate
+  // it — the progression should feel rewarding, not silent. Guarded by starsSynced
+  // so the initial 0→N page-load sync doesn't fire a flood of toasts.
+  function celebrateUnlocks(prev, next) {
+    const freshly = CHEFS
+      .filter((c) => { const t = CHEF_UNLOCK[c.key]; return t && t > prev && t <= next; })
+      .sort((a, b) => CHEF_UNLOCK[a.key] - CHEF_UNLOCK[b.key]);
+    if (!freshly.length) return;
+    const names = freshly.map((c) => c.name);
+    const msg = freshly.length === 1
+      ? `🎉 New character unlocked: ${names[0]}!`
+      : `🎉 ${freshly.length} characters unlocked: ${names.slice(0, 3).join(', ')}${names.length > 3 ? '…' : ''}`;
+    toast(msg, 4200);
+    if (window.SFX && SFX.unlock) SFX.unlock();
+    if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
+  }
 
   function makeChefCell(chef, grid, opts) {
     opts = opts || {};
@@ -328,7 +346,13 @@
         savePlayerBackup(res.player);
         renderProfileStats(res.player);
         const stars = (res.player && res.player.stats && res.player.stats.starsEarned) || 0;
-        if (stars !== myStars) { myStars = stars; renderChefSections(); refreshPicker(); }
+        if (stars !== myStars) {
+          const prev = myStars;
+          myStars = stars;
+          renderChefSections(); refreshPicker();
+          if (starsSynced && stars > prev) celebrateUnlocks(prev, stars);
+        }
+        starsSynced = true;
       }
     });
   }
