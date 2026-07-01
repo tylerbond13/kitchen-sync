@@ -183,15 +183,26 @@
   })();
   function chefUnlocked(key) { return STARTER_CHEFS.has(key) || myStars >= (CHEF_UNLOCK[key] || 0); }
 
-  function makeChefCell(chef) {
+  function makeChefCell(chef, grid, opts) {
+    opts = opts || {};
     const cell = document.createElement('button');
     cell.className = 'chef-cell';
     cell.type = 'button';
     cell.dataset.chef = chef.key;
     const unlocked = chefUnlocked(chef.key);
     if (!unlocked) cell.classList.add('locked');
+    if (chef.key === profile.chef) cell.classList.add('sel');
     const label = unlocked ? escapeHtml(chef.name) : `🔒 ${CHEF_UNLOCK[chef.key]}★`;
     cell.innerHTML = `${chefImgHtml(chef.key, 'chef-picker-img')}<span>${label}</span>`;
+    // Smash-style: badge each character with the crew members currently on it.
+    const picks = (opts.crew || []).filter((p) => (p.chef || 'chef') === chef.key);
+    if (picks.length) {
+      const b = document.createElement('div');
+      b.className = 'chef-pick-badges';
+      b.innerHTML = picks.map((p) =>
+        `<span class="chef-pick${p.id === profile.id ? ' me' : ''}" title="${escapeHtml(p.name)}">${escapeHtml((p.id === profile.id ? 'You' : p.name || '?').slice(0, 2))}</span>`).join('');
+      cell.appendChild(b);
+    }
     cell.onclick = () => {
       if (!chefUnlocked(chef.key)) {
         SFX.tap();
@@ -200,43 +211,60 @@
       }
       profile.chef = chef.key;
       saveProfile();
-      refreshPicker();
       SFX.unlock(); SFX.tap();
       if (window.KSVoices) KSVoices.playSelect(chef.key);   // character's voice clip, if any
-      sendHello();
-      // Picking a chef sits deep in a long grid — bring the action buttons up
-      // so you don't have to scroll to the very bottom to start a kitchen.
-      const actions = document.querySelector('#screen-home .home-actions');
-      if (actions) actions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (opts.lobby) {
+        socket.emit('set_chef', chef.key, () => {});
+        closeChefModal();
+      } else {
+        refreshPicker();
+        sendHello();
+        // Picking a chef sits deep in a long grid — bring the action buttons up
+        // so you don't have to scroll to the very bottom to start a kitchen.
+        const actions = document.querySelector('#screen-home .home-actions');
+        if (actions) actions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     };
     return cell;
   }
 
-  function addChefSectionHead(section, unlockedCount, total) {
+  function addChefSectionHead(section, unlockedCount, total, grid) {
     const h = document.createElement('div');
     h.className = 'chef-section-head';
     const tally = (total != null) ? `<span class="chef-section-tally">${unlockedCount}/${total}</span>` : '';
     h.innerHTML = `<span class="chef-section-emoji">${section.emoji}</span>${escapeHtml(section.name)}${tally}`;
-    chefGrid.appendChild(h);
+    grid.appendChild(h);
   }
 
-  function renderChefSections() {
-    chefGrid.innerHTML = '';
+  function renderChefGrid(grid, opts) {
+    opts = opts || {};
+    grid.innerHTML = '';
     const placed = new Set();
     for (const section of CHEF_SECTIONS) {
       const members = section.keys.map((k) => chefByKey.get(k)).filter(Boolean);
       if (!members.length) continue;
       const nUnlocked = members.filter((c) => chefUnlocked(c.key)).length;
-      addChefSectionHead(section, nUnlocked, members.length);
-      for (const chef of members) { chefGrid.appendChild(makeChefCell(chef)); placed.add(chef.key); }
+      addChefSectionHead(section, nUnlocked, members.length, grid);
+      for (const chef of members) { grid.appendChild(makeChefCell(chef, grid, opts)); placed.add(chef.key); }
     }
     const leftovers = CHEFS.filter((c) => !placed.has(c.key));
     if (leftovers.length) {
-      addChefSectionHead({ name: 'More Stars', emoji: '⭐' }, leftovers.filter((c) => chefUnlocked(c.key)).length, leftovers.length);
-      for (const chef of leftovers) chefGrid.appendChild(makeChefCell(chef));
+      addChefSectionHead({ name: 'More Stars', emoji: '⭐' }, leftovers.filter((c) => chefUnlocked(c.key)).length, leftovers.length, grid);
+      for (const chef of leftovers) grid.appendChild(makeChefCell(chef, grid, opts));
     }
   }
+  function renderChefSections() { renderChefGrid(chefGrid, {}); }
   renderChefSections();
+
+  // ── In-lobby character switcher (see who the crew picked, change live) ──
+  let chefModalOpen = false;
+  function openChefModal() {
+    chefModalOpen = true;
+    renderChefGrid($('chef-modal-grid'), { lobby: true, crew: (lobby && lobby.players) || [] });
+    $('chef-modal').hidden = false;
+  }
+  function closeChefModal() { chefModalOpen = false; $('chef-modal').hidden = true; }
+  window.__openChefModal = openChefModal; // (bound to the lobby button below)
 
   $('name-input').value = profile.name;
   $('name-input').addEventListener('change', () => {
@@ -737,6 +765,8 @@
     iAmHost = state.hostId === profile.id;
     // keep the builder's saved-board list fresh when a board is saved/deleted
     if (typeof renderPresets === 'function' && $('screen-builder').classList.contains('active')) renderPresets();
+    // keep the character switcher's crew-pick badges live while it's open
+    if (chefModalOpen) renderChefGrid($('chef-modal-grid'), { lobby: true, crew: state.players });
     $('lobby-code').textContent = state.code;
 
     const online = state.players.filter((p) => p.connected);
@@ -1850,6 +1880,9 @@
     $('builder-play').onclick = () => { destroyPreview(); playCustom(); };
     $('board-save').onclick = saveCurrentBoard;
     $('btn-open-builder').onclick = () => openBuilder({ from: 'lobby' });
+    $('btn-change-chef').onclick = () => { SFX.tap(); openChefModal(); };
+    $('btn-chef-modal-close').onclick = () => { SFX.tap(); closeChefModal(); };
+    $('chef-modal').onclick = (e) => { if (e.target === $('chef-modal')) closeChefModal(); };
     $('btn-toggle-bot').onclick = () => {
       SFX.tap();
       if (!(lobby && lobby.botHired)) { toast('🤖 Hire a Sous-Chef in the Kitchen Shop first!'); return; }

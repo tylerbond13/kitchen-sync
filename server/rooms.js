@@ -456,6 +456,22 @@ function attach(io) {
       ack({ ok: true, bot: !!room.wantBot });
     });
 
+    // Change your character from the lobby — updates the live crew so everyone
+    // sees your pick, and persists it on the crew member record.
+    socket.on('set_chef', (chef, ack) => {
+      if (typeof ack !== 'function') ack = () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      const room = joined.room, pid = joined.playerId;
+      const key = String(chef || 'chef').slice(0, 64);
+      const rp = room.players.get(pid);
+      if (rp) {
+        rp.chef = key;
+        store.touchCrewMember(room.crew, { id: pid, name: rp.name, avatar: rp.avatar, chef: key });
+      }
+      roomBroadcast(io, room, 'lobby', lobbyState(room));
+      ack({ ok: true });
+    });
+
     socket.on('tap', ({ x, y }) => {
       if (!joined || !joined.room.game) return;
       joined.room.game.tap(joined.playerId, x, y);
