@@ -37,6 +37,32 @@ test('Sous-Chef preps chopped ingredients during a live round', () => {
   assert.ok(game.players[BOT_ID], 'bot chef exists in the sim');
 });
 
+test('Sous-Chef rescues a finished dish off the stove before it burns', () => {
+  const soup = LEVELS.find((l) => l.id === 'soups-on'); // has a pot + a sink
+  const game = new Game(soup, roster());
+  const bot = new SousChef(game, BOT_ID);
+  // Stage a finished dish sitting on a cook station, about to burn.
+  const key = Object.keys(game.stations).find((k) => game.stations[k].type === 'cook');
+  const cooker = game.stations[key];
+  // a valid "done" cooker keeps its combo (the tick counts down burnAfter on it)
+  cooker.state = 'done';
+  cooker.combo = { tool: 'pot', out: { kind: 'dish', id: 'soup_onion' }, time: 10, burnAfter: 12 };
+  cooker.progress = 0;
+  cooker.contents = [{ kind: 'dish', id: 'soup_onion' }];
+
+  const dt = 1 / 12;
+  let rescued = false;
+  for (let i = 0; i < 12 * 15; i++) {
+    bot.think(dt); game.tick(dt);
+    if (cooker.state !== 'done') rescued = true; // bot grabbed it → cooker reset
+  }
+  assert.ok(rescued, 'bot should pull the finished dish off the stove');
+  // …and set it down on a counter for the human to plate (not left in hand).
+  const staged = Object.values(game.stations)
+    .some((s) => s.item && s.item.kind === 'dish' && s.item.id === 'soup_onion');
+  assert.ok(staged, 'the rescued dish should be staged on a counter');
+});
+
 test('Sous-Chef never crashes the sim on any level', () => {
   const dt = 1 / 12;
   for (const level of LEVELS) {
