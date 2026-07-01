@@ -294,11 +294,11 @@
   function ico(token) { return (window.KSArt&&KSArt.svg(token))||tokenEmoji(token); }
 
   const DISH_PREP = {
-    soup_onion:['🧅🧅🧅','🔪','🥘'],soup_tomato:['🍅🍅🍅','🔪','🥘'],
-    pizza:()=>[ico('dough.raw')+'🍅🧀','🔪','🔥'],stew:['🥔🥕🧅','🔪','🥘'],
-    cocoa:['🥛🍫','🔪','🥘'],juice:['🍍🍓🍌','🔪','🥘'],
+    soup_onion:['🧅🧅🧅','🔪','🍲'],soup_tomato:['🍅🍅🍅','🔪','🍲'],
+    pizza:()=>[ico('dough.raw')+'🍅🧀','🔪','🔥'],stew:['🥔🥕🧅','🔪','🍲'],
+    cocoa:['🥛🍫','🔪','🍲'],juice:['🍍🍓🍌','🔪','🍲'],
   };
-  const COOK_TOOL={patty:'🍳',rice:'🥘'};
+  const COOK_TOOL={patty:'🍳',rice:'🍲'};
 
   function prepChainHtml(token) {
     const [id,state]=token.split('.');
@@ -311,19 +311,19 @@
   }
 
   const DISH_TICKET_CELLS = {
-    soup_onion:  ['onion','onion','onion'].map((id)=>({ id, prep:['🔪','🥘'] })),
-    soup_tomato: ['tomato','tomato','tomato'].map((id)=>({ id, prep:['🔪','🥘'] })),
+    soup_onion:  ['onion','onion','onion'].map((id)=>({ id, prep:['🔪','🍲'] })),
+    soup_tomato: ['tomato','tomato','tomato'].map((id)=>({ id, prep:['🔪','🍲'] })),
     pizza: [
       { id:'dough', prep:['🔥'] },
       { id:'tomato', prep:['🔪','🔥'] },
       { id:'cheese', prep:['🔪','🔥'] },
     ],
-    stew: ['potato','carrot','onion'].map((id)=>({ id, prep:['🔪','🥘'] })),
+    stew: ['potato','carrot','onion'].map((id)=>({ id, prep:['🔪','🍲'] })),
     cocoa: [
-      { id:'milk', prep:['🥘'] },
-      { id:'cocoa', prep:['🔪','🥘'] },
+      { id:'milk', prep:['🍲'] },
+      { id:'cocoa', prep:['🔪','🍲'] },
     ],
-    juice: ['pineapple','strawberry','banana'].map((id)=>({ id, prep:['🔪','🥘'] })),
+    juice: ['pineapple','strawberry','banana'].map((id)=>({ id, prep:['🔪','🍲'] })),
   };
 
   function assetImgHtml(key, fallback, cls='') {
