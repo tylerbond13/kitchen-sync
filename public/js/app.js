@@ -788,6 +788,11 @@
     }
 
     $('btn-open-builder').hidden = !iAmHost;
+    const botBtn = $('btn-toggle-bot');
+    if (botBtn) {
+      botBtn.textContent = `🤖 AI teammate: ${state.bot ? 'On' : 'Off'}`;
+      botBtn.classList.toggle('on', !!state.bot);
+    }
     renderShop(state);
     renderCrewStats(state);
     renderMusic(state.music || musicState);
@@ -1777,6 +1782,15 @@
     $('builder-play').onclick = () => { destroyPreview(); playCustom(); };
     $('board-save').onclick = saveCurrentBoard;
     $('btn-open-builder').onclick = () => openBuilder({ from: 'lobby' });
+    $('btn-toggle-bot').onclick = () => {
+      SFX.tap();
+      const want = !(lobby && lobby.bot);
+      if (lobby) lobby.bot = want;              // optimistic — server broadcast reconciles
+      const b = $('btn-toggle-bot');
+      b.textContent = `🤖 AI teammate: ${want ? 'On' : 'Off'}`;
+      b.classList.toggle('on', want);
+      socket.emit('toggle_bot', want, () => {});
+    };
     document.querySelectorAll('.builder-size .btn-mini').forEach((b) => {
       b.onclick = () => { resizeBoard(b.dataset.size); SFX.tap(); };
     });

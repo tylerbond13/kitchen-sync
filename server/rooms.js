@@ -2,9 +2,15 @@
 // A "crew" is the persistent record (store.js); a "room" is its live session.
 const { Game } = require('./game');
 const { LEVELS, RECIPES, ING, SECTIONS, UPGRADES } = require('./levels');
+const { SousChef } = require('./sousChef');
 const store = require('./store');
 
 const TICK_MS = 1000 / 12;
+// The AI teammate plays as a reserved, socket-less "player".
+const BOT_ID = 'bot:sous-chef';
+function botProfile() {
+  return { id: BOT_ID, name: 'Sous-Chef', avatar: '🤖', chef: 'chef', connected: true, bot: true };
+}
 const MAX_PLAYERS = 8;
 const MAX_RADIO_QUEUE = 12;
 const VIDEO_ID_RE = /^[\w-]{11}$/;
@@ -158,6 +164,7 @@ function lobbyState(room) {
     boards: room.crew.boards || {},
     overrides: room.crew.overrides || {},
     inGame: !!room.game && room.game.phase === 'playing',
+    bot: !!room.wantBot, // AI teammate toggled on for the next round
   };
 }
 
@@ -264,6 +271,8 @@ function startGame(io, room, levelId, custom) {
 
   const roster = [...room.players.values()].filter((p) => p.connected);
   if (!roster.length) return { error: 'No players' };
+  // The AI teammate joins the round as an extra chef when toggled on.
+  if (room.wantBot) roster.push(botProfile());
 
   store.ensureCrewExtras(room.crew);
   room.exited = new Set();
@@ -271,6 +280,7 @@ function startGame(io, room, levelId, custom) {
     upgrades: room.crew.wallet.upgrades,
     autoChop: room.crew.settings.autoChop,
   });
+  room.sousChef = room.wantBot ? new SousChef(room.game, BOT_ID) : null;
   roomBroadcast(io, room, 'game_start', room.game.staticState());
   // rounds own the speakers: drop whatever was playing, then start the queue
   if (room.radio) stopRadio(io, room);
@@ -281,6 +291,7 @@ function startGame(io, room, levelId, custom) {
     const now = Date.now();
     const dt = Math.min((now - last) / 1000, 0.25);
     last = now;
+    if (room.sousChef) { try { room.sousChef.think(dt); } catch (e) { /* a bot hiccup must never crash the round */ } }
     const events = room.game.tick(dt);
     roomBroadcast(io, room, 'state', room.game.dynamicState(events));
     if (room.game.phase === 'over') {
@@ -303,6 +314,7 @@ function endIfAbandoned(io, room) {
 function finishGame(io, room) {
   clearInterval(room.loop);
   room.loop = null;
+  room.sousChef = null;
   const results = room.game.results();
   store.recordLevelResult(room.crew, results.levelId, results.score, results.stars, results.delivered);
   for (const p of results.players) {
@@ -409,6 +421,17 @@ function attach(io) {
       if (!joined) return ack({ error: 'Not in a kitchen' });
       // Any crew member can start a custom/test round — no host gate.
       ack(startGame(io, joined.room, null, cfg));
+    });
+
+    // Toggle the AI teammate (Sous-Chef) for the next round. Any crew member
+    // can flip it; omit the value to just toggle. It joins when the round starts.
+    socket.on('toggle_bot', (on, ack) => {
+      if (typeof ack !== 'function') ack = () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      const room = joined.room;
+      room.wantBot = on === undefined ? !room.wantBot : !!on;
+      roomBroadcast(io, room, 'lobby', lobbyState(room));
+      ack({ ok: true, bot: !!room.wantBot });
     });
 
     socket.on('tap', ({ x, y }) => {
