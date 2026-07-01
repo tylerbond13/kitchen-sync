@@ -173,6 +173,8 @@
   // is the player's lifetime starsEarned, synced from the server on `hello`.
   let myStars = 0;
   let starsSynced = false; // first hello sets the baseline silently (no unlock toasts)
+  let seenUnlocked = null; // Set of unlocked campaign level ids (baseline for unlock toasts)
+  let seenUnlockedCode = null; // crew code that baseline belongs to
   const STARTER_CHEFS = new Set(['chef', 'grandma_rose', 'betty_white', 'blanche_devereaux', 'dorothy_zbornak']);
   const CHEF_UNLOCK = (() => {
     const ordered = [], seen = new Set();
@@ -769,8 +771,29 @@
   // ---------- lobby ----------
   socket.on('lobby', (state) => {
     if (state.code !== myCode) return;
+    detectLevelUnlocks(state);
     renderLobby(state);
   });
+
+  // Celebrate when a finished round opens up the next campaign level. Levels
+  // unlock when the previous one earns its first star, so we diff the set of
+  // unlocked campaign levels across lobby updates. (Re)baselines silently on the
+  // first lobby for a crew so joining doesn't fire a flood.
+  function detectLevelUnlocks(state) {
+    const campaign = (state.levels || []).filter((l) => l.section !== 'custom' && !l.bonus && !l.beta);
+    const now = new Set(campaign.filter((l) => l.unlocked).map((l) => l.id));
+    if (seenUnlocked === null || seenUnlockedCode !== state.code) {
+      seenUnlocked = now; seenUnlockedCode = state.code; return;
+    }
+    const fresh = campaign.filter((l) => l.unlocked && !seenUnlocked.has(l.id));
+    seenUnlocked = now;
+    if (!fresh.length) return;
+    const msg = fresh.length === 1
+      ? `🔓 New level unlocked: ${fresh[0].name}!`
+      : `🔓 ${fresh.length} new levels unlocked!`;
+    toast(msg, 4200);
+    if (window.SFX && SFX.unlock) SFX.unlock();
+  }
 
   // What the Sous-Chef can do, from the skills the crew has taught it in the shop.
   function botCapSummary(caps) {

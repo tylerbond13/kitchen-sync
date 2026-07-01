@@ -10,6 +10,9 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Level-unlock celebration (v1.20.2)
+- Parallel to the character toast: when a finished round earns the first star on a level (which opens the next one), you now get a **"🔓 New level unlocked: {name}!"** toast so campaign progress is visible the moment it happens, instead of quietly un-greying in the roadmap. Works by diffing the unlocked-level set across lobby updates; re-baselines silently per crew so joining never fires it.
+
 ### Character-unlock celebration (v1.20.1)
 - When a finished round banks enough stars to cross a character's unlock threshold, you now get a **"🎉 New character unlocked: {name}!"** toast (with the unlock chime + a little haptic buzz) right on the results screen — so the progression actually *feels* rewarding instead of a character silently appearing in the grid later. Handles multi-unlocks in one round ("🎉 3 characters unlocked: …"). Guarded so the initial page-load star sync never spuriously fires it.
 
