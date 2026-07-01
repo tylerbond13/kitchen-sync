@@ -566,7 +566,9 @@
     // plane via the exact inverse projection (floor movement).
     pick(wx, wy) {
       const hits = (this._hits || []).slice().sort((a, b) => b.d - a.d);
+      // Pass 1 — precise, pixel-accurate pick on the drawn sprite art.
       for (const hit of hits) {
+        if (hit.tile) continue;
         if (wx < hit.x || wx > hit.x + hit.w ||
             wy < hit.y || wy > hit.y + hit.h) continue;
         const u = (wx - hit.x) / hit.w, v = (wy - hit.y) / hit.h;
@@ -584,6 +586,17 @@
           const uy = Math.floor((wy - this.oy) / TILE_HEIGHT);
           if (!(ux === hit.gx && uy === hit.gy) && this.isFloorTile(ux, uy)) continue;
         }
+        return [hit.gx, hit.gy];
+      }
+      // Pass 2 — generous fallback: a tap anywhere on a station's tile footprint
+      // (plus the lifted work-surface / floating-item area just above it) still
+      // interacts, so a near-miss over the station's own air doesn't silently do
+      // nothing. Tiles are exclusive left-to-right, so neighbours never overlap;
+      // vertical overlaps between stacked stations resolve foremost-first.
+      for (const hit of hits) {
+        if (!hit.tile) continue;
+        if (wx < hit.x || wx > hit.x + hit.w ||
+            wy < hit.y || wy > hit.y + hit.h) continue;
         return [hit.gx, hit.gy];
       }
       // gridX = floor(mouseX / tileWidth), gridY = floor(mouseY / tileHeight)
@@ -1032,6 +1045,7 @@
         if (rect) {
           if (cKey === 'crate') this.drawBare({ id: ing, state: 'raw' }, sx, rect.y + rect.h*0.30, 16);
           this._hits.push({ ...rect, gx, gy, key: cKey, d: sy });
+          this._hits.push({ x: this.ox + gx*TW, y: this.oy + gy*TH - BLOCK_LIFT, w: TW, h: TH + BLOCK_LIFT, gx, gy, key: cKey, d: sy, tile: true });
           return;
         }
         // crate art still loading — fall through to the counter path
@@ -1075,7 +1089,10 @@
         key = this.faceKey(this.stationArtKey('counter'), gx, gy);
         rect = GFX.drawAnchored(ctx, key, sx, baseY, TW*SPRITE_FILL, isoFixFor(key));
       }
-      if (rect) this._hits.push({ ...rect, gx, gy, key, d: sy });
+      if (rect) {
+        this._hits.push({ ...rect, gx, gy, key, d: sy });
+        this._hits.push({ x: this.ox + gx*TW, y: this.oy + gy*TH - BLOCK_LIFT, w: TW, h: TH + BLOCK_LIFT, gx, gy, key, d: sy, tile: true });
+      }
       const topY = sy - BLOCK_LIFT;
 
       // Everything that sits ON the surface (ingredients, cook contents, progress
