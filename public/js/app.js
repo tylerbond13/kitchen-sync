@@ -970,13 +970,20 @@
         const isOwned = !!owned[id];
         const locked = up.needs && !owned[up.needs];
         const affordable = state.wallet.coins >= up.cost;
+        const canBuy = !isOwned && !locked && affordable;
+        const short = up.cost - state.wallet.coins; // coins still needed
         const row = document.createElement('div');
-        row.className = 'shop-row' + (isOwned ? ' owned' : '') + (locked ? ' locked' : '');
+        row.className = 'shop-row' + (isOwned ? ' owned' : '') + (locked ? ' locked' : '') + (canBuy ? ' can-buy' : '');
+        // Nudge the coin loop: if it's buyable but you can't afford it yet, show
+        // how much more you need to save.
+        const desc = locked ? `🔒 Requires “${state.upgrades[up.needs].name}”`
+          : (!isOwned && !affordable) ? `${up.desc} <span class="shop-short">· 🪙 ${short.toLocaleString()} more to save</span>`
+          : up.desc;
         row.innerHTML = `
           <div class="shop-emoji">${up.emoji}</div>
           <div class="shop-info">
             <div class="shop-name">${up.name}</div>
-            <div class="shop-desc">${locked ? `🔒 Requires “${state.upgrades[up.needs].name}”` : up.desc}</div>
+            <div class="shop-desc">${desc}</div>
           </div>
           <button class="shop-buy" ${isOwned || locked || !affordable ? 'disabled' : ''}>
             ${isOwned ? '✓ Owned' : locked ? '🔒' : `🪙 ${up.cost.toLocaleString()}`}

@@ -10,6 +10,9 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Shop affordability cues (v1.21.2)
+- The Kitchen Shop now guides your spending: items you can afford **right now** get a soft gold **glow** to draw the eye, and items you can't yet afford show exactly **how much more to save** ("· 🪙 1,000 more to save"). Turns the shop from a static price list into a visible savings goal, complementing the results-screen coins pill. _(Verified in-browser: glow on the affordable row, shortfall hints on the rest, locked rows unchanged.)_
+
 ### Coins-earned pill on the results screen (v1.21.1)
 - The results screen now shows a golden **"🪙 +{score} coins · 💰 {total} banked"** pill under the big score, making it obvious that your score banks 1:1 as coins and how much your crew now has to spend in the shop. Closes the score → coins → shop loop right at the moment of reward. _(Verified in-browser: pill renders under the score with payout + running total.)_
 
