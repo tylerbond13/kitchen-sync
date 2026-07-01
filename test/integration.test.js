@@ -90,10 +90,6 @@ test('two players: create, join, play a round, progress persists', async () => {
   // (that join attempt didn't kick them; rejoin to be safe)
   await emitAck(sib, 'join', { code, profile: pSib });
 
-  // non-host cannot start
-  const denied = await emitAck(sib, 'start_game', 'salad-days');
-  assert.ok(denied.error);
-
   // anyone can queue music for the next level
   const firstQueuedP = waitFor(sib, 'radio');
   tyler.emit('radio', {
@@ -125,11 +121,11 @@ test('two players: create, join, play a round, progress persists', async () => {
   assert.equal(songLog[1].player, 'Megan');
   assert.equal(songLog[1].title, 'Song B');
 
-  // host starts; both receive game_start and state ticks
+  // any crew member can start — here the non-host does; both receive game_start and state ticks
   const gs1 = waitFor(tyler, 'game_start');
   const gs2 = waitFor(sib, 'game_start');
   const musicStartP = waitForWhere(tyler, 'radio', (p) => !!p.radio);
-  const started = await emitAck(tyler, 'start_game', 'salad-days');
+  const started = await emitAck(sib, 'start_game', 'salad-days');
   assert.ok(started.ok, JSON.stringify(started));
   const stat = await gs1;
   await gs2;

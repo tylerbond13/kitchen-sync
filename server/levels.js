@@ -151,7 +151,7 @@ const LEVELS = [
       '#.........#',
       '.T..W#W..P.',
     ],
-    orders: { recipes: ['salad', 'salad', 'big_salad'], every: 14, ttl: 60, maxOpen: 4 },
+    orders: { recipes: ['salad', 'salad', 'big_salad'], every: 6, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'burger-bay',
@@ -171,7 +171,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['burger', 'burger', 'cheeseburger'], every: 18, ttl: 84, maxOpen: 4 },
+    orders: { recipes: ['burger', 'burger', 'cheeseburger'], every: 9, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'soups-on',
@@ -191,7 +191,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['soup_onion', 'soup_tomato'], every: 19, ttl: 86, maxOpen: 4 },
+    orders: { recipes: ['soup_onion', 'soup_tomato'], every: 11, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'sushi-squad',
@@ -211,7 +211,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['sushi'], every: 17, ttl: 82, maxOpen: 4 },
+    orders: { recipes: ['sushi'], every: 7, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'pizza-panic',
@@ -231,7 +231,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['pizza'], every: 18, ttl: 90, maxOpen: 4 },
+    orders: { recipes: ['pizza'], every: 9, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'grand-feast',
@@ -253,7 +253,7 @@ const LEVELS = [
       '#.........#',
       '.KT.PW#W.P.',
     ],
-    orders: { recipes: ['salad', 'burger', 'cheeseburger', 'soup_onion', 'soup_tomato'], every: 15, ttl: 82, maxOpen: 4 },
+    orders: { recipes: ['salad', 'burger', 'cheeseburger', 'soup_onion', 'soup_tomato'], every: 10, ttl: 60, maxOpen: 5 },
   },
 
   // ============ WINTER WONDERLAND ============
@@ -275,7 +275,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['cocoa'], every: 13, ttl: 70, maxOpen: 4 },
+    orders: { recipes: ['cocoa'], every: 6, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'stew-season',
@@ -295,7 +295,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['stew', 'cocoa'], every: 18, ttl: 88, maxOpen: 4 },
+    orders: { recipes: ['stew', 'cocoa'], every: 11, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'frost-feast',
@@ -317,7 +317,7 @@ const LEVELS = [
       '#.........#',
       '.KT.PW#W.P.',
     ],
-    orders: { recipes: ['stew', 'cocoa', 'soup_onion'], every: 16, ttl: 85, maxOpen: 4 },
+    orders: { recipes: ['stew', 'cocoa', 'soup_onion'], every: 11, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'whiteout-rush',
@@ -339,7 +339,7 @@ const LEVELS = [
       '#.........#',
       '.KT.PW#W.P.',
     ],
-    orders: { recipes: ['stew', 'cocoa', 'soup_onion', 'soup_tomato'], every: 14, ttl: 80, maxOpen: 4 },
+    orders: { recipes: ['stew', 'cocoa', 'soup_onion', 'soup_tomato'], every: 11, ttl: 60, maxOpen: 5 },
   },
 
   // ============ BEACH CLUB ============
@@ -361,7 +361,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['juice'], every: 14, ttl: 75, maxOpen: 4 },
+    orders: { recipes: ['juice'], every: 7, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'taco-tide',
@@ -381,7 +381,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['fish_taco'], every: 13, ttl: 70, maxOpen: 4 },
+    orders: { recipes: ['fish_taco'], every: 7, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'poke-point',
@@ -401,7 +401,7 @@ const LEVELS = [
       '#.........#',
       '.KT.W#W.PP.',
     ],
-    orders: { recipes: ['poke'], every: 15, ttl: 80, maxOpen: 4 },
+    orders: { recipes: ['poke'], every: 7, ttl: 60, maxOpen: 5 },
   },
   {
     id: 'heatwave',
@@ -423,7 +423,7 @@ const LEVELS = [
       '#.........#',
       '.KT.PW#W.P.',
     ],
-    orders: { recipes: ['fish_taco', 'poke', 'poke'], every: 14, ttl: 80, maxOpen: 4 },
+    orders: { recipes: ['fish_taco', 'poke', 'poke'], every: 7, ttl: 60, maxOpen: 5 },
   },
 
   // ============ CAKE WORLD (Beta) ============
@@ -451,7 +451,7 @@ const LEVELS = [
       'P.........P',
       '.T...W#W.P.',
     ],
-    orders: { recipes: ['chocolate_cake', 'carrot_cake', 'honeycomb_cake'], every: 17, ttl: 95, maxOpen: 4 },
+    orders: { recipes: ['chocolate_cake', 'carrot_cake', 'honeycomb_cake'], every: 6, ttl: 60, maxOpen: 5 },
   },
 ];
 

@@ -82,7 +82,9 @@ class Game {
 
     // crew upgrades (Kitchen Shop)
     const u = opts.upgrades || {};
-    this.speed = SPEED * (u.fast_shoes ? 1.12 : 1) * (level.speedMult || 1);
+    // Campaign levels ship at 1.25× chef speed by default; the Level Builder
+    // sets speedMult explicitly per board, so it overrides this.
+    this.speed = SPEED * (u.fast_shoes ? 1.12 : 1) * (level.speedMult || 1.25);
     this.burnBonus = u.nonstick ? 3 : 0;
     this.cookMult = u.turbo_stove ? 0.85 : 1;
     this.dishBot = !!u.dish_bot;
@@ -874,7 +876,7 @@ class Game {
     // orders
     this.orderClock -= dt;
     const cfg = this.level.orders;
-    const spawnEvery = cfg.every * this.pace.every * (this.rush > 0 ? 0.55 : 1);
+    const spawnEvery = (cfg.every || 6) * this.pace.every * (this.rush > 0 ? 0.55 : 1);
     if (this.orderClock <= 0 && this.orders.length < cfg.maxOpen && this.timeLeft > 15) {
       const first = this.orders.length === 0 && this.nextOrderId === 1;
       const recipe = first ? cfg.recipes[0] : cfg.recipes[Math.floor(this.rng() * cfg.recipes.length)];
@@ -928,7 +930,7 @@ class Game {
       grid: this.level.layout,
       crates: this.level.crates,
       facings: this.level.facings || null,   // explicit per-tile facing (builder)
-      charScale: this.level.charScale,       // character sprite size (builder; default 2×)
+      charScale: this.level.charScale || 1.5, // char sprite size — campaign default 1.5×; builder sets its own
       wallpaper: this.level.wallpaper || null, // board background image (builder)
       duration: this.level.duration,
       starThresholds: this.starGoals,
