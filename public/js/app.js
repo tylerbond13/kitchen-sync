@@ -997,8 +997,15 @@
           row.querySelector('.shop-buy').onclick = () => {
             SFX.tap();
             socket.emit('buy_upgrade', id, (res) => {
-              if (res && res.error) toast(res.error);
-              else { SFX.serve(); toast(`${up.emoji} ${up.name} unlocked for the crew!`); }
+              if (res && res.error) return toast(res.error);
+              SFX.serve();
+              // Contextual next-step guidance so the shop reads as a progression.
+              const msg = id === 'sous_chef'
+                ? '🤖 Sous-Chef hired! Teach it skills below, then toggle it on above for your next round.'
+                : (up.group === 'sous')
+                  ? `${up.emoji} ${up.name.replace(/^Teach:\s*/, '')} taught — your Sous-Chef can do it once toggled on.`
+                  : `${up.emoji} ${up.name} unlocked for the crew!`;
+              toast(msg, 3400);
             });
           };
         }
