@@ -649,6 +649,10 @@ function attach(io) {
     socket.on('exit_round', () => {
       if (!joined) return;
       joined.room.exited.add(joined.playerId);
+      // dissolve any wait-for-station intent — an absent chef must never
+      // auto-grab finished food into hands nobody controls
+      const gp = joined.room.game && joined.room.game.players[joined.playerId];
+      if (gp) gp.await = null;
       endIfAbandoned(io, joined.room);
     });
 
@@ -667,6 +671,10 @@ function attach(io) {
       const stillConnected = [...room.sockets.values()].some((e) => e.playerId === playerId);
       if (!stillConnected && room.players.has(playerId)) {
         room.players.get(playerId).connected = false;
+        // dissolve any wait-for-station intent (see exit_round): a chef with
+        // no socket must never auto-grab finished food out of the kitchen
+        const gp = room.game && room.game.players[playerId];
+        if (gp) gp.await = null;
       }
       roomBroadcast(io, room, 'lobby', lobbyState(room));
       endIfAbandoned(io, room);

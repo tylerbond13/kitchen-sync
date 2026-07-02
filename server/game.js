@@ -290,6 +290,7 @@ class Game {
   }
 
   startTapAction(p, action) {
+    p.await = null; // any new action overrides a wait-for-station intent
     const tx = Math.floor(action.x), ty = Math.floor(action.y);
 
     const px = Math.floor(p.x), py = Math.floor(p.y);
@@ -354,6 +355,7 @@ class Game {
     p.face = { dx, dy };
     p.path = [];
     p.intent = null;
+    p.await = null;
     if (p.queue) p.queue.length = 0;
   }
 
@@ -372,7 +374,11 @@ class Game {
       const k = `${px + dx},${py + dy}`;
       if (seen.has(k)) continue;
       seen.add(k);
-      if (this.stations[k]) { this.interact(p, k); return; }
+      if (this.stations[k]) {
+        p.await = null; // a manual interaction overrides a wait-for-station intent
+        this.interact(p, k);
+        return;
+      }
     }
   }
 
@@ -396,6 +402,19 @@ class Game {
     const fits = Object.values(RECIPES).some((r) => r.handheld && isSubset(tokens, r.needs));
     if (!fits) return null;
     return { kind: 'stack', contents };
+  }
+
+  // Could `item` merge into `carry`? Pure mirror of mergeIntoCarry's rules —
+  // used to validate a wait-for-station intent at registration time, so the ⏳
+  // never promises a pickup that would be rejected at the ding.
+  canReceive(carry, item) {
+    if (!carry) return true;
+    if (carry.kind === 'plate') {
+      const tokens = carry.contents.map(itemToken).concat(contentsOf(item).map(itemToken));
+      if (tokens.some((t) => t === null)) return false;
+      return Object.values(RECIPES).some((r) => isSubset(tokens, r.needs));
+    }
+    return !!this.tryStack(carry, item);
   }
 
   addToPlate(plate, item, at) {
@@ -500,7 +519,14 @@ class Game {
         // progress lives ON the item so it survives being moved.
         if (!p.carry && s.item) {
           if (s.item.state === 'raw' && CHOPPABLE.has(s.item.id)) {
-            this.emit('go', at); // mid-chop — leave it to finish
+            // mid-chop: register the intent instead of declining — the chef
+            // waits at the board and the tick loop hands them the item the
+            // moment it finishes (see the `await` pass in tick()). The wait is
+            // bound to THIS item, so a teammate swapping the board's contents
+            // dissolves it rather than granting food never asked for.
+            p.await = stationKey;
+            p.awaitRef = s.item;
+            this.emit('waiting', at);
             break;
           }
           p.carry = s.item; s.item = null;
@@ -509,7 +535,18 @@ class Game {
           s.item = p.carry; p.carry = null;
           this.emit('place', at);
         } else if (p.carry && s.item) {
-          if (p.carry.kind === 'plate' && s.item.kind === 'plate') {
+          if (p.carry.kind === 'plate' && s.item.state === 'raw' && CHOPPABLE.has(s.item.id)) {
+            // plate in hand, food still chopping: wait for it, then plate it —
+            // but only if the chopped result will actually fit that plate;
+            // otherwise reject now instead of promising a doomed pickup.
+            if (this.canReceive(p.carry, { id: s.item.id, state: 'chopped' })) {
+              p.await = stationKey;
+              p.awaitRef = s.item;
+              this.emit('waiting', at);
+            } else {
+              this.emit('reject', at);
+            }
+          } else if (p.carry.kind === 'plate' && s.item.kind === 'plate') {
             // merge plates: pour the held plate onto the seated one, keep the
             // empty plate in hand
             const tokens = s.item.contents.map(itemToken).concat(p.carry.contents.map(itemToken));
@@ -619,6 +656,24 @@ class Game {
   }
 
   interactCook(p, s, at) {
+    if (s.state === 'cooking' && (!p.carry || p.carry.kind === 'plate' || p.carry.kind === 'stack')) {
+      // mid-cook with room to receive it: register the intent — the chef waits
+      // by the heat and the tick loop hands them the dish the moment it dings
+      // (see the `await` pass in tick()). Also the best way to never burn it.
+      // The output is knowable now (s.combo.out), so refuse the wait up front
+      // when it could never merge into what they're holding.
+      const out = s.combo.out.kind === 'dish'
+        ? { kind: 'dish', id: s.combo.out.id }
+        : { id: s.combo.out.id, state: s.combo.out.state };
+      if (!this.canReceive(p.carry, out)) {
+        this.emit('reject', at);
+        return;
+      }
+      p.await = `${at.x},${at.y}`;
+      p.awaitRef = s.combo;
+      this.emit('waiting', at);
+      return;
+    }
     if (s.state === 'done') {
       const out = s.contents[0];
       if (this.mergeIntoCarry(p, out, at)) this.resetCooker(s);
@@ -870,6 +925,37 @@ class Game {
           const [sx, sy] = key.split(',').map(Number);
           this.emit('burn', { x: sx, y: sy });
         }
+      }
+    }
+
+    // waiting chefs: tapping a mid-chop board or mid-cook pot registers "grab
+    // it the moment it's ready" (p.await). Deliver on those intents now that
+    // chop/cook progress has advanced — same tick as the ✨/♨️, so waited-for
+    // food never sits and never burns. The wait dissolves if the chef walks
+    // away or someone else takes the item first.
+    for (const p of Object.values(this.players)) {
+      if (!p.await) continue;
+      const s = this.stations[p.await];
+      const [sx, sy] = p.await.split(',').map(Number);
+      const adjacent = !p.path.length &&
+        Math.abs(Math.floor(p.x) - sx) + Math.abs(Math.floor(p.y) - sy) === 1;
+      if (!s || !adjacent) { p.await = null; continue; }
+      if (s.type === 'board') {
+        // gone, or swapped for a different item than they waited on → dissolve
+        if (!s.item || s.item !== p.awaitRef) { p.await = null; continue; }
+        if (s.item.state === 'raw' && CHOPPABLE.has(s.item.id)) continue; // still chopping
+        const key = p.await; p.await = null;
+        this.interact(p, key);                                            // chopped → pick it up
+      } else if (s.type === 'cook') {
+        // the batch they waited on is gone (grabbed + reloaded differently,
+        // reset, or burned away) → dissolve rather than grab a stranger's dish
+        if (s.combo !== p.awaitRef) { p.await = null; continue; }
+        if (s.state === 'cooking') continue;                              // still cooking
+        const key = p.await; p.await = null;
+        if (s.state === 'done') this.interact(p, key);                    // straight off the heat
+        // burned: never force that into their hands
+      } else {
+        p.await = null;
       }
     }
 
