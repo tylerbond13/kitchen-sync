@@ -3,6 +3,19 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.24.0",
+    "title": "Mobile overhaul — full-screen kitchen",
+    "emoji": "📱",
+    "category": "feature",
+    "changes": [
+      "The kitchen now fills your entire phone screen — the themed wallpaper covers everything, with no side rail and no dead margins.",
+      "New floating HUD: timer top-left, pause top-right, order tickets across the top, and a bottom banner with your score, star progress with each cutoff marked, and now-playing music.",
+      "Music, sound, and AI-Director buttons moved into the pause menu to keep the play screen clean.",
+      "In-game order cards got a solid, readable look that works over any wallpaper.",
+      "Menus are landscape-first on phones: the lobby is a sideways card pager (Levels first), the home screen is two panes, and the results screen fits on one screen — no more endless vertical scrolling."
+    ]
+  },
+  {
     "version": "1.23.0",
     "title": "In-game \"What's new\" page",
     "emoji": "📋",

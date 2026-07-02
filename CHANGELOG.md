@@ -2,6 +2,15 @@
 
 Every release, newest first. Also viewable in-game via **📋 What's new** on the home screen (or by tapping the version footer).
 
+## v1.24.0 — 📱 Mobile overhaul — full-screen kitchen  
+_Feature_
+
+- The kitchen now fills your entire phone screen — the themed wallpaper covers everything, with no side rail and no dead margins.
+- New floating HUD: timer top-left, pause top-right, order tickets across the top, and a bottom banner with score, star progress with each cutoff marked, and now-playing music.
+- Music, sound, and AI-Director buttons moved into the pause menu to keep the play screen clean.
+- In-game order cards got a solid, readable look that works over any wallpaper.
+- Menus are landscape-first on phones: the lobby is a sideways card pager (Levels first), home is two panes, results fits one screen — no more endless vertical scrolling.
+
 ## v1.23.0 — 📋 In-game "What's new" page  
 _Feature_
 
