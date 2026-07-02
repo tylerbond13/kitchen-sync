@@ -3,6 +3,18 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.25.0",
+    "title": "Wait-for-it pickups",
+    "emoji": "⏳",
+    "category": "feature",
+    "changes": [
+      "Tapping a cutting board that's still chopping no longer declines — your chef waits and grabs the item the moment it's done.",
+      "Same for everything cooking: tap a pan, pot, oven or mixer mid-cook and the dish lands in your hands right on the ding — the surest way to never burn it.",
+      "Works with a plate in hand too: the finished food goes straight onto your plate.",
+      "A little ⏳ shows where you're waiting; tapping anything else changes your mind."
+    ]
+  },
+  {
     "version": "1.24.0",
     "title": "Mobile overhaul — full-screen kitchen",
     "emoji": "📱",

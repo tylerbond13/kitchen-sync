@@ -710,6 +710,10 @@
       } else if (ev.type==='reject'&&ev.playerId===this.myId) {
         const [px,py]=at(ev.x,ev.y);
         this.fx.push({kind:'points',x:px,y:py,text:'✕',t:0,color:'#FF4070'});
+      } else if (ev.type==='waiting'&&ev.playerId===this.myId) {
+        // tapped a busy board/cooker: the chef will auto-grab when it's ready
+        const [px,py]=at(ev.x,ev.y);
+        this.fx.push({kind:'points',x:px,y:py,text:'⏳',t:0,color:'#C09BFF'});
       }
     }
 

@@ -2,6 +2,14 @@
 
 Every release, newest first. Also viewable in-game via **📋 What's new** on the home screen (or by tapping the version footer).
 
+## v1.25.0 — ⏳ Wait-for-it pickups  
+_Feature_
+
+- Tapping a cutting board that's still chopping no longer declines — your chef waits and grabs the item the moment it's done.
+- Same for everything cooking: tap a pan, pot, oven or mixer mid-cook and the dish lands in your hands right on the ding — the surest way to never burn it.
+- Works with a plate in hand too: the finished food goes straight onto your plate.
+- A little ⏳ shows where you're waiting; tapping anything else changes your mind.
+
 ## v1.24.0 — 📱 Mobile overhaul — full-screen kitchen  
 _Feature_
 

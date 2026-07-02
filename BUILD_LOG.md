@@ -10,6 +10,13 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Wait-for-it pickups (v1.25.0)
+- **Tapping a busy station now means "grab it when it's ready" instead of a decline.** A tap on a mid-chop cutting board (empty-handed or holding a plate) registers a wait: the chef stands there and the item lands in their hands — or on their plate — the instant chopping finishes. Same for **everything cooking**: tap a pan/pot/oven/mixer mid-cook and the dish comes straight off the heat on the ding, which is also the surest way to never burn it.
+- Waits are intents, not locks: tapping anything else, steering, or walking away cancels; if someone else grabs the item first the wait just dissolves; burned food is never forced into your hands. A ⏳ pops at the station so the wait feels registered.
+- Preserves the old guarantees: bystanders still never auto-grab (an explicit tap is required), chopping continues uninterrupted, and the swap/stack/plate flows are untouched.
+- **Hardened by an adversarial multi-agent review** (11 agents, 3 lenses, refute-style verification) which confirmed 3 real edge cases — all fixed: (1) a waiter who **exits/disconnects** mid-wait no longer ghost-grabs the finished food into absent hands (rooms clears the intent on exit/detach — the item stays for the crew); (2) a wait is **refused up front (✕)** when what you're holding could never receive the output (e.g. a cucumber-salad plate at a patty pan) instead of promising a doomed pickup while the dish burns; (3) the wait is **bound to the specific item/batch** — if a teammate swaps the board's contents or the pot is reloaded, the wait dissolves instead of claiming food you never asked for.
+- _(Tested: 8 unit tests + 2 full socket integration tests (the real client pipeline incl. the exit-mid-wait ghost case); suite 83/83 green.)_
+
 ### Per-version screenshot archive (v1.24.1)
 - New **`docs/screenshots/v<version>/`** archive — 9 shots per release (home landscape+portrait, changelog, lobby Levels + Shop pages, milestones, characters, in-round gameplay, pause) so the game's visual progression is browsable on GitHub next to CHANGELOG.md. First archived build: **v1.24.0** (the mobile overhaul).
 - Repeatable via **`npm run screenshots`** (`scripts/capture-screenshots.mjs`): drives your installed Chrome headlessly (puppeteer-core, `--no-save`, nothing added to the deploy), reads `/api/version`, walks every screen in a fresh profile, and drops the PNGs in the right folder. Run once per release.

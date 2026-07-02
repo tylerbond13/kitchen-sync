@@ -372,7 +372,7 @@ test('plating is order-independent: any ingredient can start or finish a plate',
   assert.equal(game.stations[counter].item, null);
 });
 
-test('tapping a busy board does not interrupt chopping', () => {
+test('tapping a busy board does not interrupt chopping — it waits, then picks up', () => {
   const game = makeGame();
   const p = game.players.p1;
   const board = stationKey(game, 'board');
@@ -384,12 +384,12 @@ test('tapping a busy board does not interrupt chopping', () => {
   game.tap('p1', bx, by);
   assert.equal(p.carry, null, 'keeps chopping instead of picking up raw food');
   assert.equal(p.queue.length, 0);
-  for (let i = 0; i < 30 && game.stations[board].item.state !== 'chopped'; i++) game.tick(0.1);
-  assert.equal(game.stations[board].item.state, 'chopped');
-  assert.equal(p.carry, null, 'finished food waits on the board');
-  game.interact(p, board);
+  assert.equal(p.await, board, 'the tap registers a wait-then-pickup intent');
+  for (let i = 0; i < 30 && !p.carry; i++) game.tick(0.1);
+  // the moment chopping finishes, the waited-for item lands in their hands
   assert.deepEqual(p.carry, { id: 'lettuce', state: 'chopped' });
   assert.equal(game.stations[board].item, null);
+  assert.equal(p.await, null);
 });
 
 test('merging plates pours contents onto the seated plate, empty stays in hand', () => {
