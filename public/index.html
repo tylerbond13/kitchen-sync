@@ -652,21 +652,58 @@ input[type="text"]:focus {
 }
 .roadmap-node .level-edit.level-del, .roadmap-node .level-edit.level-reset { top: auto; bottom: -6px; right: -6px; }
 
-/* ============ Game HUD ============ */
-#screen-game { padding: calc(var(--sat) + 8px) 8px calc(var(--sab) + 8px); gap: 8px; }
-.game-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* ============ Game HUD — full-bleed kitchen + floating overlay bands ============ */
+/* The whole viewport belongs to the kitchen: the themed wallpaper (set inline
+   by applyWallpaper) covers this section edge to edge, the canvas sits between
+   the two HUD bands, and every control floats on top. */
+#screen-game.active {
+  display: block;
+  position: fixed; inset: 0;
+  height: 100dvh; max-height: 100dvh;
+  padding: 0; overflow: hidden;
+  min-height: 0;
+  --hud-top-h: 84px;
+  --hud-bot-h: 46px;
+}
+.game-hud-top {
+  position: absolute; z-index: 20;
+  top: 0; left: 0; right: 0;
+  height: calc(var(--sat) + var(--hud-top-h));
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: calc(var(--sat) + 6px) calc(var(--sar) + 8px) 0 calc(var(--sal) + 8px);
+}
+/* Soft scrims anchor the floating HUD against pale wallpapers */
+.game-hud-top::before, .game-hud-bottom::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+}
+.game-hud-top::before { background: linear-gradient(180deg, rgba(45,22,52,.30) 0%, rgba(45,22,52,0) 100%); }
+.game-hud-bottom::before { background: linear-gradient(0deg, rgba(45,22,52,.32) 0%, rgba(45,22,52,0) 100%); }
+.game-hud-top .orders-strip { flex: 1 1 auto; min-width: 0; }
+.hud-pause-btn { flex: 0 0 auto; }
+.game-hud-bottom {
+  position: absolute; z-index: 20;
+  left: 0; right: 0; bottom: 0;
+  height: calc(var(--sab) + var(--hud-bot-h));
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 calc(var(--sar) + 10px) calc(var(--sab) + 6px) calc(var(--sal) + 10px);
+}
+/* Extras live in the pause menu now, not on the play screen */
+.pause-tools { display: flex; justify-content: center; gap: 8px; margin: 12px 0 2px; }
+.pause-box .game-players { justify-content: center; margin-top: 10px; }
 .hud-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: linear-gradient(180deg, #FFF6EA 0%, #FFEAF6 100%);
-  border-radius: 16px;
-  padding: 9px 13px;
-  font-weight: 800; font-size: 16px;
+  gap: 5px;
+  background: linear-gradient(180deg, rgba(255,246,234,.92) 0%, rgba(255,234,246,.92) 100%);
+  border-radius: 13px;
+  padding: 7px 11px;
+  font-weight: 800; font-size: 14px;
   color: var(--ink);
-  box-shadow: 0 4px 14px rgba(90, 54, 100, 0.12), inset 0 0 0 1px rgba(255,255,255,0.64);
+  box-shadow: 0 3px 10px rgba(90, 54, 100, 0.18), inset 0 0 0 1px rgba(255,255,255,0.64);
   font-variant-numeric: tabular-nums;
   border: 1.5px solid rgba(240, 193, 90, 0.74);
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 .hud-icon {
   width: 23px;
@@ -677,10 +714,15 @@ input[type="text"]:focus {
 }
 .hud-timer.low { color: var(--sherbet); animation: pulse .8s infinite; }
 @keyframes pulse { 50% { transform: scale(1.07); } }
-.hud-combo { color: var(--bubblegum); }
-.hud-plates { color: var(--ink); padding-left: 12px; padding-right: 12px; }
+/* Combo pill floats above the bottom banner while a streak is alive */
+.hud-combo {
+  color: var(--bubblegum);
+  position: absolute; z-index: 21;
+  left: calc(var(--sal) + 10px);
+  bottom: calc(var(--sab) + var(--hud-bot-h, 46px) + 8px);
+}
+.hud-plates { color: var(--ink); }
 .hud-plates.empty { color: var(--sherbet); animation: pulse .8s infinite; }
-.hud-buttons { margin-left: auto; display: flex; gap: 8px; }
 
 .orders-strip {
   display: flex;
@@ -688,7 +730,7 @@ input[type="text"]:focus {
   overflow-x: auto;
   overscroll-behavior-x: contain;
   padding: 1px 2px 5px;
-  min-height: 94px;
+  min-height: 0;
   scroll-snap-type: x proximity;
 }
 .orders-strip:empty {
@@ -696,6 +738,35 @@ input[type="text"]:focus {
   min-height: 0;
 }
 .orders-strip::-webkit-scrollbar { display: none; }
+/* Compact in-game tickets so the top band stays shallow (~76px). The full-size
+   ticket styles still apply in the tutorial + dish menu. The decorative card
+   frame PNG washes out at this size, so in-game cards get a solid paper look
+   that stays readable over any wallpaper. */
+.game-hud-top .ticket {
+  width: 150px; padding: 5px 7px; gap: 2px 6px;
+  border-radius: 14px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  background: linear-gradient(180deg, #FFF9EE 0%, #FFE9F4 100%);
+  box-shadow: 0 4px 12px rgba(58, 36, 64, 0.30), inset 0 0 0 1.5px rgba(240, 193, 90, 0.72);
+}
+.game-hud-top .ticket.warn {
+  background: linear-gradient(180deg, #FFF6DC 0%, #FFE2B8 100%);
+  box-shadow: 0 4px 12px rgba(58, 36, 64, 0.30), inset 0 0 0 1.5px rgba(240, 170, 60, 0.9);
+}
+.game-hud-top .ticket.urgent {
+  background: linear-gradient(180deg, #FFE9E2 0%, #FFC9C2 100%);
+  box-shadow: 0 4px 12px rgba(58, 36, 64, 0.32), inset 0 0 0 1.5px rgba(255, 110, 90, 0.9);
+}
+.game-hud-top .ticket-headline { margin-bottom: 3px; gap: 6px; }
+.game-hud-top .ticket-dish-img { width: 38px; height: 38px; }
+.game-hud-top .ticket-name { font-size: 11px; }
+.game-hud-top .ticket-customer { flex: 0 0 32px; width: 32px; height: 32px; }
+.game-hud-top .ticket-mini { width: 24px; height: 24px; }
+.game-hud-top .ticket-mini svg.art,
+.game-hud-top .ticket-mini-img { width: 23px; height: 23px; }
+.game-hud-top .ticket-ingredient { width: 26px; flex: 0 0 26px; }
+.game-hud-top .ticket-prep { min-height: 18px; gap: 2px; }
+.game-hud-top .ticket-prep span { width: 19px; height: 19px; font-size: 12px; }
 .ticket {
   flex: 0 0 auto;
   background:
@@ -862,6 +933,10 @@ input[type="text"]:focus {
 
 /* ============ Rush banner & star progress ============ */
 .rush-banner {
+  position: absolute; z-index: 22;
+  top: calc(var(--sat) + var(--hud-top-h, 84px) + 6px);
+  left: 50%; transform: translateX(-50%);
+  max-width: min(92vw, 480px);
   background: linear-gradient(90deg, var(--sherbet) 0%, var(--bubblegum) 45%, var(--gold) 100%);
   color: #fff;
   font-weight: 900; font-size: 15px;
@@ -869,14 +944,19 @@ input[type="text"]:focus {
   animation: rush-pulse .45s infinite;
   box-shadow: 0 4px 18px rgba(255, 111, 174, .55);
   text-shadow: 0 1px 4px rgba(160, 30, 80, 0.4);
+  white-space: nowrap;
 }
-@keyframes rush-pulse { 50% { transform: scale(1.035); filter: brightness(1.14); } }
+@keyframes rush-pulse { 50% { transform: translateX(-50%) scale(1.035); filter: brightness(1.14); } }
 
+/* Star progress lives in the bottom band: a slim track with the three star
+   cutoffs marked (★ + the score each needs, via data-goal). */
 .star-progress {
   position: relative; height: 11px;
-  background: var(--cream-deep); border-radius: 8px;
-  margin: 0 2px;
-  box-shadow: inset 0 2px 4px rgba(180, 60, 130, 0.10);
+  flex: 1 1 auto; min-width: 90px;
+  align-self: center;
+  background: rgba(255, 240, 224, 0.86); border-radius: 8px;
+  margin: 0 2px 10px;
+  box-shadow: inset 0 2px 4px rgba(180, 60, 130, 0.10), 0 0 0 1.5px rgba(255,255,255,.5);
 }
 .star-progress i {
   display: block; height: 100%; width: 0%;
@@ -892,19 +972,24 @@ input[type="text"]:focus {
   text-shadow: 0 1px 2px rgba(59,46,42,.14);
 }
 .star-progress .star-mark.hit { color: var(--gold); filter: drop-shadow(0 0 4px rgba(255, 210, 63, 0.7)); }
-
-/* ============ Crew strip ============ */
-.foot-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.game-foot { display: flex; flex-direction: column; gap: 4px; }
+/* Each star's score cutoff, printed under its mark */
+.star-progress .star-mark::after {
+  content: attr(data-goal);
+  position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 800; color: #FFF6EA;
+  text-shadow: 0 1px 3px rgba(59,36,64,.75);
+  letter-spacing: .02em;
+}
 
 /* in-game crew radio strip: now playing, what's next, skip + local mute */
 .radio-bar {
   display: flex; align-items: center; gap: 8px;
-  background: var(--cream);
-  border: 1.5px solid rgba(255, 111, 174, 0.15);
-  border-radius: 14px;
-  padding: 6px 10px;
-  margin-bottom: 2px;
+  background: linear-gradient(180deg, rgba(255,246,234,.92) 0%, rgba(255,234,246,.92) 100%);
+  border: 1.5px solid rgba(240, 193, 90, 0.6);
+  border-radius: 13px;
+  padding: 4px 8px;
+  flex: 0 1 300px; min-width: 0;
+  box-shadow: 0 3px 10px rgba(90, 54, 100, 0.18);
 }
 .radio-emoji { font-size: 16px; flex: 0 0 auto; }
 .radio-bar-info { flex: 1; min-width: 0; }
@@ -1101,12 +1186,6 @@ input[type="text"]:focus {
   box-shadow: 0 3px 0 #1A8A68;
 }
 
-/* ============ Game layout wrappers ============ */
-/* In portrait these are transparent: children flow in source order exactly as
-   the original vertical stack. The @media(orientation:landscape) block turns
-   them into a left control rail + a main stage. */
-.game-rail, .game-stage { display: contents; }
-
 /* ============ Rotate nudge (portrait fallback) ============ */
 /* Kitchen Sync plays in landscape. Platforms that honor the orientation lock
    never see this; iOS Safari (which ignores screen.orientation.lock) shows it
@@ -1120,15 +1199,15 @@ input[type="text"]:focus {
 }
 
 /* ============ Canvas area ============ */
+/* The wrap sits between the two HUD bands; the canvas is transparent so the
+   full-screen wallpaper (on #screen-game) shows behind the drawn kitchen. */
 .canvas-wrap {
-  position: relative;
-  flex: 1;
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: 0 10px 34px rgba(58, 36, 64, 0.22), 0 2px 8px rgba(168,106,34,0.16);
-  background: #E8D3BF url('assets/images/cake-world/backgrounds/ks-game-board-wood-v2.png') center center / cover no-repeat;
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(var(--sat, 0px) + var(--hud-top-h, 84px));
+  bottom: calc(var(--sab, 0px) + var(--hud-bot-h, 46px));
+  background: transparent;
   min-height: 0;
-  border: 2px solid rgba(240, 193, 90, 0.82);
 }
 #game-canvas { width: 100%; height: 100%; display: block; touch-action: none; }
 
@@ -1161,6 +1240,7 @@ input[type="text"]:focus {
 }
 .pause-overlay {
   position: absolute; inset: 0;
+  z-index: 40; /* above the floating HUD bands */
   background: rgba(45, 22, 52, 0.6);
   backdrop-filter: blur(6px);
   /* Scrollable centered modal: flex + margin:auto on the box keeps it centred
@@ -1229,7 +1309,7 @@ input[type="text"]:focus {
   background: rgba(45, 22, 52, 0.62);
   backdrop-filter: blur(6px);
   display: flex; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 14px; z-index: 6;
+  padding: 14px; z-index: 45; /* above the HUD bands and pause */
 }
 .tutorial-box {
   margin: auto;
@@ -1300,11 +1380,22 @@ input[type="text"]:focus {
 }
 .tutorial-dots span.on { background: var(--bubblegum); transform: scale(1.25); }
 
+/* Rotating starter tips float just above the bottom banner */
 .game-hint {
-  text-align: center; font-size: 13px; font-weight: 700;
-  color: var(--ink-soft); min-height: 18px;
+  position: absolute; z-index: 21;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--sab, 0px) + var(--hud-bot-h, 46px) + 6px);
+  max-width: min(86vw, 460px);
+  text-align: center; font-size: 12px; font-weight: 800;
+  color: #FFF6EA;
+  background: rgba(45, 22, 52, 0.55);
+  border-radius: 999px; padding: 5px 14px;
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
   transition: opacity .3s;
+  pointer-events: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.game-hint:empty { display: none; }
 
 /* ============ Results ============ */
 .results-wrap {
@@ -1385,85 +1476,119 @@ input[type="text"]:focus {
   box-shadow: 0 4px 14px rgba(232, 184, 0, 0.35);
 }
 
-@media (min-width: 700px) and (orientation: portrait) {
-  #screen-game { max-width: 560px; margin: 0 auto; width: 100%; }
-}
-
 /* Portrait gameplay: cover the kitchen with the rotate nudge. */
 @media (orientation: portrait) {
   #screen-game.active .rotate-nudge {
     display: grid; place-items: center;
-    position: absolute; inset: 0; z-index: 30;
+    position: absolute; inset: 0; z-index: 50;
     background: linear-gradient(160deg, #2D1634 0%, #3D2050 100%);
     text-align: center;
   }
 }
 
-/* ============ Landscape: the kitchen gets the whole room ============ */
-@media (orientation: landscape) {
-  /* Pin the game screen to the viewport so the grid rows resolve against a
-     fixed height — otherwise 1fr/flex:1 never constrain the canvas and the
-     whole screen overflows. */
-  #screen-game.active {
-    display: grid;
-    grid-template-columns: minmax(108px, 15%) 1fr;
-    grid-template-rows: 1fr auto;
-    grid-template-areas:
-      "rail  stage"
-      "foot  stage";
-    column-gap: 8px;
-    row-gap: 6px;
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
-    padding: calc(var(--sat) + 6px) calc(var(--sar) + 8px)
-             calc(var(--sab) + 6px) calc(var(--sal) + 8px);
+/* ============ Landscape phones: menus page sideways, not down ============ */
+/* On short landscape screens vertical page-scrolling is miserable — each menu
+   becomes a horizontal pager: every card is a full-height column you swipe
+   between (scroll-snap), and each card scrolls internally if it must. Desktop
+   and portrait keep the classic vertical stack. */
+.lobby-cards, .lobby-tail, .home-side, .home-main { display: contents; }
+/* Keep the classic vertical order on portrait/desktop despite the new wrappers */
+.home-wrap > .home-side > .logo         { order: 0; }
+.home-wrap > .home-main > .welcome-card { order: 1; }
+.home-wrap > .home-main > .profile-card { order: 2; }
+.home-wrap > .home-side > .home-actions { order: 3; }
+.home-wrap > .home-side > .fineprint    { order: 4; }
+
+@media (orientation: landscape) and (max-height: 620px) {
+  /* --- Lobby: swipe between Levels / Crew / Shop / Music --- */
+  #screen-lobby.active { height: 100dvh; max-height: 100dvh; overflow: hidden; padding: calc(var(--sat) + 8px) 0 calc(var(--sab) + 4px); }
+  #screen-lobby .lobby-wrap { max-width: none; height: 100%; min-height: 0; gap: 8px; }
+  #screen-lobby .lobby-head { padding: 0 calc(var(--sar) + 12px) 0 calc(var(--sal) + 12px); }
+  .lobby-cards {
+    display: flex; flex-direction: row; align-items: stretch;
+    gap: 12px; flex: 1 1 auto; min-height: 0;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    padding: 2px calc(var(--sar) + 24px) 6px calc(var(--sal) + 24px);
+    overscroll-behavior-x: contain;
   }
-
-  .game-rail  { grid-area: rail; display: flex; flex-direction: column; gap: 6px; min-width: 0; min-height: 0; overflow-y: auto; }
-  .game-stage { grid-area: stage; position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-  .game-foot  { grid-area: foot;  gap: 5px; min-height: 0; }
-
-  /* HUD pills stack and shrink to live in the narrow rail */
-  .game-top   { flex-direction: column; align-items: stretch; gap: 5px; }
-  .hud-pill   { font-size: 13px; padding: 6px 8px; text-align: center; border-radius: 12px; }
-  .hud-buttons { margin-left: 0; flex-wrap: wrap; justify-content: center; gap: 5px; }
-  .btn-icon   { width: 38px; height: 38px; font-size: 16px; }
-  .star-progress { margin: 2px 0; }
-
-  /* Tickets sit in a compact band ABOVE the kitchen (in normal flow), so they
-     never cover the crates/boards on the back row. The band is kept shallow so
-     the canvas still gets most of the height. */
-  .orders-strip {
-    flex: 0 0 auto;
+  .lobby-cards::-webkit-scrollbar { display: none; }
+  .lobby-cards > .card, .lobby-cards > .lobby-tail {
+    flex: 0 0 min(440px, 68vw);
+    scroll-snap-align: center;
+    overflow-y: auto;
     min-height: 0;
-    padding: 0 2px 4px;
+    margin: 0;
   }
-  .orders-strip:empty { display: none; }
-  .canvas-wrap  { flex: 1 1 auto; min-height: 0; }
-  /* Compact tickets so the band stays shallow (~76px) */
-  .orders-strip .ticket {
-    width: 150px; padding: 5px 7px; gap: 2px 6px;
-    border-radius: 14px;
-    grid-template-columns: 38px minmax(0, 1fr);
-  }
-  .orders-strip .ticket-headline { margin-bottom: 3px; gap: 6px; }
-  .orders-strip .ticket-dish-img { width: 38px; height: 38px; }
-  .orders-strip .ticket-name { font-size: 11px; }
-  .orders-strip .ticket-customer { flex: 0 0 32px; width: 32px; height: 32px; }
-  .orders-strip .ticket-mini { width: 24px; height: 24px; }
-  .orders-strip .ticket-mini svg.art,
-  .orders-strip .ticket-mini-img { width: 23px; height: 23px; }
-  .orders-strip .ticket-ingredient { width: 26px; flex: 0 0 26px; }
-  .orders-strip .ticket-prep { min-height: 18px; gap: 2px; }
-  .orders-strip .ticket-prep span { width: 19px; height: 19px; font-size: 12px; }
+  .lobby-cards > .levels-card { order: -1; }   /* land on Levels first */
+  .lobby-tail { display: flex; flex-direction: column; gap: 10px; align-self: center; }
 
-  /* Footer (radio / players / hint) packs under the rail */
-  .foot-row    { flex-direction: column; align-items: stretch; gap: 5px; }
-  .game-players { justify-content: center; flex-wrap: wrap; }
-  .game-players .gp { font-size: 11px; padding: 3px 7px; }
-  .game-hint   { font-size: 10.5px; min-height: 0; }
-  .radio-bar   { margin-bottom: 0; padding: 4px 8px; }
+  /* --- Home: side panel (logo + actions) next to the profile card --- */
+  #screen-home.active { height: 100dvh; max-height: 100dvh; overflow: hidden; }
+  .home-wrap {
+    max-width: none; height: 100%; min-height: 0;
+    flex-direction: row; align-items: stretch; gap: 16px;
+    padding: 0 calc(var(--sar) + 6px) 0 calc(var(--sal) + 6px);
+  }
+  .home-side {
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 12px; flex: 0 0 285px; min-height: 0; min-width: 0;
+  }
+  .home-main {
+    display: flex; flex-direction: column; gap: 12px;
+    flex: 1 1 auto; min-height: 0; min-width: 0;
+    overflow-y: auto; padding: 4px 2px;
+  }
+  .home-side .logo { padding: 0; }
+  .home-side .logo-pan { font-size: 44px; }
+  .home-side .logo-icon-wrap { width: 74px; height: 74px; }
+  .home-side .logo h1 { font-size: 30px; }
+  .home-side .tagline { font-size: 12px; }
+  .home-actions { gap: 8px; }
+  .home-actions .btn { padding: 12px 16px; font-size: 15px; }
+
+  /* --- Tutorial: steps page sideways --- */
+  #screen-tutorial.active { height: 100dvh; max-height: 100dvh; overflow: hidden; }
+  #screen-tutorial .narrow-wrap {
+    max-width: none; height: 100%; min-height: 0;
+    flex-direction: row; align-items: center; gap: 12px;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    padding: 0 calc(var(--sar) + 24px) 0 calc(var(--sal) + 24px);
+  }
+  #screen-tutorial .narrow-wrap > * { flex: 0 0 auto; scroll-snap-align: center; margin: 0; }
+  #screen-tutorial .narrow-wrap > h2 { min-width: 150px; }
+  #screen-tutorial .narrow-wrap > p { flex: 0 0 200px; }
+  #screen-tutorial .tut-step { flex: 0 0 min(430px, 72vw); max-height: 92%; overflow-y: auto; }
+
+  /* --- Results: one glance, no scroll --- */
+  #screen-results.active { height: 100dvh; max-height: 100dvh; overflow: hidden; }
+  .results-wrap {
+    max-width: none; height: 100%; min-height: 0;
+    display: grid; align-content: center; align-items: center;
+    column-gap: 22px; row-gap: 6px;
+    grid-template-columns: minmax(250px, 420px) minmax(260px, 480px);
+    grid-template-areas:
+      "title  awards"
+      "stars  awards"
+      "score  players"
+      "coins  players"
+      "stats  players"
+      "btn    players";
+    justify-content: center;
+    padding: 0 calc(var(--sar) + 10px) 0 calc(var(--sal) + 10px);
+  }
+  #results-title   { grid-area: title; font-size: 24px; }
+  .stars-row       { grid-area: stars; font-size: 46px; letter-spacing: 6px; }
+  #results-score   { grid-area: score; font-size: 40px; }
+  #results-coins   { grid-area: coins; justify-self: center; }
+  .results-stats   { grid-area: stats; }
+  #btn-results-done{ grid-area: btn; margin-top: 4px; }
+  .results-awards  { grid-area: awards; align-self: end; min-height: 0; overflow-y: auto; }
+  .results-players { grid-area: players; align-self: start; min-height: 0; overflow-y: auto; max-height: 100%; }
+
+  /* --- Modals: use the width, not the height --- */
+  .chef-modal-box { width: min(94vw, 900px); }
 }
 
 /* ============ Level Builder ============ */
@@ -1606,6 +1731,11 @@ input[type="text"]:focus {
     <div class="sparkle" style="--x:92%; --y:55%; --dur:3.5s; --delay:1.8s;  --sz:12px">✨</div>
 
     <div class="home-wrap">
+      <!-- .home-side / .home-main are display:contents on portrait/desktop and
+           become a two-pane landscape layout on phones (logo + actions beside
+           the scrolling profile card). Explicit `order` keeps the classic
+           portrait stacking despite the grouping. -->
+      <div class="home-side">
       <header class="logo">
         <div class="logo-icon-wrap">
           <div class="logo-glow-ring"></div>
@@ -1615,6 +1745,20 @@ input[type="text"]:focus {
         <p class="tagline">Cook together, apart 🍴</p>
       </header>
 
+      <div class="home-actions">
+        <button class="btn btn-primary" id="btn-chef-done" hidden>‹ Back to the Kitchen</button>
+        <button class="btn btn-primary" id="btn-create">🍳 Start a Kitchen</button>
+        <button class="btn btn-secondary" id="btn-show-join">Join a Kitchen</button>
+        <a class="btn btn-secondary" id="btn-ai-lab" href="/ai-lab.html" style="text-decoration:none;text-align:center">🧠 AI Lab — watch an AI learn to cook</a>
+        <div class="home-links">
+          <button class="btn-link" id="btn-how-home">❓ How to play</button>
+          <button class="btn-link" id="btn-whatsnew-home">📋 What's new</button>
+        </div>
+      </div>
+      <p class="fineprint">Free to play with 2–8 chefs · Add to Home Screen for the full app feel</p>
+      </div><!-- /home-side -->
+
+      <div class="home-main">
       <div class="card welcome-card" id="welcome-card" hidden>
         <h2>👋 Welcome to the kitchen!</h2>
         <div class="wc-row"><span class="wc-emoji">⭐</span><span>Cook levels to earn <b>stars</b> — they unlock new <b>characters</b> and open the next <b>levels</b>.</span></div>
@@ -1632,18 +1776,7 @@ input[type="text"]:focus {
         <div class="chef-grid" id="chef-grid"></div>
         <div class="profile-stats" id="profile-stats"></div>
       </div>
-
-      <div class="home-actions">
-        <button class="btn btn-primary" id="btn-chef-done" hidden>‹ Back to the Kitchen</button>
-        <button class="btn btn-primary" id="btn-create">🍳 Start a Kitchen</button>
-        <button class="btn btn-secondary" id="btn-show-join">Join a Kitchen</button>
-        <a class="btn btn-secondary" id="btn-ai-lab" href="/ai-lab.html" style="text-decoration:none;text-align:center">🧠 AI Lab — watch an AI learn to cook</a>
-        <div class="home-links">
-          <button class="btn-link" id="btn-how-home">❓ How to play</button>
-          <button class="btn-link" id="btn-whatsnew-home">📋 What's new</button>
-        </div>
-      </div>
-      <p class="fineprint">Free to play with 2–8 chefs · Add to Home Screen for the full app feel</p>
+      </div><!-- /home-main -->
     </div>
   </section>
 
@@ -1673,6 +1806,9 @@ input[type="text"]:focus {
         <button class="btn-icon" id="btn-share" title="Invite">📤</button>
       </div>
 
+      <!-- .lobby-cards is display:contents on portrait/desktop (invisible), and
+           becomes a horizontal swipe-pager on landscape phones. -->
+      <div class="lobby-cards">
       <div class="card">
         <div class="card-title">Crew <span class="muted" id="crew-count"></span></div>
         <div class="member-row" id="member-row"></div>
@@ -1704,6 +1840,7 @@ input[type="text"]:focus {
         <div class="level-list" id="level-list"></div>
       </div>
 
+      <div class="lobby-tail">
       <button class="btn btn-secondary" id="btn-toggle-bot">🤖 AI teammate: Off</button>
       <p class="muted small" id="bot-hint" style="margin:-6px 2px 10px; text-align:center"></p>
       <button class="btn btn-secondary" id="btn-open-builder" hidden>🛠️ Build / Test a Level</button>
@@ -1711,6 +1848,8 @@ input[type="text"]:focus {
       <div class="lobby-foot">
         <p class="muted small" id="lobby-hint"></p>
       </div>
+      </div><!-- /lobby-tail -->
+      </div><!-- /lobby-cards -->
     </div>
   </section>
 
@@ -1847,31 +1986,9 @@ input[type="text"]:focus {
 
   <!-- ============ GAME ============ -->
   <section id="screen-game" class="screen">
-    <div class="game-rail">
-    <div class="game-top">
-      <div class="hud-pill hud-timer" id="hud-timer">⏱ 0:00</div>
-      <div class="hud-pill hud-score" id="hud-score">🪙 0</div>
-      <div class="hud-pill hud-plates" id="hud-plates" title="Clean plates">🍽️ ∞</div>
-      <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
-      <div class="hud-buttons">
-        <button class="btn-icon" id="btn-autochop" title="Auto-chop" hidden>🔪</button>
-        <button class="btn-icon" id="btn-open-music" title="Add / queue YouTube music">🎶</button>
-        <button class="btn-icon" id="btn-music-game" title="Mute music">🎵</button>
-        <button class="btn-icon" id="btn-mute" title="Sound effects">🔊</button>
-        <button class="btn-icon" id="btn-director" title="AI Director — live failure risk + next best move">🧠</button>
-        <button class="btn-icon" id="btn-pause" title="Pause">⏸️</button>
-      </div>
-    </div>
-    <div class="rush-banner" id="rush-banner" hidden></div>
-    <div class="star-progress" id="star-progress">
-      <i id="star-fill"></i>
-      <span class="star-mark" data-i="0">★</span>
-      <span class="star-mark" data-i="1">★</span>
-      <span class="star-mark" data-i="2">★</span>
-    </div>
-    </div><!-- /game-rail -->
-    <div class="game-stage">
-    <div class="orders-strip" id="orders-strip"></div>
+    <!-- Full-bleed kitchen: the themed wallpaper covers this whole section
+         (applyWallpaper targets it) and the canvas sits between two floating
+         HUD bands, so the play area is never covered by chrome. -->
     <div class="canvas-wrap" id="canvas-wrap">
       <canvas id="game-canvas"></canvas>
       <div class="director-hud" id="director-hud" hidden>
@@ -1886,52 +2003,27 @@ input[type="text"]:focus {
         </div>
         <div class="dh-diff" id="dh-diff"></div>
       </div>
-      <div class="pause-overlay" id="pause-overlay" hidden>
-        <div class="pause-box">
-          <h2>Paused</h2>
-          <p class="muted" id="pause-byline">Anyone can resume.</p>
-          <div class="pause-actions">
-            <button class="pause-act exit" id="btn-exit-lobby" type="button">Exit</button>
-            <button class="pause-act restart" id="btn-restart" type="button">Restart</button>
-            <button class="pause-act continue" id="btn-resume" type="button">Continue</button>
-          </div>
-          <div class="card music-card pause-music">
-            <div class="card-title music-title">
-              <span>🎵 Level Music</span>
-              <span class="music-now" id="gm-now">Queue empty</span>
-            </div>
-            <form class="music-search" id="gm-search">
-              <input id="gm-input" type="text" maxlength="80" placeholder="Search YouTube" autocomplete="off" enterkeyhint="search">
-              <button class="music-search-btn" id="gm-btn" type="submit" title="Search">🔎</button>
-            </form>
-            <div class="music-results" id="gm-results" hidden></div>
-            <div class="music-queue" id="gm-queue"></div>
-          </div>
-        </div>
+    </div>
+
+    <div class="game-hud-top">
+      <div class="hud-pill hud-timer" id="hud-timer">⏱ 0:00</div>
+      <div class="orders-strip" id="orders-strip"></div>
+      <button class="btn-icon hud-pause-btn" id="btn-pause" title="Pause">⏸️</button>
+    </div>
+
+    <div class="rush-banner" id="rush-banner" hidden></div>
+    <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
+    <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
+
+    <div class="game-hud-bottom">
+      <div class="hud-pill hud-score" id="hud-score">🪙 0</div>
+      <div class="hud-pill hud-plates" id="hud-plates" title="Clean plates">🍽️ ∞</div>
+      <div class="star-progress" id="star-progress">
+        <i id="star-fill"></i>
+        <span class="star-mark" data-i="0">★</span>
+        <span class="star-mark" data-i="1">★</span>
+        <span class="star-mark" data-i="2">★</span>
       </div>
-      <div class="tutorial-overlay" id="tutorial-overlay" hidden>
-        <div class="tutorial-box">
-          <div class="tutorial-head">
-            <div class="tutorial-title" id="tutorial-title">How to cook</div>
-            <div class="tutorial-sub" id="tutorial-sub">Here's what you'll be making:</div>
-          </div>
-          <div class="tutorial-body" id="tutorial-body"></div>
-          <div class="tutorial-foot">
-            <button class="btn-link tutorial-skip" id="btn-tutorial-skip" type="button">Skip</button>
-            <div class="tutorial-dots" id="tutorial-dots"></div>
-            <button class="btn btn-primary tutorial-next" id="btn-tutorial-next" type="button">Next →</button>
-          </div>
-        </div>
-      </div>
-      <div class="rotate-nudge" id="rotate-nudge" aria-hidden="true">
-        <div class="rotate-nudge-box">
-          <div class="rotate-phone">📱</div>
-          <p>Rotate your phone<br>to cook 🍳</p>
-        </div>
-      </div>
-    </div><!-- /canvas-wrap -->
-    </div><!-- /game-stage -->
-    <div class="game-foot">
       <div class="radio-bar" id="radio-bar" hidden>
         <span class="radio-emoji">📻</span>
         <div class="radio-bar-info">
@@ -1941,10 +2033,57 @@ input[type="text"]:focus {
         <button class="radio-bar-btn" id="btn-radio-mute" title="Mute radio on this phone">🔊</button>
         <button class="radio-bar-btn" id="btn-radio-skip" title="Next song">⏭️</button>
       </div>
-      <div class="foot-row">
+    </div>
+
+    <div class="pause-overlay" id="pause-overlay" hidden>
+      <div class="pause-box">
+        <h2>Paused</h2>
+        <p class="muted" id="pause-byline">Anyone can resume.</p>
+        <div class="pause-actions">
+          <button class="pause-act exit" id="btn-exit-lobby" type="button">Exit</button>
+          <button class="pause-act restart" id="btn-restart" type="button">Restart</button>
+          <button class="pause-act continue" id="btn-resume" type="button">Continue</button>
+        </div>
+        <div class="pause-tools">
+          <button class="btn-icon" id="btn-autochop" title="Auto-chop" hidden>🔪</button>
+          <button class="btn-icon" id="btn-music-game" title="Mute music">🎵</button>
+          <button class="btn-icon" id="btn-mute" title="Sound effects">🔊</button>
+          <button class="btn-icon" id="btn-director" title="AI Director — live failure risk + next best move">🧠</button>
+        </div>
         <div class="game-players" id="game-players"></div>
+        <div class="card music-card pause-music">
+          <div class="card-title music-title">
+            <span>🎵 Level Music</span>
+            <span class="music-now" id="gm-now">Queue empty</span>
+          </div>
+          <form class="music-search" id="gm-search">
+            <input id="gm-input" type="text" maxlength="80" placeholder="Search YouTube" autocomplete="off" enterkeyhint="search">
+            <button class="music-search-btn" id="gm-btn" type="submit" title="Search">🔎</button>
+          </form>
+          <div class="music-results" id="gm-results" hidden></div>
+          <div class="music-queue" id="gm-queue"></div>
+        </div>
       </div>
-      <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
+    </div>
+    <div class="tutorial-overlay" id="tutorial-overlay" hidden>
+      <div class="tutorial-box">
+        <div class="tutorial-head">
+          <div class="tutorial-title" id="tutorial-title">How to cook</div>
+          <div class="tutorial-sub" id="tutorial-sub">Here's what you'll be making:</div>
+        </div>
+        <div class="tutorial-body" id="tutorial-body"></div>
+        <div class="tutorial-foot">
+          <button class="btn-link tutorial-skip" id="btn-tutorial-skip" type="button">Skip</button>
+          <div class="tutorial-dots" id="tutorial-dots"></div>
+          <button class="btn btn-primary tutorial-next" id="btn-tutorial-next" type="button">Next →</button>
+        </div>
+      </div>
+    </div>
+    <div class="rotate-nudge" id="rotate-nudge" aria-hidden="true">
+      <div class="rotate-nudge-box">
+        <div class="rotate-phone">📱</div>
+        <p>Rotate your phone<br>to cook 🍳</p>
+      </div>
     </div>
   </section>
 

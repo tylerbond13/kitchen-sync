@@ -1192,8 +1192,10 @@
     gpEls.clear();
     // Auto-Chopper is always-on when the crew owns it — no in-game toggle.
     $('btn-autochop').hidden = true;
-    // The level's chosen backdrop (or the default wood board).
-    applyWallpaper($('canvas-wrap'), staticState.wallpaper);
+    // The level's chosen backdrop (or the default wood board) covers the WHOLE
+    // screen — the canvas between the HUD bands is transparent, so the kitchen
+    // draws directly on the wallpaper with no dead margins.
+    applyWallpaper($('screen-game'), staticState.wallpaper);
     renderer = new KSRender.Renderer($('game-canvas'), staticState, profile.id, (x, y) => {
       SFX.tap();
       socket.emit('tap', { x, y });
@@ -1367,6 +1369,7 @@
           m.style.left = `${(g / g3) * 100}%`;
           m.classList.toggle('hit', state.score >= g);
           m.title = String(g);
+          m.dataset.goal = String(g); // printed under the mark (CSS ::after)
         }
       });
       $('star-progress').title = `⭐${g1} ⭐⭐${g2} ⭐⭐⭐${g3}`;
