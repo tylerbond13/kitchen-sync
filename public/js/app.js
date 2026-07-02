@@ -414,6 +414,9 @@
   }
   $('btn-how-home').onclick = () => openTutorial('home');
   $('btn-how-lobby').onclick = () => openTutorial('lobby');
+  if ($('btn-whatsnew-home')) $('btn-whatsnew-home').onclick = openChangelog;
+  // (badge refresh happens after the changelog consts initialize — see the
+  //  /api/version fetch below; calling it here would hit CL_SEEN_KEY's TDZ.)
 
   // First-run welcome: a one-time orientation to the play → unlock loop. Shown
   // once per device; dismissed for good on tap. Guests use sessionStorage.
@@ -1111,6 +1114,51 @@
     modal.onclick = (e) => { if (e.target === modal) closeMilestones(); };
   }
   function closeMilestones() { SFX.tap(); milestonesOpen = false; $('milestones-modal').hidden = true; }
+
+  // ---------- changelog / what's new ----------
+  // Reads window.KS_CHANGELOG (public/js/changelog.js), newest first. A subtle
+  // "new" dot shows on the home button until you've opened the latest version.
+  const CL_SEEN_KEY = 'ks-cl-seen';
+  function latestVersion() {
+    const cl = window.KS_CHANGELOG;
+    return (cl && cl[0] && cl[0].version) || '';
+  }
+  function changelogUnseen() {
+    try { return !!latestVersion() && localStorage.getItem(CL_SEEN_KEY) !== latestVersion(); } catch (_) { return false; }
+  }
+  function refreshWhatsNewBadge() {
+    const on = changelogUnseen();
+    const btn = $('btn-whatsnew-home'); if (btn) btn.classList.toggle('has-new', on);
+    const vt = $('version-tag'); if (vt) vt.classList.toggle('has-new', on);
+  }
+  function renderChangelog() {
+    const data = window.KS_CHANGELOG || [];
+    $('changelog-count').textContent = data.length ? `${data.length} releases` : '';
+    $('changelog-list').innerHTML = data.map((v, i) => {
+      const changes = (v.changes || []).map((c) => `<li>${escapeHtml(c)}</li>`).join('');
+      return `<div class="cl-entry${i === 0 ? ' latest' : ''}">
+        <div class="cl-head">
+          <span class="cl-emoji">${v.emoji || '•'}</span>
+          <span class="cl-title">${escapeHtml(v.title || '')}</span>
+          ${i === 0 ? '<span class="cl-badge-new">Latest</span>' : ''}
+          <span class="cl-ver">v${escapeHtml(v.version || '')}</span>
+        </div>
+        <ul class="cl-changes">${changes}</ul>
+      </div>`;
+    }).join('');
+  }
+  function openChangelog() {
+    SFX.tap();
+    renderChangelog();
+    const modal = $('changelog-modal');
+    modal.hidden = false;
+    // Bind close on open — modal is parsed after app.js runs (see openChefModal).
+    $('btn-changelog-close').onclick = closeChangelog;
+    modal.onclick = (e) => { if (e.target === modal) closeChangelog(); };
+    try { localStorage.setItem(CL_SEEN_KEY, latestVersion()); } catch (_) {}
+    refreshWhatsNewBadge();
+  }
+  function closeChangelog() { SFX.tap(); $('changelog-modal').hidden = true; }
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2092,8 +2140,14 @@
   // ---------- version tag (aligns with GitHub release + deployed commit) ----------
   fetch('/api/version').then((r) => r.json()).then((v) => {
     const el = document.getElementById('version-tag');
-    if (el) el.textContent = `v${v.version}` + (v.commit && v.commit !== 'local' ? ` · ${v.commit}` : '');
-  }).catch(() => {});
+    if (el) {
+      el.textContent = `v${v.version}` + (v.commit && v.commit !== 'local' ? ` · ${v.commit}` : '');
+      // Tap the footer anywhere to see what's new. Bound here (not at setup)
+      // because the footer is parsed after app.js runs.
+      el.onclick = openChangelog;
+    }
+    refreshWhatsNewBadge(); // consts are initialized by now; badges button + footer
+  }).catch(() => { refreshWhatsNewBadge(); });
 
   // ---------- deep link & boot ----------
   const params = new URLSearchParams(location.search);

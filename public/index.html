@@ -543,6 +543,32 @@ input[type="text"]:focus {
 .ms-bar i { display: block; height: 100%; background: linear-gradient(90deg, #FFC48C, #FF8FBE); border-radius: 3px; }
 .ms-row.done .ms-bar i { background: linear-gradient(90deg, #60D9B0, #26A882); }
 .ms-count { font-size: 11.5px; font-weight: 800; color: var(--ink-soft); white-space: nowrap; flex: 0 0 auto; }
+/* What's-new / changelog modal */
+.chef-modal .cl-list { overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 10px; padding-right: 2px; }
+.cl-entry {
+  background: linear-gradient(135deg, #FFF8FC, #FFF3F8);
+  border: 1.5px solid rgba(255,111,174,.10); border-radius: 14px; padding: 11px 13px;
+}
+.cl-entry.latest {
+  border-color: #F0A6C8;
+  background: linear-gradient(135deg, #FFF2F8, #FFFBEA);
+  box-shadow: 0 0 0 2px rgba(255,133,190,.22);
+}
+.cl-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.cl-emoji { font-size: 18px; }
+.cl-title { font-weight: 800; font-size: 14px; flex: 1; min-width: 0; }
+.cl-ver { font-size: 11px; font-weight: 800; color: var(--ink-soft); background: rgba(255,111,174,.10); border-radius: 8px; padding: 2px 7px; }
+.cl-entry.latest .cl-ver { color: #fff; background: linear-gradient(170deg, #FF85BE, #E0508E); }
+.cl-badge-new { font-size: 9.5px; font-weight: 900; letter-spacing: .4px; color: #fff; background: #FF5FA0; border-radius: 6px; padding: 2px 6px; text-transform: uppercase; }
+.cl-changes { margin: 7px 0 0; padding-left: 18px; }
+.cl-changes li { font-size: 12px; color: var(--ink); font-weight: 600; margin: 3px 0; line-height: 1.35; }
+.cl-era { font-size: 11px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; color: var(--bubblegum); margin: 6px 2px 0; }
+.home-links { display: flex; justify-content: center; gap: 18px; }
+/* Unseen-release dot on the What's-new entry points */
+.btn-link.has-new::after, #version-tag.has-new::after {
+  content: ''; display: inline-block; width: 7px; height: 7px; margin-left: 5px;
+  border-radius: 50%; background: #FF5FA0; vertical-align: middle;
+}
 .level-list { display: flex; flex-direction: column; gap: 10px; }
 .level-row {
   display: flex; align-items: center; gap: 12px;
@@ -1612,7 +1638,10 @@ input[type="text"]:focus {
         <button class="btn btn-primary" id="btn-create">🍳 Start a Kitchen</button>
         <button class="btn btn-secondary" id="btn-show-join">Join a Kitchen</button>
         <a class="btn btn-secondary" id="btn-ai-lab" href="/ai-lab.html" style="text-decoration:none;text-align:center">🧠 AI Lab — watch an AI learn to cook</a>
-        <button class="btn-link" id="btn-how-home">❓ How to play</button>
+        <div class="home-links">
+          <button class="btn-link" id="btn-how-home">❓ How to play</button>
+          <button class="btn-link" id="btn-whatsnew-home">📋 What's new</button>
+        </div>
       </div>
       <p class="fineprint">Free to play with 2–8 chefs · Add to Home Screen for the full app feel</p>
     </div>
@@ -1968,6 +1997,7 @@ input[type="text"]:focus {
   <script src="/js/ai/director.js"></script>
   <script src="/js/ai/gameTelemetry.js"></script>
   <script src="/js/ai/director-hud.js"></script>
+  <script src="/js/changelog.js"></script>
   <script src="/js/app.js"></script>
   <script>
     window.addEventListener('load', () => {
@@ -2001,7 +2031,17 @@ input[type="text"]:focus {
     </div>
   </div>
 
+  <div class="chef-modal" id="changelog-modal" hidden>
+    <div class="chef-modal-box">
+      <div class="chef-modal-head">
+        <div class="chef-modal-title">📋 What's new <span id="changelog-count" class="ms-tally"></span></div>
+        <button class="btn-icon" id="btn-changelog-close" type="button">✕</button>
+      </div>
+      <div class="cl-list" id="changelog-list"></div>
+    </div>
+  </div>
+
   <!-- Build/version tag — filled from /api/version so it reflects the deployed build -->
-  <div id="version-tag" style="position:fixed;left:0;right:0;bottom:calc(var(--sab,0px) + 3px);text-align:center;font-size:10px;font-weight:700;letter-spacing:.3px;color:var(--ink-soft);opacity:.55;pointer-events:none;z-index:40;font-family:ui-rounded,-apple-system,system-ui"></div>
+  <div id="version-tag" title="What's new" style="position:fixed;left:0;right:0;bottom:calc(var(--sab,0px) + 3px);text-align:center;font-size:10px;font-weight:700;letter-spacing:.3px;color:var(--ink-soft);opacity:.55;cursor:pointer;z-index:40;font-family:ui-rounded,-apple-system,system-ui"></div>
 </body>
 </html>

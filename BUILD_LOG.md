@@ -10,6 +10,11 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### In-game "What's new" changelog page (v1.23.0)
+- Built a **📋 What's new** page inside the game listing **every release** (48 and counting), newest first, each with an emoji, title, version pill and plain-language bullets — the newest version is highlighted with a "Latest" badge so you can see exactly what just changed. Two entry points: a **What's new** button on the home screen and the **version footer** (tap it anywhere). A little pink **unread-release dot** shows on both until you've opened the latest, then clears (remembered per device).
+- The changelog data lives in `public/js/changelog.js` (`window.KS_CHANGELOG`), reconstructed from the full git history + BUILD_LOG via a parallel workflow, and mirrored to a repo-root **`CHANGELOG.md`** for GitHub/reviewing.
+- _(Verified in-browser: 48 entries render, latest highlighted, both entry points open it, close/backdrop work, unread dot shows then clears on view. Fixed a TDZ bug where the setup-time badge check read a not-yet-initialised const.)_
+
 ### Contextual shop toasts (v1.22.2)
 - Buying from the shop now gives **next-step guidance** instead of a generic "unlocked": hiring the Sous-Chef says "🤖 Sous-Chef hired! Teach it skills below, then toggle it on above for your next round," and teaching a skill says "your Sous-Chef can do it once toggled on." Makes the hire → teach → toggle flow self-explanatory.
 
