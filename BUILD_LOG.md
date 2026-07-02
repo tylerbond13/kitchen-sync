@@ -10,6 +10,10 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Per-version screenshot archive (v1.24.1)
+- New **`docs/screenshots/v<version>/`** archive — 9 shots per release (home landscape+portrait, changelog, lobby Levels + Shop pages, milestones, characters, in-round gameplay, pause) so the game's visual progression is browsable on GitHub next to CHANGELOG.md. First archived build: **v1.24.0** (the mobile overhaul).
+- Repeatable via **`npm run screenshots`** (`scripts/capture-screenshots.mjs`): drives your installed Chrome headlessly (puppeteer-core, `--no-save`, nothing added to the deploy), reads `/api/version`, walks every screen in a fresh profile, and drops the PNGs in the right folder. Run once per release.
+
 ### Mobile overhaul — full-screen kitchen + landscape-first menus (v1.24.0)
 - **The game board now owns the whole phone screen.** The themed wallpaper (Brady Bunch, Golden Girls, wood…) covers the entire viewport — no left HUD rail, no purple margins. The canvas sits between two floating HUD bands so play is never covered: **timer top-left, order tickets across the top, pause top-right**; bottom banner with **score, star-progress track with each cutoff printed under its ★ (570/1000/1430-style), and the now-playing radio bar**. Music/SFX/AI-Director buttons and the crew chips moved into the pause menu; rotating hint tips float in a translucent pill.
 - **In-game order tickets got a solid readable "paper" look** (the decorative card-frame PNG washed out at compact size — pre-existing) with distinct gold *warn* / red *urgent* states.
