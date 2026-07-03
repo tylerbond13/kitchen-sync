@@ -21,8 +21,8 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [x] 2. Stove + pan
 - [x] 3. Soup pot station
 - [x] 4. Oven
-- [ ] 5. Sink / dish station
-- [ ] 6. Plate rack
+- [x] 5. Sink / dish station
+- [x] 6. Plate rack
 - [ ] 7. Serve window
 - [ ] 8. Mixer refresh
 - [ ] 9. Section wallpaper sets
