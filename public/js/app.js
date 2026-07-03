@@ -169,7 +169,7 @@
   // one giant blob. Anyone not listed falls into "More Stars" at the end, so
   // new chefs never silently vanish.
   const CHEF_SECTIONS = [
-    { name: 'Sitcom Stars',          emoji: '📺', keys: ['jerry_seinfeld','elaine_benes','cosmo_kramer','george_costanza','betty_white','blanche_devereaux','dorothy_zbornak','lorelai_gilmore','rory_gilmore','lucy_ricardo','ricky_ricardo','carrie_bradshaw','angela_lansbury','barney'] },
+    { name: 'Sitcom Stars',          emoji: '📺', keys: ['jerry_seinfeld','elaine_benes','cosmo_kramer','george_costanza','betty_white','blanche_devereaux','dorothy_zbornak','lorelai_gilmore','rory_gilmore','lucy_ricardo','ricky_ricardo','carrie_bradshaw','angela_lansbury'] },
     { name: 'Daytime TV',            emoji: '⚖️', keys: ['judge_judy','oprah_winfrey','dr_phil'] },
     { name: 'Music Legends',         emoji: '🎤', keys: ['sinatra','elvis_presley','john_lennon','dolly','cher','celine_dion','elton_john','bono','shania_twain'] },
     { name: 'Pop & Hitmakers',       emoji: '🎸', keys: ['taylor_swift','britney','lady_gaga','katy_perry','kanye_west','drake','justin_bieber','robyn'] },
@@ -1267,7 +1267,7 @@
     renderer = new KSRender.Renderer($('game-canvas'), staticState, profile.id, (x, y) => {
       SFX.tap();
       socket.emit('tap', { x, y });
-    });
+    }, { backdrop: { url: wallpaperUrl(staticState.wallpaper), trim: wallpaperTrim(staticState.wallpaper) } });
     window.__ksRenderer = renderer; // debug/testing handle (read-only use)
     // Round-start title card (roadmap #12B): level name + star goals over the
     // frozen kitchen while the server counts down 3·2·1·COOK!.
@@ -1940,32 +1940,46 @@
   // pick which image that is; the builder previews the choice live, and the
   // real game applies it on start. `null` / unknown → DEFAULT_WALLPAPER.
   const WALLPAPERS = [
-    { id: 'wood',    name: '🍪 Wood Board',   url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v2.png' },
-    { id: 'wood1',   name: '🪵 Classic Wood', url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v1.png' },
-    { id: 'cake',    name: '🎂 Cake Shop',    url: 'assets/images/cake-world/backgrounds/ks-cake-background1.png' },
-    { id: 'diner',   name: '🍔 Diner',        url: 'assets/images/cake-world/walls-floors/ks-wall-family-diner-floor70-v2.png' },
-    { id: 'winter',  name: '❄️ Winter',       url: 'assets/images/cake-world/walls-floors/ks-wall-winter-wonderland-floor70-v2.png' },
-    { id: 'beach',   name: '🏖️ Beach',        url: 'assets/images/cake-world/walls-floors/ks-wall-beach-shack-floor70-v2.png' },
-    { id: 'bakery',  name: '🧁 Bakery',       url: 'assets/images/hd/ks-wall-bakery-back.png' },
+    { id: 'wood',    name: '🍪 Wood Board',   trim: 0,    url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v2.png' },
+    { id: 'wood1',   name: '🪵 Classic Wood', trim: 0,    url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v1.png' },
+    { id: 'cake',    name: '🎂 Cake Shop',    trim: 1,    url: 'assets/images/cake-world/backgrounds/ks-cake-background1.png' },
+    { id: 'diner',   name: '🍔 Diner',        trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-family-diner-floor70-v2.png' },
+    { id: 'winter',  name: '❄️ Winter',       trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-winter-wonderland-floor70-v2.png' },
+    { id: 'beach',   name: '🏖️ Beach',        trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-beach-shack-floor70-v2.png' },
+    { id: 'bakery',  name: '🧁 Bakery',       trim: 1,    url: 'assets/images/hd/ks-wall-bakery-back.png' },
     // TV-kitchen & themed scenes — full-room backdrops (3048×1408, wall + floor)
-    { id: 'brady',         name: '📺 Brady Bunch',    url: 'assets/images/hd/ks-wall-diner-brady-bunch-kitchen-floor70-v1.png' },
-    { id: 'cheers',        name: '🍺 Cheers Bar',     url: 'assets/images/hd/ks-wall-diner-cheers-bar-floor70-v1.png' },
-    { id: 'goldengirls',   name: '🌴 Golden Girls',   url: 'assets/images/hd/ks-wall-diner-golden-girls-kitchen-floor70-v1.png' },
-    { id: 'lucy',          name: '❤️ I Love Lucy',    url: 'assets/images/hd/ks-wall-diner-i-love-lucy-kitchen-floor70-v1.png' },
-    { id: 'seinfeld',      name: '🗽 Seinfeld',       url: 'assets/images/hd/ks-wall-diner-seinfeld-apartment-floor70-v1.png' },
-    { id: 'wonka',         name: '🍫 Willy Wonka',    url: 'assets/images/hd/ks-wall-diner-willy-wonka-chocolate-room-floor70-v1.png' },
-    { id: 'oz',            name: '🌈 Oz Technicolor', url: 'assets/images/hd/ks-wall-diner-oz-technicolor-floor70-v1.png' },
-    { id: 'mediterranean', name: '🏺 Mediterranean',  url: 'assets/images/hd/ks-wall-diner-mediterranean-market-floor70-v1.png' },
-    { id: 'sage',          name: '🌿 Warm Sage',      url: 'assets/images/hd/ks-wall-diner-warm-sage-v1.png' },
+    { id: 'brady',         name: '📺 Brady Bunch',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-brady-bunch-kitchen-floor70-v1.png' },
+    { id: 'cheers',        name: '🍺 Cheers Bar',     trim: 0.30, url: 'assets/images/hd/ks-wall-diner-cheers-bar-floor70-v1.png' },
+    { id: 'goldengirls',   name: '🌴 Golden Girls',   trim: 0.30, url: 'assets/images/hd/ks-wall-diner-golden-girls-kitchen-floor70-v1.png' },
+    { id: 'lucy',          name: '❤️ I Love Lucy',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-i-love-lucy-kitchen-floor70-v1.png' },
+    { id: 'seinfeld',      name: '🗽 Seinfeld',       trim: 0.30, url: 'assets/images/hd/ks-wall-diner-seinfeld-apartment-floor70-v1.png' },
+    { id: 'wonka',         name: '🍫 Willy Wonka',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-willy-wonka-chocolate-room-floor70-v1.png' },
+    { id: 'oz',            name: '🌈 Oz Technicolor', trim: 0.30, url: 'assets/images/hd/ks-wall-diner-oz-technicolor-floor70-v1.png' },
+    { id: 'mediterranean', name: '🏺 Mediterranean',  trim: 0.30, url: 'assets/images/hd/ks-wall-diner-mediterranean-market-floor70-v1.png' },
+    { id: 'sage',          name: '🌿 Warm Sage',      trim: 0.85, url: 'assets/images/hd/ks-wall-diner-warm-sage-v1.png' },
   ];
   const DEFAULT_WALLPAPER = 'wood';
   const WALLPAPER_BY_ID = Object.fromEntries(WALLPAPERS.map((w) => [w.id, w]));
   function wallpaperUrl(id) {
     return (WALLPAPER_BY_ID[id] || WALLPAPER_BY_ID[DEFAULT_WALLPAPER]).url;
   }
+  function wallpaperTrim(id) {
+    const w = WALLPAPER_BY_ID[id] || WALLPAPER_BY_ID[DEFAULT_WALLPAPER];
+    return typeof w.trim === 'number' ? w.trim : 0.30;
+  }
   function applyWallpaper(el, id) {
     if (!el) return;
-    el.style.background = `#E8D3BF url('${wallpaperUrl(id)}') center center / cover no-repeat`;
+    // The SHARP copy is drawn on-canvas in world coordinates (roadmap #6 —
+    // the photo's floor IS the room's floor). The CSS copy underneath is a
+    // blurred bleed that fills the screen edges the aligned draw can't reach.
+    el.style.background = '#E8D3BF';
+    let bleed = el.querySelector(':scope > .wallpaper-bleed');
+    if (!bleed) {
+      bleed = document.createElement('div');
+      bleed.className = 'wallpaper-bleed';
+      el.insertBefore(bleed, el.firstChild);
+    }
+    bleed.style.backgroundImage = `url('${wallpaperUrl(id)}')`;
   }
 
   // ---------- Level Builder (admin / pre-level board editing) ----------
@@ -2282,7 +2296,7 @@
       seed: 1, decor: null, recipes: [],
     };
     destroyPreview();
-    previewRenderer = new KSRender.Renderer(canvas, ss, profile.id, () => {}, { preview: true });
+    previewRenderer = new KSRender.Renderer(canvas, ss, profile.id, () => {}, { preview: true, backdrop: { url: wallpaperUrl(cfg.wallpaper), trim: wallpaperTrim(cfg.wallpaper) } });
     previewRenderer.setPreviewScene([profile.chef || 'chef']);
     requestAnimationFrame(() => previewRenderer && previewRenderer.resize());
   }

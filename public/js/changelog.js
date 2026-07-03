@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.40.0",
+    "title": "The room becomes real",
+    "emoji": "🖼️",
+    "category": "polish",
+    "changes": [
+      "Backdrops are no longer posters behind the kitchen — each wallpaper is drawn so ITS floor is YOUR floor: the tiles run under the stations at the right scale and the wall furniture sits properly behind the back row, on every board shape.",
+      "Wall-only backdrops (Bakery, Cake Shop) stand the kitchen on a matching glossy checker floor; screen edges beyond the room fill with a soft blur of the same scene.",
+      "The purple dinosaur is gone from the character roster too. Gone means gone."
+    ]
+  },
+  {
     "version": "1.39.0",
     "title": "The Beaux-Arts kitchen",
     "emoji": "🏛️",

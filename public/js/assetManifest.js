@@ -27,7 +27,8 @@
     { key: 'influencer', name: 'Influencer' },
     { key: 'socialite', name: 'Socialite' },
     { key: 'kid', name: 'Kid' },
-    { key: 'barney', name: 'Barney' },
+    // (Barney removed — Tyler's rule: the purple dinosaur never appears, as a
+    // mascot OR as a character. See memory: no-purple-mascot.)
     { key: 'betty_white', name: 'Betty White' },
     { key: 'camp_counselor', name: 'Counselor' },
     { key: 'dolly', name: 'Dolly' },
@@ -104,7 +105,6 @@
     influencer:     { path: HD + 'ks-char-influencer.png' },
     socialite:      { path: HD + 'ks-char-socialite.png' },
     kid:            { path: HD + 'ks-char-kid.png' },
-    barney:         { path: HD + 'ks-char-barney.png' },
     betty_white:    { path: HD + 'ks-char-betty-white.png' },
     camp_counselor: { path: HD + 'ks-char-camp-counselor.png' },
     dolly:          { path: HD + 'ks-char-dolly.png' },

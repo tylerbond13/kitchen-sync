@@ -1,6 +1,6 @@
 {
   "name": "kitchen-sync",
-  "version": "1.39.0",
+  "version": "1.40.0",
   "description": "Cook together, apart — a real-time co-op cooking game for mobile web, inspired by Overcooked.",
   "main": "server/index.js",
   "type": "commonjs",

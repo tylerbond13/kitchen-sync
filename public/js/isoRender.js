@@ -447,6 +447,19 @@
           `radial-gradient(120% 100% at 50% 18%, ${t.surroundA} 0%, ${t.surroundB} 100%)`;
       }
 
+      // World-anchored backdrop (roadmap #6): the wallpaper is drawn ON the
+      // canvas in world coordinates — its floor/wall boundary (trim) lands
+      // just above the room's top edge and its floor grain scales with the
+      // tiles, so the photo stops being a poster behind the kitchen and
+      // becomes the room itself. The blurred CSS copy underneath only bleeds
+      // into screen edges this aligned draw can't reach.
+      if (opts.backdrop && opts.backdrop.url && window.ASSETS) {
+        const bk = `backdrop:${opts.backdrop.url}`;
+        if (!ASSETS[bk]) ASSETS[bk] = { path: opts.backdrop.url, nokey: true };
+        this._backdropKey = bk;
+        this._backdropTrim = Math.max(0, Math.min(1, opts.backdrop.trim ?? 0.30));
+      }
+
       // Character overlay: a transparent canvas stacked ABOVE the HTML ticket
       // band. Character sprites (chefs, customers, carried items, name tags)
       // are replayed onto it, clipped to the band region, so people walk IN
@@ -812,6 +825,10 @@
       ctx.setTransform(1,0,0,1,0,0);
       ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
 
+      // -1. WORLD-ANCHORED WALLPAPER (roadmap #6) — the sharp copy of the
+      // board photo, scaled and positioned so its floor line meets the grid.
+      this.drawWorldBackdrop();
+
       // 0. PAINTED SCENE BACKDROP (device space). The theme's hand-painted wall
       // illustration, bled to the screen edges and shown at true proportions,
       // sitting above a glossy checkerboard floor in the theme's real colours.
@@ -1126,6 +1143,37 @@
       const ws=ctx.createLinearGradient(0,floorY-10,0,floorY+12);
       ws.addColorStop(0,'rgba(0,0,0,0)'); ws.addColorStop(1,'rgba(20,8,16,0.20)');
       ctx.fillStyle=ws; ctx.fillRect(0,floorY-10,W,22);
+    }
+
+    // The wallpaper drawn in WORLD coordinates: floor spans the room + a
+    // 2-tile apron per side, and the image's wall/floor boundary (trim
+    // fraction from the top) lands at world y = oy - 8, so the painted floor
+    // and the grid floor are the same surface. Rooms whose floor slice is
+    // shallow zoom in until the floor covers the play depth; wall-only strips
+    // (trim ≈ 1) sit above the room over a procedural checker floor.
+    drawWorldBackdrop() {
+      if (!this._backdropKey) return false;
+      const img = GFX.img(this._backdropKey);
+      if (!img || !img.width) return false;     // CSS bleed shows until ready
+      const { ctx, canvas, lvl } = this;
+      const trim = this._backdropTrim;
+      const aspect = img.height / img.width;
+      const wallOnly = trim >= 0.97;
+      const widthFit  = (lvl.w + 4) * TILE_WIDTH * this.scale;
+      const floorNeed = (lvl.h * TILE_HEIGHT + 60) * this.scale;
+      const heightFit = wallOnly ? 0 : (floorNeed / (1 - trim)) / aspect;
+      const drawW = Math.max(widthFit, heightFit);
+      const drawH = drawW * aspect;
+      const cx = this.txOff + (this.ox + lvl.w * TILE_WIDTH / 2) * this.scale;
+      const trimY = this.tyOff + (this.oy - 8) * this.scale;
+      if (wallOnly) {
+        // wall strips carry no floor — the theme's glossy checker stands in
+        const pat = this.floorPattern();
+        ctx.fillStyle = pat || this.wallMeta.floorA;
+        ctx.fillRect(0, Math.max(0, trimY), canvas.width, canvas.height - Math.max(0, trimY));
+      }
+      ctx.drawImage(img, cx - drawW / 2, trimY - drawH * trim, drawW, drawH);
+      return true;
     }
 
     drawBoardFrame() {
