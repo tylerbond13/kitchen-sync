@@ -29,8 +29,8 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [x] 10. Walkway prop pack
 - [x] 11. Wall decor pack
 - [x] 12. Reward chest / gift box
-- [ ] 13. Coin + star icon pair
-- [ ] 14. Roadmap section banners
+- [x] 13. Coin + star icon pair
+- [x] 14. Roadmap section banners
 - [ ] 15. Home-screen hero
 - [ ] 16. Per-theme ambient critters
 - [ ] 17. Mascot friends
