@@ -3,6 +3,18 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.29.1",
+    "title": "Nothing blocks the kitchen",
+    "emoji": "🧭",
+    "category": "fix",
+    "changes": [
+      "Order tickets no longer cover the chefs or the back row — the kitchen now sizes itself to fit exactly between the top and bottom HUD, on every phone shape.",
+      "The score and plate pills no longer sit on top of the trash can or the front-row stations, and the combo flame now rides inside the bottom bar.",
+      "Tip messages moved up under the order tickets, off the serve windows.",
+      "The purple dinosaur is gone. Gone gone."
+    ]
+  },
+  {
     "version": "1.29.0",
     "title": "One more round",
     "emoji": "🔁",

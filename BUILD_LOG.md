@@ -10,6 +10,11 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Nothing blocks the kitchen + mascot removed (v1.29.1)
+- **Band-aware fit (from Tyler's phone screenshots):** the renderer now measures the real HUD bands and fits the room's playable rows exactly BETWEEN them — only the decorative wall rises behind the tickets. Chefs can never walk under the order cards, and the score/star bar can never cover the front-row stations, on any phone aspect/notch.
+- Combo flame moved into the bottom bar (was floating over the sink); rotating tips moved up under the tickets (were covering the serve windows); tips yield to the rush banner.
+- **Purple dinosaur mascot removed everywhere** (ambience + Cake World) per Tyler — recorded in memory as a permanent art rule.
+
 ### Results screen becomes the retention engine — design-roadmap #5 (v1.29.0)
 - **Every round now ends at the exact moment motivation peaks — with somewhere to go.** New **↻ Retry** and **Next level ▶** buttons on the results screen (Retry re-starts the same level over the wire; Next reads the freshly-unlocked level list, so beating a level for the first time immediately offers its successor). Graceful fallbacks for builder test rounds.
 - **Near-miss hook:** within 20% of the next star cutoff → a pulsing teaberry ribbon ("🔥 Only 140 from ⭐⭐ — go again!") and Retry is promoted to the primary button. The genre's proven one-more-round lever.

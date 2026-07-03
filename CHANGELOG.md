@@ -2,6 +2,14 @@
 
 Every release, newest first. Also viewable in-game via **📋 What's new** on the home screen (or by tapping the version footer).
 
+## v1.29.1 — 🧭 Nothing blocks the kitchen  
+_Fix_
+
+- Order tickets no longer cover the chefs or the back row — the kitchen sizes itself to fit exactly between the top and bottom HUD, on every phone shape.
+- The score and plate pills no longer sit on the trash can or the front-row stations; the combo flame rides inside the bottom bar.
+- Tip messages moved up under the order tickets, off the serve windows.
+- The purple dinosaur is gone. Gone gone.
+
 ## v1.29.0 — 🔁 One more round  
 _Feature_
 

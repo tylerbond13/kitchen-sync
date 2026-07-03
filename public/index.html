@@ -738,13 +738,8 @@ input[type="text"]:focus {
 }
 .hud-timer.low { color: var(--sherbet); animation: pulse .8s infinite; }
 @keyframes pulse { 50% { transform: scale(1.07); } }
-/* Combo pill floats above the bottom banner while a streak is alive */
-.hud-combo {
-  color: var(--bubblegum);
-  position: absolute; z-index: 21;
-  left: calc(var(--sal) + 10px);
-  bottom: calc(var(--sab) + var(--hud-bot-h, 46px) + 8px);
-}
+/* Combo pill rides in the bottom bar while a streak is alive */
+.hud-combo { color: var(--bubblegum); }
 .hud-plates { color: var(--ink); }
 .hud-plates.empty { color: var(--sherbet); animation: pulse .8s infinite; }
 
@@ -1407,11 +1402,12 @@ input[type="text"]:focus {
 }
 .tutorial-dots span.on { background: var(--bubblegum); transform: scale(1.25); }
 
-/* Rotating starter tips float just above the bottom banner */
+/* Rotating starter tips sit under the tickets, over the decorative wall —
+   never covering the serve windows on the front row */
 .game-hint {
-  position: absolute; z-index: 21;
+  position: absolute; z-index: 19;
   left: 50%; transform: translateX(-50%);
-  bottom: calc(var(--sab, 0px) + var(--hud-bot-h, 46px) + 6px);
+  top: calc(var(--sat, 0px) + var(--hud-top-h, 84px) + 34px);
   max-width: min(86vw, 460px);
   text-align: center; font-size: 12px; font-weight: 800;
   color: #FFF6EA;
@@ -2091,12 +2087,12 @@ input[type="text"]:focus {
     </div>
 
     <div class="rush-banner" id="rush-banner" hidden></div>
-    <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
     <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
 
     <div class="game-hud-bottom">
       <div class="hud-pill hud-score" id="hud-score">🪙 0</div>
       <div class="hud-pill hud-plates" id="hud-plates" title="Clean plates">🍽️ ∞</div>
+      <div class="hud-pill hud-combo" id="hud-combo" hidden>🔥 x1</div>
       <div class="star-progress" id="star-progress">
         <i id="star-fill"></i>
         <span class="star-mark" data-i="0">★</span>

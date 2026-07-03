@@ -133,7 +133,7 @@
   const CAKE_DECOR = [
     { kind:'rug',  key:'cw_rug_round',     gx:5,   gy:4.05, w:170 },
     { kind:'prop', key:'cw_display_stand', gx:6,   gy:0.1,  w:120 },
-    { kind:'prop', fps:2.4, gx:8.7, gy:4.7, w:80, frames:['cw_mascot_1','cw_mascot_2','cw_mascot_3','cw_mascot_4'] },
+    // (purple mascot removed — never use it)
     { kind:'prop', key:'cw_wall_sconce',   gx:0.15, gy:1.2, w:36 },
     { kind:'prop', key:'cw_wall_sconce',   gx:10.85, gy:1.2, w:36 },
     { kind:'float', fps:9,   gx:2.6, gy:1.0, w:30, lift:52, bob:7, phase:0,   frames:['cw_bee_1','cw_bee_2','cw_bee_3'] },
@@ -550,9 +550,24 @@
       this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + WALL_SIDE + PAD;
       this.worldH = this.oy + (maxGy+1)*TILE_HEIGHT + 30 + PAD;
 
-      this.scale = Math.min(this.canvas.width/this.worldW, this.canvas.height/this.worldH);
-      this.txOff = (this.canvas.width  - this.worldW*this.scale)/2;
-      this.tyOff = (this.canvas.height - this.worldH*this.scale)/2;
+      // The HUD bands overlay the canvas. GAMEPLAY (the room's rows + front
+      // faces) must fit BETWEEN them — chefs never walk behind the tickets and
+      // the score bar never covers the front row. Only the decorative wall /
+      // headroom may rise behind the ticket band.
+      const bandH = (sel) => {
+        if (this.preview) return 0;
+        const el = document.querySelector(sel);
+        return el ? el.getBoundingClientRect().height * this.dpr : 0;
+      };
+      this.bandTop = bandH('.game-hud-top');
+      this.bandBot = bandH('.game-hud-bottom');
+      const playH  = this.worldH - this.oy;   // room rows + front-face padding
+      const availH = Math.max(80, this.canvas.height - this.bandTop - this.bandBot);
+      this.scale = Math.min(this.canvas.width / this.worldW, availH / playH);
+      this.txOff = (this.canvas.width - this.worldW * this.scale) / 2;
+      // pin the top row just below the tickets; float in any spare height
+      this.tyOff = this.bandTop - this.oy * this.scale
+                 + Math.max(0, availH - playH * this.scale) / 2;
     }
 
     toWorld(cx, cy) { return [(cx-this.txOff)/this.scale, (cy-this.tyOff)/this.scale]; }
@@ -898,12 +913,7 @@
       D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: -0.32,    gy: 1.2, w: 36 });
       D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: w + 0.32, gy: 1.2, w: 36 });
 
-      // mascot greeter in a walkway corner (skip cramped boards)
-      if (w >= 7 && h >= 5) {
-        const corner = floorNear(w - 1.4, h - 0.7, 2.2) || floorNear(1.4, h - 0.7, 2.2);
-        if (corner) D.push({ kind: 'prop', fps: 2.4, gx: corner.x + 0.15, gy: corner.y + 0.2, w: 76,
-          frames: ['cw_mascot_1', 'cw_mascot_2', 'cw_mascot_3', 'cw_mascot_4'] });
-      }
+      // (no mascot — Tyler's call: the purple dinosaur is permanently benched)
 
       // bees & butterflies drifting over the back half of the room
       const n = Math.max(2, Math.min(4, Math.round((w * h) / 18)));
