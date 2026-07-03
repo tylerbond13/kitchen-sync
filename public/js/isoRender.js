@@ -967,6 +967,8 @@
         const [sx, sy] = this.project(d.gx, d.gy);
         if (d.kind === 'rug') {
           queue.push({ screenY: -1e6, draw: () => GFX.draw(this.ctx, d.key, sx, sy + TILE_HEIGHT * 0.2, d.w, d.w) });
+        } else if (d.kind === 'qrug') {
+          queue.push({ screenY: -1e6 + 1, draw: () => this.drawQueueRug() });
         } else if (d.kind === 'prop') {
           const key = frameKey(d);
           queue.push({ screenY: sy, draw: () => GFX.drawAnchored(this.ctx, key, sx, sy + TILE_HEIGHT / 2 - (d.lift || 0), d.w) });
@@ -976,6 +978,29 @@
           queue.push({ screenY: 1e6 + sy, draw: () => GFX.draw(this.ctx, key, sx, sy - (d.lift || 50) + bob, d.w, d.w) });
         }
       }
+    }
+
+    // A soft runner + per-slot pads under the waiting line, drawn from the
+    // same queueSlot geometry the customers stand on — so it fits any board.
+    drawQueueRug() {
+      const {ctx}=this;
+      const a=this.queueSlot(0), b=this.queueSlot(QUEUE_DEPTH-1);
+      const [cx, ty]=this.projectEntity(a.x, a.y);
+      const [, by]=this.projectEntity(b.x, b.y);
+      const wpx = TILE_WIDTH*1.15;
+      const top = ty - TILE_HEIGHT*0.55, bot = by + TILE_HEIGHT*0.55;
+      ctx.save();
+      ctx.fillStyle='rgba(178,59,98,0.10)';
+      this.rrC(ctx, cx-wpx/2, top, wpx, bot-top, 16); ctx.fill();
+      ctx.lineWidth=2; ctx.strokeStyle='rgba(120,60,40,0.16)';
+      this.rrC(ctx, cx-wpx/2+2.5, top+2.5, wpx-5, bot-top-5, 13); ctx.stroke();
+      for (let i=0;i<QUEUE_DEPTH;i++){
+        const s=this.queueSlot(i);
+        const [px,py]=this.projectEntity(s.x, s.y);
+        ctx.fillStyle='rgba(60,25,45,0.07)';
+        ctx.beginPath(); ctx.ellipse(px,py+3,20,8,0,0,Math.PI*2); ctx.fill();
+      }
+      ctx.restore();
     }
 
     // Generate set dressing for ANY kitchen from its own grid: a rug centred on
@@ -1007,6 +1032,35 @@
       D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: w + 0.32, gy: 1.2, w: 36 });
 
       // (no mascot — Tyler's call: the purple dinosaur is permanently benched)
+
+      // Themed wall props along the back edge — the missing mid-ground band
+      // between the wallpaper and the stations (roadmap #8). The manifest's
+      // wallAnchor coords were authored for a 7-wide diner wall; pos scales
+      // with the room width, props keep ≥1.5 tiles spacing, and each theme
+      // finally looks like itself in-round (wreath in Winter, surfboard on
+      // the Beach…). Drawn as normal depth-sorted props just above row 0.
+      const WALL_PROPS = {
+        diner:  ['wall_sign', 'wall_window', 'wall_clock', 'wall_photos'],
+        winter: ['decor_cocoa_sign', 'wall_window_winter', 'decor_wreath', 'decor_fireplace'],
+        beach:  ['decor_tiki_sign', 'wall_window_beach', 'decor_surfboard', 'decor_palm'],
+      };
+      let lastPropX = -Infinity;
+      for (const key of (WALL_PROPS[this.themeName] || WALL_PROPS.diner)) {
+        const ent = (window.ASSETS || {})[key];
+        const wa = ent && ent.wallAnchor;
+        if (!wa) continue;
+        let gx = (wa.pos / 7) * w;
+        if (gx - lastPropX < 1.5) gx = lastPropX + 1.5;
+        if (gx > w - 0.4) break;
+        lastPropX = gx;
+        D.push({ kind: 'prop', key, gx, gy: -0.12, w: wa.width,
+          lift: 26 + (wa.height || 0) * 0.5 });
+      }
+
+      // Ground the customer line: a soft runner + per-slot pads under the
+      // queue column — full-height characters waiting on bare floor are the
+      // floatiest thing on screen (roadmap #8).
+      D.push({ kind: 'qrug' });
 
       // bees & butterflies drifting over the back half of the room
       const n = Math.max(2, Math.min(4, Math.round((w * h) / 18)));

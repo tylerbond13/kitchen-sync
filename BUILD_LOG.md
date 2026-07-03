@@ -10,6 +10,11 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Every theme dresses its own kitchen — design-roadmap #8 complete (v1.36.0)
+- **Themed wall props reactivated** from the manifest's dormant `wallAnchor` entries, now placed by `buildAmbience` as normal depth-sorted props just above row 0: diner = sign/window/clock/photos, winter = cocoa sign/winter window/wreath/fireplace, beach = tiki sign/beach window/surfboard/palm. Positions scale from the authored 7-wide wall to any board width with ≥1.5-tile spacing.
+- **Queue rug:** a soft procedural runner + per-slot pads drawn from the same `queueSlot` geometry the customers stand on — the waiting line no longer floats on bare floor.
+- _(Verified live on Salad Days: clock + photos on the wall band, runner under the queue; 92/92 green, zero console errors.)_
+
 ### Every tap answers back — design-roadmap #12 Phase A (v1.35.0)
 - Screen changes animate in (.28s opacity/translate/scale, skipped for the game screen so the canvas fit never measures mid-animation) with a soft `SFX.whoosh` on every real screen change (never the initial paint); menu taps bloom a teaberry ripple at the touch point (body-level fixed span, so it survives the screen swap); missing `:active` presses added. All behind prefers-reduced-motion.
 - _(Verified live: screen-in animation on the lobby, ripple spawns on tap; 92/92 green. Phases B (round-start title card + countdown) and C (round-end crescendo) remain.)_
