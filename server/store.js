@@ -183,6 +183,9 @@ function recordLevelResult(crew, levelId, score, stars, delivered = 0) {
   crew.stats.meals += delivered;
   crew.stats.rounds += 1;
   crews.save();
+  // Tell the results screen whether that run set a new crew best (repeat plays
+  // only — a first clear is its own reward).
+  return { prevBest: prev.bestScore, isRecord: prev.plays > 0 && score > prev.bestScore };
 }
 
 function getPlayer(id) {

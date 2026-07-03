@@ -830,6 +830,9 @@
   function renderLobby(state) {
     lobby = state;
     iAmHost = state.hostId === profile.id;
+    // the post-round lobby may have just unlocked the next level — refresh the
+    // results screen's Next button if the player is looking at it
+    if ($('screen-results').classList.contains('active')) updateResultsNext();
     // keep the builder's saved-board list fresh when a board is saved/deleted
     if (typeof renderPresets === 'function' && $('screen-builder').classList.contains('active')) renderPresets();
     // keep the character switcher's crew-pick badges live while it's open
@@ -1533,6 +1536,37 @@
       : results.stars === 1 ? 'Order up!'
       : 'Kitchen nightmare… 😅';
     $('results-score').textContent = '0';
+    lastRoundLevelId = results.levelId || (curStatic && curStatic.levelId) || null;
+    updateResultsNext();
+
+    // The hook line: a new crew record beats everything; otherwise a near-miss
+    // ("only 140 from ★★!") begs for one more round — Retry becomes primary.
+    const ribbon = $('results-ribbon');
+    ribbon.hidden = true;
+    ribbon.classList.remove('nearmiss');
+    $('btn-results-retry').classList.remove('btn-primary');
+    $('btn-results-retry').classList.add('btn-secondary');
+    const rec = results.record || {};
+    const goals = curStatic && curStatic.starThresholds;
+    if (rec.isRecord) {
+      ribbon.hidden = false;
+      ribbon.textContent = `🏆 NEW CREW RECORD — beat ${rec.prevBest.toLocaleString()}!`;
+    } else if (results.stars < 3 && goals && goals[results.stars]) {
+      const nextGoal = goals[results.stars];
+      const gap = nextGoal - results.score;
+      if (gap > 0 && gap <= nextGoal * 0.2) {
+        ribbon.hidden = false;
+        ribbon.classList.add('nearmiss');
+        ribbon.textContent = `🔥 Only ${gap.toLocaleString()} from ${'⭐'.repeat(results.stars + 1)} — go again!`;
+        $('btn-results-retry').classList.remove('btn-secondary');
+        $('btn-results-retry').classList.add('btn-primary');
+      }
+    } else if (rec.prevBest > 0 && results.score < rec.prevBest && results.score >= rec.prevBest * 0.9) {
+      ribbon.hidden = false;
+      ribbon.classList.add('nearmiss');
+      ribbon.textContent = `😤 So close to the crew record (${rec.prevBest.toLocaleString()})!`;
+    }
+
     // Your score banks 1:1 as coins — show the payout + running total so the
     // score→coins→shop loop is legible right at the moment of reward.
     const coinsEl = $('results-coins');
@@ -1540,10 +1574,28 @@
     const banked = results.crew && results.crew.wallet && results.crew.wallet.coins;
     if (earned > 0) {
       coinsEl.hidden = false;
-      coinsEl.innerHTML = `🪙 +${earned} coins` +
-        (typeof banked === 'number' ? ` <span class="rc-total">· 💰 ${banked} banked</span>` : '');
+      coinsEl.innerHTML = `🪙 +0 coins` +
+        (typeof banked === 'number' ? ` <span class="rc-total">· 💰 ${banked.toLocaleString()} banked</span>` : '');
     } else {
       coinsEl.hidden = true;
+    }
+
+    // Savings goal: the cheapest shop upgrade still ahead of the crew, so every
+    // round ends with a named reason to bank more coins.
+    const nu = $('results-next-unlock');
+    nu.hidden = true;
+    if (lobby && lobby.upgrades && results.crew && results.crew.wallet) {
+      const owned = results.crew.wallet.upgrades || {};
+      const target = Object.entries(lobby.upgrades)
+        .filter(([id, up]) => !owned[id] && (!up.needs || owned[up.needs]))
+        .sort((a, b) => a[1].cost - b[1].cost)[0];
+      if (target) {
+        const [, up] = target;
+        const have = Math.min(banked || 0, up.cost);
+        nu.hidden = false;
+        nu.innerHTML = `🎯 Next unlock: ${up.emoji} <b>${escapeHtml(up.name)}</b> — 🪙 ${(banked || 0).toLocaleString()}/${up.cost.toLocaleString()}` +
+          `<div class="nu-bar"><i style="width:${Math.round((have / up.cost) * 100)}%"></i></div>`;
+      }
     }
     $('results-stats').innerHTML =
       `<span>🍽️ ${results.delivered} served</span><span>💨 ${results.missed} missed</span>`;
@@ -1571,7 +1623,7 @@
       rp.appendChild(el);
     }
 
-    // animate score count-up then star pops
+    // animate score count-up → star pops → coin payout choreography
     document.querySelectorAll('.stars-row .star').forEach((s) => s.classList.remove('lit'));
     const target = results.score;
     const t0 = performance.now();
@@ -1588,11 +1640,80 @@
             if (navigator.vibrate) navigator.vibrate(40);
           }, 250 + i * 450);
         }
+        if (earned > 0) setTimeout(() => payoutCoins(earned, banked), 350 + results.stars * 450);
       }
     }
     requestAnimationFrame(count);
     sendHello(); // refresh lifetime stats
   });
+
+  // Coin payout choreography: the pill ticks up while coins arc into it —
+  // banking your score should FEEL like getting paid, not reading a number.
+  function payoutCoins(earned, banked) {
+    const coinsEl = $('results-coins');
+    if (!coinsEl || coinsEl.hidden) return;
+    const suffix = typeof banked === 'number' ? ` <span class="rc-total">· 💰 ${banked.toLocaleString()} banked</span>` : '';
+    const t0 = performance.now(), dur = 850;
+    let lastTick = 0;
+    function tick(now) {
+      const f = Math.min((now - t0) / dur, 1);
+      const v = Math.round(earned * (1 - Math.pow(1 - f, 2)));
+      coinsEl.innerHTML = `🪙 +${v.toLocaleString()} coins${suffix}`;
+      if (now - lastTick > 95 && f < 1) { lastTick = now; SFX.tap(); }
+      if (f < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    // a handful of coins arc from the score into the pill
+    const r = coinsEl.getBoundingClientRect();
+    const s = $('results-score').getBoundingClientRect();
+    const n = Math.min(8, Math.max(4, Math.round(earned / 250)));
+    for (let i = 0; i < n; i++) {
+      setTimeout(() => {
+        const c = document.createElement('span');
+        c.className = 'coin-fly';
+        c.textContent = '🪙';
+        const jx = (Math.random() - 0.5) * 80, jy = (Math.random() - 0.5) * 30;
+        c.style.left = `${s.x + s.width / 2 + jx}px`;
+        c.style.top = `${s.y + s.height / 2 + jy}px`;
+        c.style.setProperty('--fx', `${r.x + r.width / 2 - (s.x + s.width / 2) - jx}px`);
+        c.style.setProperty('--fy', `${r.y + r.height / 2 - (s.y + s.height / 2) - jy}px`);
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 950);
+      }, i * 90);
+    }
+  }
+
+  // Retry / Next — close the loop at the exact moment motivation peaks.
+  let lastRoundLevelId = null;
+  function nextCampaignLevel() {
+    if (!lobby || !lobby.levels || !lastRoundLevelId) return null;
+    const campaign = lobby.levels.filter((l) => l.section !== 'custom' && !l.bonus);
+    const i = campaign.findIndex((l) => l.id === lastRoundLevelId);
+    if (i === -1 || i + 1 >= campaign.length) return null;
+    const next = campaign[i + 1];
+    return next.unlocked ? next : null;
+  }
+  function updateResultsNext() {
+    const btn = $('btn-results-next');
+    const next = nextCampaignLevel();
+    btn.hidden = !next;
+    if (next) btn.textContent = `${next.emoji || '▶'} ${next.name} ▶`;
+  }
+  $('btn-results-retry').onclick = () => {
+    SFX.tap();
+    if (!lastRoundLevelId) return show('lobby');
+    socket.emit('start_game', lastRoundLevelId, (res) => {
+      if (res && res.error) { toast(res.error); show('lobby'); }
+    });
+  };
+  $('btn-results-next').onclick = () => {
+    SFX.tap();
+    const next = nextCampaignLevel();
+    if (!next) return show('lobby');
+    socket.emit('start_game', next.id, (res) => {
+      if (res && res.error) { toast(res.error); show('lobby'); }
+    });
+  };
 
   $('btn-results-done').onclick = () => {
     SFX.tap();

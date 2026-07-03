@@ -10,6 +10,14 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Results screen becomes the retention engine — design-roadmap #5 (v1.29.0)
+- **Every round now ends at the exact moment motivation peaks — with somewhere to go.** New **↻ Retry** and **Next level ▶** buttons on the results screen (Retry re-starts the same level over the wire; Next reads the freshly-unlocked level list, so beating a level for the first time immediately offers its successor). Graceful fallbacks for builder test rounds.
+- **Near-miss hook:** within 20% of the next star cutoff → a pulsing teaberry ribbon ("🔥 Only 140 from ⭐⭐ — go again!") and Retry is promoted to the primary button. The genre's proven one-more-round lever.
+- **Crew records:** `recordLevelResult` now returns `{prevBest, isRecord}`, threaded through the game_over payload — a shimmering gold **🏆 NEW CREW RECORD** ribbon on a new best, and a "so close to the record" taunt within 10% below it.
+- **Coin payout choreography:** after the stars land, the coins pill counts up with tick sounds while 4-8 coins arc from the score into the wallet — banking your score *feels* like getting paid.
+- **A named savings goal every round:** "🎯 Next unlock: ⚡ Turbo Burners — 🪙 1,240/1,600" with a mini progress bar (cheapest shop upgrade whose prerequisites are met).
+- _(Verified live: played a real bot-crewed round to game-over — savings bar, Kitchen/Retry buttons, Next correctly hidden for customs, coins choreography; Retry's unknown-level fallback toasts + returns to lobby; 83/83 tests green.)_
+
 ### Warm bakery re-skin — design-roadmap #3 (v1.28.0)
 - **The palette overhaul from the design review, exactly to its spec.** The purple/pink candy palette is gone: the menus now live in a warm bakery room (butterscotch `#F2DFC0` body → cream `#FFFDF7` cards → nested `#FAF1E1` rows), anchored by plum ink and a **rich plum app bar** around the kitchen code with translucent controls.
 - **Colour as grammar:** teaberry (`#E14B7E` ramp) = play/advance · gold (`#E8A93C` ramp) = spend/earn (shop prices are now real gold price tags) · teal (`#3FBFAE` ramp) = owned/on. Implemented as design-token re-values + a global sweep of ~20 hardcoded pinks, so every component picked it up at once.

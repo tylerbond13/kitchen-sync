@@ -332,12 +332,12 @@ function finishGame(io, room) {
   room.loop = null;
   room.sousChef = null;
   const results = room.game.results();
-  store.recordLevelResult(room.crew, results.levelId, results.score, results.stars, results.delivered);
+  const record = store.recordLevelResult(room.crew, results.levelId, results.score, results.stars, results.delivered);
   for (const p of results.players) {
     store.recordPlayerResult(p.id, { delivered: p.delivered, stars: results.stars });
   }
   room.game = null;
-  roomBroadcast(io, room, 'game_over', { ...results, crew: room.crew });
+  roomBroadcast(io, room, 'game_over', { ...results, record, crew: room.crew });
   stopRadio(io, room);
   roomBroadcast(io, room, 'lobby', lobbyState(room));
 }
