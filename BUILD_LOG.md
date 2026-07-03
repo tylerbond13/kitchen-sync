@@ -10,6 +10,12 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Warm bakery re-skin — design-roadmap #3 (v1.28.0)
+- **The palette overhaul from the design review, exactly to its spec.** The purple/pink candy palette is gone: the menus now live in a warm bakery room (butterscotch `#F2DFC0` body → cream `#FFFDF7` cards → nested `#FAF1E1` rows), anchored by plum ink and a **rich plum app bar** around the kitchen code with translucent controls.
+- **Colour as grammar:** teaberry (`#E14B7E` ramp) = play/advance · gold (`#E8A93C` ramp) = spend/earn (shop prices are now real gold price tags) · teal (`#3FBFAE` ramp) = owned/on. Implemented as design-token re-values + a global sweep of ~20 hardcoded pinks, so every component picked it up at once.
+- **Legibility fixes from the review:** eyebrow labels to readable rose, empty stars to warm parchment, milestone bars thickened with a visible track + gold→teaberry fill, locked characters fade to warm sepia instead of dead grayscale.
+- _(Verified in-browser: lobby pager, shop verbs, home two-pane, all in the new palette; 83/83 tests green; v1.28.0 archive captured.)_
+
 ### Set dressing + grounding — every kitchen comes alive (v1.27.0)
 - **Ran a 4-lens expert design review** (kitchen art direction · menu UI/color · retention loops · flow — 5 agents) over real screenshots + the codebase; the full ranked 12-item roadmap with an exact new palette is saved at **docs/DESIGN_ROADMAP.md**. This release ships its top kitchen-cohesion items:
 - **Per-level ambient set dressing** — the dormant Cake-World decor system (animated bees/butterflies, mascots, rugs, sconces — art that already existed but ran on ONE level) is now generated for **every** kitchen from its own grid: a rose rug centred on the open floor, sconces mounted on the stage-frame posts, a waving mascot tucked into a walkway corner, and 2-4 drifting fliers, all seeded from the round seed so every phone sees the same arrangement.
