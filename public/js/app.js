@@ -99,15 +99,34 @@
   saveProfile();
 
   // ---------- screens ----------
+  let shownScreen = null;
   function show(name) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
     $(`screen-${name}`).classList.add('active');
+    // A soft whoosh marks every real screen change (never the initial paint) —
+    // hard cuts are the cheapest "this is a web page" tell (roadmap #12A).
+    if (shownScreen && shownScreen !== name) SFX.whoosh();
+    shownScreen = name;
     // Sound is on by default: the kitchen plays its own "Caketown" track, every
     // other screen plays the menu theme ("Acrostics"). A queued crew-radio
     // (YouTube) track still suspends whichever soundtrack is due (see below).
     if (window.KSMusic) KSMusic.play(name === 'game' ? 'game' : 'menu');
     lockLandscape();
   }
+
+  // Tap acknowledgment (roadmap #12A): every menu tap blooms a small ripple at
+  // the touch point — the game screen keeps its own canvas ripple.
+  document.addEventListener('pointerdown', (e) => {
+    if (shownScreen === 'game') return;
+    const t = e.target.closest('button, .level-row, .chef-cell, .prog-chip, .member, .ticket');
+    if (!t) return;
+    const d = document.createElement('span');
+    d.className = 'tap-ripple';
+    d.style.left = `${e.clientX}px`;
+    d.style.top = `${e.clientY}px`;
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 460);
+  }, { passive: true });
 
   // The kitchen is a landscape-only experience. Where the platform allows it
   // (installed PWA / Android Chrome in fullscreen) we hard-lock the screen to

@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.35.0",
+    "title": "Every tap answers back",
+    "emoji": "✨",
+    "category": "polish",
+    "changes": [
+      "Screens now glide in instead of hard-cutting, with a soft whoosh between menus.",
+      "Every menu tap blooms a little ripple right where your finger lands — buttons visibly press down.",
+      "All motion respects your device's reduced-motion setting."
+    ]
+  },
+  {
     "version": "1.34.0",
     "title": "Milestones pay out",
     "emoji": "🏅",
