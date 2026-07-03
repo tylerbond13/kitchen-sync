@@ -155,3 +155,13 @@ test('mergePlayerStats takes per-counter maximums', () => {
   assert.equal(p.stats.mealsDelivered, 5);
   assert.equal(p.stats.starsEarned, 4);
 });
+
+test('claimMilestone pays exactly once', () => {
+  const crew = store.createCrew('MSTEST');
+  store.ensureCrewExtras(crew);
+  const before = crew.wallet.coins;
+  assert.equal(store.claimMilestone(crew, 'first_service', 100), true);
+  assert.equal(crew.wallet.coins, before + 100);
+  assert.equal(store.claimMilestone(crew, 'first_service', 100), false, 'second claim rejected');
+  assert.equal(crew.wallet.coins, before + 100, 'not paid twice');
+});

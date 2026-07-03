@@ -560,7 +560,29 @@ input[type="text"]:focus {
 .ms-bar { height: 7px; background: #EFE0C6; border-radius: 4px; overflow: hidden; }
 .ms-bar i { display: block; height: 100%; background: linear-gradient(90deg, #E8A93C, #E14B7E); border-radius: 4px; }
 .ms-row.done .ms-bar i { background: linear-gradient(90deg, #60D9B0, #26A882); }
-.ms-count { font-size: 11.5px; font-weight: 800; color: var(--ink-soft); white-space: nowrap; flex: 0 0 auto; }
+.ms-count { font-size: 11.5px; font-weight: 800; color: var(--ink-soft); white-space: nowrap; flex: 0 0 auto; text-align: right; }
+.ms-reward { display: block; font-size: 10px; color: #B47A18; font-weight: 800; margin-top: 1px; }
+/* A completed, unclaimed milestone is a present waiting to be opened */
+.ms-claim {
+  border: none; cursor: pointer; flex: 0 0 auto;
+  font-weight: 900; font-size: 12px; color: #5A3A00;
+  background: linear-gradient(170deg, #FFD98A 0%, #E8A93C 100%);
+  border-radius: 11px; padding: 7px 10px;
+  box-shadow: 0 3px 0 #B47A18, 0 4px 10px rgba(232,169,60,.35);
+  animation: ms-bounce 1.4s ease-in-out infinite;
+  white-space: nowrap;
+}
+.ms-claim:active { transform: translateY(2px); box-shadow: 0 1px 0 #B47A18; animation: none; }
+@keyframes ms-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.ms-claimed { font-size: 12px; font-weight: 900; color: #2A9A8C; white-space: nowrap; }
+/* claimable-count badge on the "See all milestones" link */
+.ms-badge {
+  display: inline-grid; place-items: center;
+  min-width: 16px; height: 16px; padding: 0 4px; margin-left: 3px;
+  border-radius: 9px; vertical-align: 1px;
+  background: linear-gradient(170deg, #F4649B 0%, #C73364 100%);
+  color: #fff; font-size: 10px; font-weight: 900;
+}
 /* What's-new / changelog modal */
 .chef-modal .cl-list { overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 10px; padding-right: 2px; }
 .cl-entry {

@@ -26,6 +26,27 @@ function botCaps(crew) {
 }
 const MAX_PLAYERS = 8;
 const MAX_RADIO_QUEUE = 12;
+
+// ── Milestone payouts — design-roadmap #11 ──────────────────────────────────
+// Ids/targets mirror the client's milestoneList (app.js). Rewards are sized so
+// 2-3 claims ≈ one 600-1,800 coin upgrade — they bridge new crews across the
+// gap to their first purchase. Checks validate against crew data; the two
+// character milestones are device-personal (unlocks live in each player's
+// lifetime stars), so the server accepts the client's count for those two.
+const MILESTONES = {
+  first_service:  { reward: 100,  check: (crew) => crew.stats.rounds >= 1 },
+  rising_star:    { reward: 150,  check: (crew, lv) => lv.some((l) => l.section !== 'custom' && l.stars === 3) },
+  hire_help:      { reward: 150,  check: (crew) => isBotHired(crew) },
+  master_teacher: { reward: 500,  check: (crew) => botCaps(crew).size >= 5 },
+  seasoned_crew:  { reward: 300,  check: (crew) => crew.stats.rounds >= 25 },
+  growing_cast:   { reward: 250,  check: (c, lv, x) => Number(x && x.chars) >= 10 },
+  trailblazer:    { reward: 500,  check: (crew, lv) => lv.filter((l) => l.section !== 'custom').every((l) => l.unlocked) },
+  line_cook:      { reward: 250,  check: (crew) => crew.stats.meals >= 100 },
+  big_earner:     { reward: 750,  check: (crew) => crew.stats.earned >= 10000 },
+  perfectionist:  { reward: 2000, check: (crew, lv) => { const camp = lv.filter((l) => l.section !== 'custom'); return camp.length > 0 && camp.every((l) => l.stars === 3); } },
+  head_chef:      { reward: 750,  check: (crew) => crew.stats.meals >= 500 },
+  full_ensemble:  { reward: 1000, check: (c, lv, x) => Number(x && x.chars) >= Math.max(1, Number((x && x.total) || 70)) },
+};
 const VIDEO_ID_RE = /^[\w-]{11}$/;
 
 const rooms = new Map(); // code -> room
@@ -180,6 +201,8 @@ function lobbyState(room) {
     bot: !!room.wantBot,                       // is the Sous-Chef toggled on for next round
     botHired: isBotHired(room.crew),           // owns 'Hire a Sous-Chef'
     botCaps: [...botCaps(room.crew)],          // skills taught: chop/wash/cook/plate/serve
+    claimedMilestones: room.crew.claimedMilestones || {},
+    milestoneRewards: Object.fromEntries(Object.entries(MILESTONES).map(([id, m]) => [id, m.reward])),
   };
 }
 
@@ -584,6 +607,23 @@ function attach(io) {
         return ack({ error: 'Not enough coins yet — keep cooking!' });
       }
       ack({ ok: true });
+      roomBroadcast(io, joined.room, 'lobby', lobbyState(joined.room));
+    });
+
+    // Milestone claims: validated server-side against crew data, paid once.
+    socket.on('claim_milestone', ({ id, chars, totalChars } = {}, ack) => {
+      if (typeof ack !== 'function') ack = () => {};
+      if (!joined) return ack({ error: 'Not in a kitchen' });
+      const ms = MILESTONES[id];
+      if (!ms) return ack({ error: 'Unknown milestone' });
+      const crew = joined.room.crew;
+      store.ensureCrewExtras(crew);
+      if (crew.claimedMilestones[id]) return ack({ error: 'Already claimed' });
+      if (!ms.check(crew, levelList(crew), { chars, total: totalChars })) {
+        return ack({ error: 'Not done yet — keep cooking!' });
+      }
+      store.claimMilestone(crew, id, ms.reward);
+      ack({ ok: true, reward: ms.reward });
       roomBroadcast(io, joined.room, 'lobby', lobbyState(joined.room));
     });
 

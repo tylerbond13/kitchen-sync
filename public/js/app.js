@@ -1063,7 +1063,11 @@
         <span class="prog-chip">🤖 ${state.botHired ? `${botSkills}/5 skills` : 'not hired'}</span>
       </div>
       <div class="prog-next">${nextHint}</div>
-      <button class="prog-milestones" id="btn-milestones" type="button">🏅 See all milestones ›</button>`;
+      <button class="prog-milestones" id="btn-milestones" type="button">🏅 See all milestones ›${(() => {
+        const claimed = state.claimedMilestones || {};
+        const claimable = milestoneList(state).filter((m) => m.cur >= m.target && m.reward && !claimed[m.id]).length;
+        return claimable ? ` <span class="ms-badge">${claimable}</span>` : '';
+      })()}</button>`;
     const mb = el.querySelector('#btn-milestones');
     if (mb) mb.onclick = openMilestones;
     if (milestonesOpen) renderMilestones();
@@ -1081,30 +1085,39 @@
     const charsUnlocked = CHEFS.filter((c) => chefUnlocked(c.key)).length;
     const botSkills = (state.botCaps || []).length;
     const nLevels = camp.length || 1;
+    const rw = state.milestoneRewards || {};
     return [
-      { emoji: '🍳', title: 'First Service',   desc: 'Cook your first round',            cur: cs.rounds,                target: 1 },
-      { emoji: '⭐', title: 'Rising Star',     desc: 'Earn 3 stars on any level',        cur: threeStar,                target: 1 },
-      { emoji: '🤖', title: 'Hire Help',       desc: 'Hire your AI Sous-Chef',           cur: state.botHired ? 1 : 0,   target: 1 },
-      { emoji: '🎓', title: 'Master Teacher',  desc: 'Teach the Sous-Chef all 5 skills', cur: botSkills,                target: 5 },
-      { emoji: '👨‍🍳', title: 'Seasoned Crew',  desc: 'Play 25 rounds together',          cur: cs.rounds,                target: 25 },
-      { emoji: '🎭', title: 'Growing Cast',    desc: 'Unlock 10 characters',             cur: charsUnlocked,            target: 10 },
-      { emoji: '🗺️', title: 'Trailblazer',     desc: 'Unlock every campaign level',      cur: unlockedLevels,           target: nLevels },
-      { emoji: '🍽️', title: 'Line Cook',       desc: 'Serve 100 meals as a crew',        cur: cs.meals,                 target: 100 },
-      { emoji: '💰', title: 'Big Earner',      desc: 'Bank 10,000 coins all-time',       cur: cs.earned,                target: 10000 },
-      { emoji: '🏆', title: 'Perfectionist',   desc: '3-star every campaign level',      cur: threeStar,                target: nLevels },
-      { emoji: '🍴', title: 'Head Chef',       desc: 'Serve 500 meals as a crew',        cur: cs.meals,                 target: 500 },
-      { emoji: '🌟', title: 'Full Ensemble',   desc: 'Unlock every character',           cur: charsUnlocked,            target: CHEFS.length },
-    ];
+      { id: 'first_service',  emoji: '🍳', title: 'First Service',   desc: 'Cook your first round',            cur: cs.rounds,                target: 1 },
+      { id: 'rising_star',    emoji: '⭐', title: 'Rising Star',     desc: 'Earn 3 stars on any level',        cur: threeStar,                target: 1 },
+      { id: 'hire_help',      emoji: '🤖', title: 'Hire Help',       desc: 'Hire your AI Sous-Chef',           cur: state.botHired ? 1 : 0,   target: 1 },
+      { id: 'master_teacher', emoji: '🎓', title: 'Master Teacher',  desc: 'Teach the Sous-Chef all 5 skills', cur: botSkills,                target: 5 },
+      { id: 'seasoned_crew',  emoji: '👨‍🍳', title: 'Seasoned Crew',  desc: 'Play 25 rounds together',          cur: cs.rounds,                target: 25 },
+      { id: 'growing_cast',   emoji: '🎭', title: 'Growing Cast',    desc: 'Unlock 10 characters',             cur: charsUnlocked,            target: 10 },
+      { id: 'trailblazer',    emoji: '🗺️', title: 'Trailblazer',     desc: 'Unlock every campaign level',      cur: unlockedLevels,           target: nLevels },
+      { id: 'line_cook',      emoji: '🍽️', title: 'Line Cook',       desc: 'Serve 100 meals as a crew',        cur: cs.meals,                 target: 100 },
+      { id: 'big_earner',     emoji: '💰', title: 'Big Earner',      desc: 'Bank 10,000 coins all-time',       cur: cs.earned,                target: 10000 },
+      { id: 'perfectionist',  emoji: '🏆', title: 'Perfectionist',   desc: '3-star every campaign level',      cur: threeStar,                target: nLevels },
+      { id: 'head_chef',      emoji: '🍴', title: 'Head Chef',       desc: 'Serve 500 meals as a crew',        cur: cs.meals,                 target: 500 },
+      { id: 'full_ensemble',  emoji: '🌟', title: 'Full Ensemble',   desc: 'Unlock every character',           cur: charsUnlocked,            target: CHEFS.length },
+    ].map((m) => ({ ...m, reward: rw[m.id] || 0 }));
   }
   function renderMilestones() {
     const state = lobby || {};
     const items = milestoneList(state);
+    const claimed = state.claimedMilestones || {};
     const done = items.filter((m) => m.cur >= m.target).length;
     $('milestones-count').textContent = `${done}/${items.length} unlocked`;
     $('milestones-list').innerHTML = items.map((m) => {
       const complete = m.cur >= m.target;
       const pct = Math.min(100, Math.round((m.cur / m.target) * 100));
       const cur = Math.min(m.cur, m.target);
+      // Milestones PAY: complete+unclaimed rows grow a bouncing gold Claim
+      // button; claimed rows show the payout; the rest advertise the reward.
+      const tail = complete && !claimed[m.id] && m.reward
+        ? `<button class="ms-claim" data-id="${m.id}">Claim <span class="coin"></span> ${m.reward.toLocaleString()}</button>`
+        : claimed[m.id]
+        ? `<div class="ms-count"><span class="ms-claimed">✓ +${m.reward.toLocaleString()}</span></div>`
+        : `<div class="ms-count">${cur.toLocaleString()}/${m.target.toLocaleString()}${m.reward ? `<span class="ms-reward">+${m.reward.toLocaleString()} <span class="coin"></span></span>` : ''}</div>`;
       return `<div class="ms-row${complete ? ' done' : ''}">
         <div class="ms-emoji">${m.emoji}</div>
         <div class="ms-info">
@@ -1112,9 +1125,23 @@
           <div class="ms-desc">${escapeHtml(m.desc)}</div>
           <div class="ms-bar"><i style="width:${pct}%"></i></div>
         </div>
-        <div class="ms-count">${cur.toLocaleString()}/${m.target.toLocaleString()}</div>
+        ${tail}
       </div>`;
     }).join('');
+    for (const b of $('milestones-list').querySelectorAll('.ms-claim')) {
+      b.onclick = () => {
+        SFX.tap();
+        socket.emit('claim_milestone', {
+          id: b.dataset.id,
+          chars: CHEFS.filter((c) => chefUnlocked(c.key)).length,
+          totalChars: CHEFS.length,
+        }, (res) => {
+          if (res && res.error) return toast(res.error);
+          toast(`🏅 Milestone claimed — +${(res.reward || 0).toLocaleString()} coins!`);
+          SFX.serve ? SFX.serve() : SFX.tap();
+        });
+      };
+    }
   }
   function openMilestones() {
     SFX.tap();
