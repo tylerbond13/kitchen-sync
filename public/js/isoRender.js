@@ -439,6 +439,18 @@
           `radial-gradient(120% 100% at 50% 18%, ${t.surroundA} 0%, ${t.surroundB} 100%)`;
       }
 
+      // Character overlay: a transparent canvas stacked ABOVE the HTML ticket
+      // band. Character sprites (chefs, customers, carried items, name tags)
+      // are replayed onto it, clipped to the band region, so people walk IN
+      // FRONT of the order cards instead of hiding behind them. Created
+      // before the first resize() so it gets sized with the main canvas.
+      if (!this.preview) {
+        this.overlay = document.createElement('canvas');
+        this.overlay.className = 'char-overlay';
+        canvas.parentElement.appendChild(this.overlay);
+        this.octx = this.overlay.getContext('2d');
+      }
+
       this.resize = this.resize.bind(this);
       window.addEventListener('resize', this.resize);
       // The canvas box also changes without a window resize — e.g. the orders
@@ -491,6 +503,7 @@
       this.running=false;
       window.removeEventListener('resize',this.resize);
       this._ro && this._ro.disconnect();
+      if (this.overlay) { this.overlay.remove(); this.overlay = this.octx = null; }
       if (this._onPointerDown) {
         this.canvas.removeEventListener('pointerdown', this._onPointerDown);
         if (this.canvas.__ksTapHandler === this._onPointerDown) this.canvas.__ksTapHandler = null;
@@ -582,18 +595,21 @@
         const scr = document.getElementById('screen-game');
         if (scr) scr.style.setProperty('--hud-band-h', `${Math.round(this.bandTop / this.dpr)}px`);
       }
-      // Gameplay starts at the HEADS of characters on the highest walkable
-      // spot (chefs on the top floor row, the front queue customer) — not at
-      // the room's top edge. Fit from there so tickets only ever cover true
-      // decorative wall, never a chef, a customer, or a name tag.
-      const playTop = Math.max(PAD, this.oy - charRise);
-      const playH  = this.worldH - playTop;   // char headroom + rows + front faces
+      // Fit the ROOM between the bands (max tile size). Characters near the
+      // top rows rise into the zone behind the ticket band — those sprites
+      // are replayed onto the char overlay canvas ABOVE the tickets, so
+      // nothing gameplay-relevant is ever hidden (see drawCharOverlay).
+      const playH  = this.worldH - this.oy;   // room rows + front-face padding
       const availH = Math.max(80, this.canvas.height - this.bandTop - this.bandBot);
       this.scale = Math.min(this.canvas.width / this.worldW, availH / playH);
       this.txOff = (this.canvas.width - this.worldW * this.scale) / 2;
-      // pin the tallest head just below the tickets; float in any spare height
-      this.tyOff = this.bandTop - playTop * this.scale
+      // pin the top row just below the tickets; float in any spare height
+      this.tyOff = this.bandTop - this.oy * this.scale
                  + Math.max(0, availH - playH * this.scale) / 2;
+      if (this.overlay) {
+        this.overlay.width  = this.canvas.width;
+        this.overlay.height = this.canvas.height;
+      }
     }
 
     toWorld(cx, cy) { return [(cx-this.txOff)/this.scale, (cy-this.tyOff)/this.scale]; }
@@ -821,16 +837,17 @@
       // with everything else.
       this.pushDecor(renderQueue);
 
+      this._charDraws = [];            // characters replayed above the tickets
       if (this.cur) {
         // 3. Chefs — feet anchor.
         for (const p of this.lerpPlayers()) {
           const [sx, sy] = this.projectEntity(p.x, p.y);
-          renderQueue.push({ screenY: sy + 0.01, draw: () => this.drawChef(p, sx, sy, now) });
+          renderQueue.push({ screenY: sy + 0.01, char: true, draw: () => this.drawChef(p, sx, sy, now) });
         }
         // 4. Customers in the waiting line.
         for (const q of this.customerQueue()) {
           const [sx, sy] = this.project(q.x, q.y);
-          renderQueue.push({ screenY: sy, draw: () => this.drawCustomer(q, sx, sy, now) });
+          renderQueue.push({ screenY: sy, char: true, draw: () => this.drawCustomer(q, sx, sy, now) });
         }
       }
 
@@ -838,7 +855,10 @@
       renderQueue.sort((a, b) => a.screenY - b.screenY);
       this._labels = [];
       this._overlays = [];              // station contents — always drawn on top
-      for (const item of renderQueue) item.draw();
+      for (const item of renderQueue) {
+        item.draw();
+        if (item.char) this._charDraws.push(item.draw);
+      }
 
       // Station contents (food, cook items, progress bars, counts) render ABOVE
       // the chefs, so a chef (or the AI bot) standing in front never hides what's
@@ -846,15 +866,48 @@
       for (const o of this._overlays) o();
 
       // Name labels render after the whole queue so geometry never buries them.
-      for (const L of this._labels) {
+      this.drawLabels(ctx, this._labels);
+
+      this.drawEffects(now);
+      this.drawAtmosphere();
+      this.drawCharOverlay();
+    }
+
+    drawLabels(ctx, labels) {
+      for (const L of labels) {
         ctx.font=`800 ${L.size}px ui-rounded,system-ui`;
         ctx.textAlign='center'; ctx.textBaseline='alphabetic';
         ctx.fillStyle='rgba(255,255,255,0.92)'; ctx.fillText(L.text,L.x+1,L.y+1);
         ctx.fillStyle=L.color; ctx.fillText(L.text,L.x,L.y);
       }
+    }
 
-      this.drawEffects(now);
-      this.drawAtmosphere();
+    // Replay the character sprites onto the overlay canvas, CLIPPED to the
+    // ticket-band region — the slice of every chef/customer that the main
+    // canvas hides behind the order cards is redrawn ABOVE them. Below the
+    // band the main canvas already shows the same pixels, so the overlay
+    // stays empty there (no double-draw halos on opaque sprite art).
+    drawCharOverlay() {
+      const o = this.octx;
+      if (!o) return;
+      o.setTransform(1,0,0,1,0,0);
+      o.clearRect(0,0,this.overlay.width,this.overlay.height);
+      if (!this._charDraws || !this._charDraws.length || !(this.bandTop > 0)) return;
+      o.save();
+      o.beginPath();
+      o.rect(0, 0, this.overlay.width, this.bandTop + 2 * this.dpr);
+      o.clip();
+      o.setTransform(this.scale,0,0,this.scale,this.txOff,this.tyOff);
+      // drawChef/drawCustomer render through this.ctx and push name tags into
+      // this._labels — swap both out, replay, then restore the real ones.
+      const realCtx = this.ctx, realLabels = this._labels, realOverlays = this._overlays, realHits = this._hits;
+      this.ctx = o; this._labels = []; this._overlays = []; this._hits = [];
+      for (const d of this._charDraws) d();
+      for (const fn of this._overlays) fn();
+      this.drawLabels(o, this._labels);
+      this.ctx = realCtx; this._labels = realLabels; this._overlays = realOverlays; this._hits = realHits;
+      o.restore();
+      o.setTransform(1,0,0,1,0,0);
     }
 
     // ── Background Layer: wall-mounted decor + decorative clutter ────────────
