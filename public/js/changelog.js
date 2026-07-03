@@ -3,6 +3,18 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.28.0",
+    "title": "Warm bakery re-skin",
+    "emoji": "🎨",
+    "category": "polish",
+    "changes": [
+      "The menus moved out of the purple candy palette into a warm bakery room — butterscotch cream backgrounds, lighter cards, and a rich plum kitchen-code bar anchoring the lobby.",
+      "Colour now means something: teaberry pink = play & advance, gold = spend & earn, teal = owned & on. Shop prices are proper gold price tags; owned skills wear a teal ✓.",
+      "A dozen small legibility fixes: readable section labels, warmer empty stars, thicker milestone bars with a gold→pink fill, and locked characters fade to warm sepia instead of dead grey.",
+      "Menus and kitchen finally share one palette — the whole game reads as a single art direction."
+    ]
+  },
+  {
     "version": "1.27.0",
     "title": "Set dressing — every kitchen comes alive",
     "emoji": "🕯️",
