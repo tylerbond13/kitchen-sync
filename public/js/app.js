@@ -1353,6 +1353,8 @@
     const banner = $('rush-banner');
     banner.hidden = !state.rush;
     if (state.rush) banner.textContent = `🔥 BONUS TIME! Double tips — ${state.rush}s`;
+    // the hint shares the under-tickets slot — give the rush banner the stage
+    $('game-hint').style.opacity = state.rush ? '0' : '';
 
     // auto-chop toggle state (locked button keeps its 🔒)
     if (curStatic && curStatic.autoChopAllowed) {
