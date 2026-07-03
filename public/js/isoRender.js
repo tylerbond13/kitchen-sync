@@ -491,13 +491,17 @@
     // the line grows downward, centered against the room's depth.
     queueSlot(i) {
       const { w, h } = this.lvl;
-      const QGAP = 1.35 * (0.6 + 0.4 * this.charScale); // vertical tiles between
-                                                 // waiting customers — grows with
-                                                 // character size so the bigger
-                                                 // sprites don't clump together
+      // Vertical tiles between waiting customers — grows with character size so
+      // the bigger sprites don't clump, but CLAMPED so the whole line fits
+      // within the room's rows. An overhanging queue used to stretch the fit
+      // bounds and shrink every tile on screen; a tighter crowd costs nothing.
+      const natural = 1.35 * (0.6 + 0.4 * this.charScale);
+      const QGAP = Math.min(natural, Math.max(0.85, (h - 1.9) / (QUEUE_DEPTH - 1)));
       const col = w + 0.7;                       // one tile beyond the right wall
       const span = QGAP * (QUEUE_DEPTH - 1);
-      const top = Math.max(0, (h - span) / 2);   // center the taller line vertically
+      // start no higher than the second row, so queue heads stay inside the
+      // (reduced) headroom — see resize()
+      const top = Math.max(1.0, (h - 1 - span) / 2);
       return { x: col, y: top + 0.5 + i * QGAP };
     }
 
@@ -519,12 +523,22 @@
         minGx=Math.min(minGx,q.x); maxGx=Math.max(maxGx,q.x); maxGy=Math.max(maxGy,q.y);
       }
       const PAD=10;
-      // Characters anchor at their feet and draw upward, so the back row needs
+      // Characters anchor at their feet and draw upward, so the world needs
       // enough room above the floor line that a (possibly 2×) head/hat never
-      // clips the top edge. Grow the headroom with charScale; never shrink it
-      // below the painted wall height.
+      // clips the top edge. Size that headroom to where characters can ACTUALLY
+      // stand: the topmost walkable row (campaign boards have stations across
+      // row 0, so chefs stand a full tile lower) and the queue's first slot —
+      // not a worst case nobody occupies. Every world pixel saved here makes
+      // all tiles bigger on a phone. Never shrink below the painted wall.
       const tallest = Math.max(CHEF_H, CUSTOMER_H) * this.charScale;
-      const headroom = Math.max(WALL_H, Math.ceil(tallest - TILE_HEIGHT * 0.5 + 12));
+      let topFloor = 0;
+      scan: for (let gy = 0; gy < h; gy++) {
+        for (let gx = 0; gx < w; gx++) {
+          if (this.lvl.grid[gy] && this.lvl.grid[gy][gx] === '.') { topFloor = gy; break scan; }
+        }
+      }
+      const highestFeet = Math.min(topFloor + 0.5, this.queueSlot(0).y); // in tiles
+      const headroom = Math.max(WALL_H, Math.ceil(tallest - TILE_HEIGHT * highestFeet + 12));
       this.ox = PAD + WALL_SIDE + Math.max(0,-minGx)*TILE_WIDTH; // room origin
       this.oy = PAD + headroom;                                  // below the wall
       this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + WALL_SIDE + PAD;
