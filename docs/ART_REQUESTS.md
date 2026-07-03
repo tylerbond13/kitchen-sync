@@ -27,8 +27,8 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [x] 8. Mixer refresh
 - [x] 9. Section wallpaper sets
 - [x] 10. Walkway prop pack
-- [ ] 11. Wall decor pack
-- [ ] 12. Reward chest / gift box
+- [x] 11. Wall decor pack
+- [x] 12. Reward chest / gift box
 - [ ] 13. Coin + star icon pair
 - [ ] 14. Roadmap section banners
 - [ ] 15. Home-screen hero
