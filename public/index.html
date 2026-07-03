@@ -614,6 +614,23 @@ input[type="text"]:focus {
 }
 .lobby-foot { text-align: center; }
 
+/* ============ The coin — money should look like money ============
+   One drawn gold disc replacing the grey-moon 🪙 emoji everywhere a price
+   or payout renders (shop, milestones, results, banners). Sized in em so it
+   inherits the surrounding font size. */
+.coin {
+  display: inline-block; width: 1em; height: 1em;
+  vertical-align: -0.12em; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #FFE9A8 0%, #FFD98A 38%, #E8A93C 72%, #B47A18 100%);
+  box-shadow: inset 0 0 0 1px rgba(180,122,24,.7), inset 0 -2px 3px rgba(180,122,24,.4), 0 1px 2px rgba(90,54,100,.25);
+  position: relative;
+}
+.coin::after {
+  content: '★'; position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: .5em; color: #B47A18; font-weight: 900; line-height: 1;
+}
+
 /* ============ Section heads in level list ============ */
 .section-head {
   display: flex; align-items: center; gap: 8px;
@@ -637,6 +654,15 @@ input[type="text"]:focus {
   background: repeating-linear-gradient(180deg, rgba(178,59,98,.5) 0 5px, transparent 5px 11px);
   border-radius: 2px;
 }
+/* …and the part of the trail you've already conquered fills solid gold
+   (--prog is set per group by the lobby renderer, 0-100) */
+.level-group::after {
+  content: ''; position: absolute; left: 9px; top: 4px; width: 3px;
+  height: calc((100% - 14px) * var(--prog, 0) / 100);
+  background: linear-gradient(180deg, #FFD98A 0%, #E8A93C 100%);
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(232,169,60,.55);
+}
 .roadmap-node {
   flex: 0 0 auto; width: 88px;
   flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px;
@@ -654,16 +680,46 @@ input[type="text"]:focus {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .roadmap-node:not(.locked)[data-stars="1"],
-.roadmap-node:not(.locked)[data-stars="2"],
-.roadmap-node:not(.locked)[data-stars="3"] {
+.roadmap-node:not(.locked)[data-stars="2"] {
   background: linear-gradient(135deg, #FFF2F8 0%, #FFFBEA 100%);
   border-color: rgba(240,193,90,.32);
 }
-.roadmap-node.current {
-  border-color: var(--bubblegum);
-  box-shadow: 0 0 0 4px rgba(178,59,98,.16), 0 4px 14px rgba(178,59,98,.22);
+/* DONE: a gold-stamped node — you beat it well and it reads that way */
+.roadmap-node:not(.locked)[data-stars="3"] {
+  background: linear-gradient(135deg, #FFF6DC 0%, #FFEFC2 100%);
+  border-color: #E2B454;
 }
-.roadmap-node.locked { opacity: .5; filter: grayscale(.85); }
+/* CURRENT: the one unambiguous "tap here next" — teaberry ring, gentle pulse,
+   and a PLAY ribbon riding its top edge */
+.roadmap-node.current {
+  border-color: #E14B7E;
+  transform: scale(1.06);
+  animation: node-pulse 1.8s ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(225,75,126,.16), 0 4px 14px rgba(178,59,98,.22); }
+  50%      { box-shadow: 0 0 0 8px rgba(225,75,126,.09), 0 4px 14px rgba(178,59,98,.22); }
+}
+.roadmap-node.current::before {
+  content: 'PLAY';
+  position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(170deg, #F4649B 0%, #C73364 100%);
+  color: #fff; font-size: 9px; font-weight: 900; letter-spacing: .6px;
+  padding: 2.5px 9px; border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(143,29,66,.4);
+}
+/* LOCKED: the level's own emoji ghosted (a silhouette of what's coming),
+   with a small plum padlock chip — not a grey emoji ghost */
+.roadmap-node.locked { opacity: 1; filter: none; }
+.roadmap-node.locked .level-emoji { opacity: .35; filter: saturate(.5); }
+.roadmap-node.locked .level-stars { visibility: hidden; }
+.roadmap-node .node-lock {
+  position: absolute; top: 5px; right: 7px; width: 13px; height: 13px;
+  background: #4A2352; opacity: .75;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 1 1 6 0v3H9z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 1 1 6 0v3H9z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 .roadmap-node .level-edit {
   position: absolute; top: -6px; right: -6px; margin: 0;
   padding: 3px 6px; font-size: 11px; border-radius: 9px;
@@ -1849,7 +1905,7 @@ input[type="text"]:focus {
       <div class="card welcome-card" id="welcome-card" hidden>
         <h2>👋 Welcome to the kitchen!</h2>
         <div class="wc-row"><span class="wc-emoji">⭐</span><span>Cook levels to earn <b>stars</b> — they unlock new <b>characters</b> and open the next <b>levels</b>.</span></div>
-        <div class="wc-row"><span class="wc-emoji">🪙</span><span>Cooking banks <b>coins</b>. Spend them to hire an <b>AI Sous-Chef</b> and teach it to chop, cook, plate &amp; serve.</span></div>
+        <div class="wc-row"><span class="wc-emoji"><span class="coin"></span></span><span>Cooking banks <b>coins</b>. Spend them to hire an <b>AI Sous-Chef</b> and teach it to chop, cook, plate &amp; serve.</span></div>
         <div class="wc-row"><span class="wc-emoji">🎭</span><span>You start with the <b>Golden Girls</b> &amp; friends — pick your chef below and unlock the rest by playing.</span></div>
         <button class="btn btn-primary wc-dismiss" id="btn-welcome-done">Let's cook →</button>
       </div>

@@ -880,8 +880,11 @@
       // Mark the first unlocked level that isn't fully starred as "you are here".
       if (lvl.unlocked && lvl.stars < 3 && !currentMarked) { row.classList.add('current'); currentMarked = true; }
       const stars = [1, 2, 3].map((i) => `<span class="${lvl.stars >= i ? '' : 'off'}">★</span>`).join('');
+      // Locked nodes show the level's own emoji ghosted (CSS) + a lock chip —
+      // a teaser of what's coming, not a grey padlock ghost.
       row.innerHTML = `
-        <div class="level-emoji">${lvl.unlocked ? lvl.emoji : '🔒'}</div>
+        <div class="level-emoji">${lvl.emoji}</div>
+        ${lvl.unlocked ? '' : '<span class="node-lock"></span>'}
         <div class="level-info">
           <div class="level-name">${lvl.n}. ${lvl.name}</div>
           <div class="level-blurb">${lvl.blurb}</div>
@@ -937,6 +940,13 @@
       }
       (currentGroup || $('level-list')).appendChild(row);
     }
+    // Fill each stage's trail gold up to where you've earned stars — the map
+    // visibly fills in behind you as you conquer it.
+    for (const group of $('level-list').querySelectorAll('.level-group')) {
+      const nodes = [...group.querySelectorAll('.roadmap-node')];
+      const passed = nodes.filter((n) => Number(n.dataset.stars) > 0).length;
+      group.style.setProperty('--prog', nodes.length ? Math.round((passed / nodes.length) * 100) : 0);
+    }
 
     $('btn-open-builder').hidden = !iAmHost;
     const botBtn = $('btn-toggle-bot');
@@ -966,7 +976,7 @@
     const card = $('shop-card');
     if (!state.wallet || !state.upgrades) { card.hidden = true; return; }
     card.hidden = false;
-    $('shop-coins').textContent = `🪙 ${state.wallet.coins.toLocaleString()}`;
+    $('shop-coins').innerHTML = `<span class="coin"></span> ${state.wallet.coins.toLocaleString()}`;
     const list = $('shop-list');
     list.innerHTML = '';
     const owned = state.wallet.upgrades || {};
@@ -989,7 +999,7 @@
         // Nudge the coin loop: if it's buyable but you can't afford it yet, show
         // how much more you need to save.
         const desc = locked ? `🔒 Requires “${state.upgrades[up.needs].name}”`
-          : (!isOwned && !affordable) ? `${up.desc} <span class="shop-short">· 🪙 ${short.toLocaleString()} more to save</span>`
+          : (!isOwned && !affordable) ? `${up.desc} <span class="shop-short">· <span class="coin"></span> ${short.toLocaleString()} more to save</span>`
           : up.desc;
         row.innerHTML = `
           <div class="shop-emoji">${up.emoji}</div>
@@ -998,7 +1008,7 @@
             <div class="shop-desc">${desc}</div>
           </div>
           <button class="shop-buy" ${isOwned || locked || !affordable ? 'disabled' : ''}>
-            ${isOwned ? '✓ Owned' : locked ? '🔒' : `🪙 ${up.cost.toLocaleString()}`}
+            ${isOwned ? '✓ Owned' : locked ? '🔒' : `<span class="coin"></span> ${up.cost.toLocaleString()}`}
           </button>`;
         if (!isOwned && !locked) {
           row.querySelector('.shop-buy').onclick = () => {
@@ -1025,7 +1035,7 @@
     const el = $('crew-stats');
     if (!state.crewStats) { el.textContent = ''; return; }
     const s = state.crewStats;
-    el.textContent = `🍽️ ${s.meals.toLocaleString()} meals served · 🎮 ${s.rounds} rounds · 🪙 ${s.earned.toLocaleString()} earned all-time`;
+    el.innerHTML = `🍽️ ${s.meals.toLocaleString()} meals served · 🎮 ${s.rounds} rounds · <span class="coin"></span> ${s.earned.toLocaleString()} earned all-time`;
   }
 
   // At-a-glance progression: stars, 3★ levels, characters unlocked, Sous-Chef
@@ -1588,7 +1598,7 @@
     const banked = results.crew && results.crew.wallet && results.crew.wallet.coins;
     if (earned > 0) {
       coinsEl.hidden = false;
-      coinsEl.innerHTML = `🪙 +0 coins` +
+      coinsEl.innerHTML = `<span class="coin"></span> +0 coins` +
         (typeof banked === 'number' ? ` <span class="rc-total">· 💰 ${banked.toLocaleString()} banked</span>` : '');
     } else {
       coinsEl.hidden = true;
@@ -1607,7 +1617,7 @@
         const [, up] = target;
         const have = Math.min(banked || 0, up.cost);
         nu.hidden = false;
-        nu.innerHTML = `🎯 Next unlock: ${up.emoji} <b>${escapeHtml(up.name)}</b> — 🪙 ${(banked || 0).toLocaleString()}/${up.cost.toLocaleString()}` +
+        nu.innerHTML = `🎯 Next unlock: ${up.emoji} <b>${escapeHtml(up.name)}</b> — <span class="coin"></span> ${(banked || 0).toLocaleString()}/${up.cost.toLocaleString()}` +
           `<div class="nu-bar"><i style="width:${Math.round((have / up.cost) * 100)}%"></i></div>`;
       }
     }
@@ -1672,7 +1682,7 @@
     function tick(now) {
       const f = Math.min((now - t0) / dur, 1);
       const v = Math.round(earned * (1 - Math.pow(1 - f, 2)));
-      coinsEl.innerHTML = `🪙 +${v.toLocaleString()} coins${suffix}`;
+      coinsEl.innerHTML = `<span class="coin"></span> +${v.toLocaleString()} coins${suffix}`;
       if (now - lastTick > 95 && f < 1) { lastTick = now; SFX.tap(); }
       if (f < 1) requestAnimationFrame(tick);
     }
@@ -1684,8 +1694,7 @@
     for (let i = 0; i < n; i++) {
       setTimeout(() => {
         const c = document.createElement('span');
-        c.className = 'coin-fly';
-        c.textContent = '🪙';
+        c.className = 'coin-fly coin';
         const jx = (Math.random() - 0.5) * 80, jy = (Math.random() - 0.5) * 30;
         c.style.left = `${s.x + s.width / 2 + jx}px`;
         c.style.top = `${s.y + s.height / 2 + jy}px`;

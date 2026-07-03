@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.33.0",
+    "title": "The roadmap becomes a journey",
+    "emoji": "🗺️",
+    "category": "feature",
+    "changes": [
+      "Level nodes now tell you exactly where you are: beaten levels stamp gold, your next level pulses with a PLAY ribbon, and locked levels tease their own dish behind a little padlock instead of a grey ghost.",
+      "The trail beside each world fills in gold behind you as you conquer it.",
+      "Coins finally look like money — a drawn gold coin replaces the grey emoji across the shop, results and crew stats."
+    ]
+  },
+  {
     "version": "1.32.0",
     "title": "The kitchen breathes",
     "emoji": "♨️",
