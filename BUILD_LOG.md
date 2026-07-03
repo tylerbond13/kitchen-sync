@@ -10,6 +10,18 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### The kitchen breathes — design-roadmap #7 + #9, and an expansion fix (v1.32.0)
+- **Merged island shadows (roadmap #7):** maximal horizontal counter runs now cast ONE continuous soft shadow pill (concentric fills faking a blur, core matching the old per-tile alpha) instead of a chain of scalloped per-tile blobs; isolated stations keep their ellipse. Counter rows finally read as built-in furniture.
+- **Ambient life (roadmap #9):** cooking stations puff procedural steam wisps (soft radial blobs rising with a sine sway, ~400ms cadence per station — replaces the flickering 💨 for cooking; burned keeps it), and 10-14 seeded warm dust motes drift over the upper floor, deterministic per round seed on every client.
+- **Kitchen Expansion reachability fix:** the Extra Counter's placement proof accepted "touches ANY floor" — a sealed decorative pocket counted, so on Soup's On it converted the onion crate's only real stand spot and BRICKED onion soup orders. The proof now requires every neighbouring station to keep access to the MAIN walkway component. 2 new regression tests (the soups-on case + all-campaign-levels sweep); 91/91 green.
+- Also: `window.__ksRenderer` debug handle for scripted browser verification.
+- _(Verified live on Soup's On: scripted a full cook — crate → chop → wait-pickup → pot ×3 — pot reached `cooking` with steam; motes + 4 merged shadow runs active; zero console errors.)_
+
+### Characters walk in front of the order cards (v1.31.0)
+- Reverted the v1.30.2 char-rise fit (it shrank every tile ~2×) per Tyler; the room fits between the HUD bands at full size again.
+- **New char-overlay canvas above the ticket band:** every chef, customer, carried item and name tag is replayed onto it each frame, clipped to the band region — people now stand IN FRONT of the recipe cards instead of hiding behind them, while in-kitchen depth/occlusion stays pixel-identical (the main pass is untouched).
+- v1.30.1/1.30.2 along the way: the ticket band grows with tall multi-step tickets (min-height + re-fit on every band height change), prep badges run sideways in-game, and the rush banner / hint / director HUD position off the real band height.
+
 ### Kitchen Expansion — Tyler's idea, shipped (v1.30.0)
 - **New shop tier "🏗️ Kitchen Expansion":** Extra Counter (1,200), Third Cutting Board (1,800), Extra Burner (2,400) — crew upgrades that PHYSICALLY grow every kitchen. Applied server-side to each round's grid before parsing, so every client renders exactly the board the server plays.
 - **Safe placement rules:** the board/burner convert the counter nearest their existing siblings (same tool as the level cooks with — a pot level gets another pot); the extra counter converts a walkway-edge floor tile only where it provably keeps the main walkway connected and every neighbouring station workable (flood-fill proof per candidate, deterministic order). Levels missing the pieces (no counters, no cookers, cramped customs) skip gracefully.

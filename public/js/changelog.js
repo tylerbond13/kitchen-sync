@@ -3,6 +3,37 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.32.0",
+    "title": "The kitchen breathes",
+    "emoji": "♨️",
+    "category": "feature",
+    "changes": [
+      "Cooking pots and pans now puff soft rising steam you can read from across the room — no more blinking emoji.",
+      "Warm dust motes drift through the light over the floor, and counter runs cast one continuous soft shadow instead of a chain of blobs.",
+      "Fixed a Kitchen Expansion bug where the Extra Counter could wall off a crate's only stand spot (Soup's On onion crate) — expansions now prove every station stays reachable from the real walkway."
+    ]
+  },
+  {
+    "version": "1.31.0",
+    "title": "Characters in front of the cards",
+    "emoji": "🃏",
+    "category": "fix",
+    "changes": [
+      "The kitchen renders at full size again, and chefs, customers and name tags now walk IN FRONT of the order cards instead of hiding behind them.",
+      "Order tickets stay fully readable — only people pass over them."
+    ]
+  },
+  {
+    "version": "1.30.2",
+    "title": "Nothing hides behind the tickets",
+    "emoji": "🎫",
+    "category": "fix",
+    "changes": [
+      "Tall multi-step order tickets no longer spill over the kitchen — the ticket band grows to hold them and the kitchen re-fits live.",
+      "Prep badges on in-game tickets lay out sideways so recipes widen a ticket instead of deepening the band."
+    ]
+  },
+  {
     "version": "1.30.0",
     "title": "Kitchen Expansion — buy new stations",
     "emoji": "🏗️",
