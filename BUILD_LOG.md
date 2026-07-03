@@ -10,6 +10,12 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### The Beaux-Arts kitchen — Codex art integration (v1.39.0)
+- **Integrated Codex's generated Beaux-Arts station set** (merged `codex/kitchen-sync-art-assets`, 79 sprites + 3 props + 3 wall v2s, downscaled to web size per shrink policy): the whole `_plain` station family now points at one coherent style — cutting board, stove (plain/full/fire), pot (plain/full/active), oven (plain/active), sink (clean + dirty 0-3), plate rack (count 0-4), serve window (plain/active), mixer v2 — **all with left/right facings** (the plain set had none). Mixer v2 also replaces Cake World's pink v1. Renderer's overlay plate pile removed (the rack art carries the stack now); corner count badges stay.
+- **Diner / Winter / Beach wallpapers → the new floor70 v2 full-room backdrops.**
+- **Hidden-tab loading fix (root cause of every "slow cold load" this session):** hidden pages suspend rAF and throttle timers to ≥1s, so the budgeted sprite-prep pump crawled or stalled forever. The pump now drains fully when `document.visibilityState === 'hidden'` (nobody sees jank in a hidden tab) — real-phone benefit: background the tab mid-load and everything is ready on return. Verified: sprite prep went from stalled-forever to <1s in a hidden tab.
+- Props (chalkboard menu, flour sacks, fiddle-leaf) are in the repo, wiring reserved for the walkway-prop-pack tracker item.
+
 ### The last ten seconds have teeth — design-roadmap #12 Phase C (v1.38.0)
 - **Final-ten tension:** woodblock tick each second + a breathing red inset vignette while the clock runs out (playing + unpaused only).
 - **⭐ STAR SECURED! banner** the moment the score crosses a star goal mid-round (gold flash under the tickets, star chime, auto-dismiss).

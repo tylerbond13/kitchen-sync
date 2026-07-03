@@ -3,6 +3,18 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.39.0",
+    "title": "The Beaux-Arts kitchen",
+    "emoji": "🏛️",
+    "category": "polish",
+    "changes": [
+      "Every main station got a matching hand-crafted look: cream enamel, honey wood and brass trim — stove, pots, ovens, cutting boards, sink, plate racks, serve windows and the mixer, all with proper left/right facings.",
+      "Stations now show their true state in the art itself: the sink piles up dirty dishes (0-3), plate racks show exactly how many clean plates remain (0-4), the stove catches fire while cooking.",
+      "Fresh full-room backdrops for the Diner, Winter and Beach themes.",
+      "Kitchens now finish loading even if you background the tab mid-load — sprites are ready the moment you come back."
+    ]
+  },
+  {
     "version": "1.38.0",
     "title": "The last ten seconds have teeth",
     "emoji": "⏰",

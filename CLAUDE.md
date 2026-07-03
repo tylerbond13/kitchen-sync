@@ -43,9 +43,11 @@ socket.io server (authoritative simulation), vanilla-JS client (no build step).
 - **Diner is the main progression** (The Family Diner → Winter → Beach): Salad
   Days, Burger Bay, Sushi Squad, etc. with diner ingredients (lettuce, tomato,
   patty…). **Cake World** is a side section + level 15.
-- **Art split:** stations use the cake-world art set (the only one with left/right
-  facings); **stove/pot and ingredient sprites use diner art** (cake-world has no
-  stove — only the mixer, which must NOT be used for `stove`).
+- **Art split (v1.39.0):** main-campaign stations use the **Beaux-Arts bakery set**
+  (`ks-cw-*` in cake-world/stations — cream/honey/brass, full left/right facings and
+  state variants: stove fire, pot full/active, sink dirty 0-3, plate-rack count 0-4);
+  ingredient sprites remain diner art. Cake World keeps its own themed stations
+  (mixer is the shared v2).
 - **Level Builder** (lobby "Build / Test a Level" + per-level ✏️ edit): board-design
   presets, tap-to-place + drag-to-move + drag-to-paint, per-asset facing
   (Front/Left/Right), tuning sliders, grouped customer picker (mirrors menu groups),
