@@ -1441,6 +1441,16 @@
         ticketEls.delete(id);
       }
     }
+    // Tickets size the top HUD band, and the kitchen is fitted to the space
+    // BETWEEN the bands — so a band that just grew or shrank must re-fit the
+    // kitchen or tall tickets hang over it. (The renderer also watches the
+    // bands with a ResizeObserver; this direct check is the reliable path
+    // since tickets only ever change right here.)
+    const bandNow = strip.parentElement.getBoundingClientRect().height;
+    if (renderer && bandNow !== renderOrders._bandH) {
+      renderOrders._bandH = bandNow;
+      renderer.resize();
+    }
   }
 
   $('btn-pause').onclick = () => socket.emit('pause', true);
