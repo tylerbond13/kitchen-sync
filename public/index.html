@@ -686,9 +686,12 @@ input[type="text"]:focus {
 .game-hud-top {
   position: absolute; z-index: 20;
   top: 0; left: 0; right: 0;
-  height: calc(var(--sat) + var(--hud-top-h));
+  /* min-height, not height: multi-step recipe tickets are taller than the
+     base band, and the kitchen-fit code measures this element — the band must
+     always CONTAIN the tickets or they hang over the kitchen. */
+  min-height: calc(var(--sat) + var(--hud-top-h));
   display: flex; align-items: flex-start; gap: 8px;
-  padding: calc(var(--sat) + 6px) calc(var(--sar) + 8px) 0 calc(var(--sal) + 8px);
+  padding: calc(var(--sat) + 6px) calc(var(--sar) + 8px) 4px calc(var(--sal) + 8px);
   /* the canvas runs underneath the bands now — let taps in the gaps fall
      through to it; the actual controls re-enable pointer events below */
   pointer-events: none;
@@ -762,7 +765,7 @@ input[type="text"]:focus {
    frame PNG washes out at this size, so in-game cards get a solid paper look
    that stays readable over any wallpaper. */
 .game-hud-top .ticket {
-  width: 150px; padding: 5px 7px; gap: 2px 6px;
+  width: auto; min-width: 150px; max-width: 216px; padding: 5px 7px; gap: 2px 6px;
   border-radius: 14px;
   grid-template-columns: 38px minmax(0, 1fr);
   background: linear-gradient(180deg, #FFF9EE 0%, #FFE9F4 100%);
@@ -783,8 +786,10 @@ input[type="text"]:focus {
 .game-hud-top .ticket-mini { width: 24px; height: 24px; }
 .game-hud-top .ticket-mini svg.art,
 .game-hud-top .ticket-mini-img { width: 23px; height: 23px; }
-.game-hud-top .ticket-ingredient { width: 26px; flex: 0 0 26px; }
-.game-hud-top .ticket-prep { min-height: 18px; gap: 2px; }
+/* Prep badges run SIDEWAYS in-game (they stack vertically on the big tutorial
+   cards) — a chop+cook recipe must widen the ticket, never deepen the band. */
+.game-hud-top .ticket-ingredient { width: auto; flex: 0 0 auto; min-width: 26px; }
+.game-hud-top .ticket-prep { min-height: 18px; gap: 2px; flex-direction: row; }
 .game-hud-top .ticket-prep span { width: 19px; height: 19px; font-size: 12px; }
 .ticket {
   flex: 0 0 auto;
@@ -953,7 +958,7 @@ input[type="text"]:focus {
 /* ============ Rush banner & star progress ============ */
 .rush-banner {
   position: absolute; z-index: 22;
-  top: calc(var(--sat) + var(--hud-top-h, 84px) + 6px);
+  top: calc(var(--hud-band-h, calc(var(--sat) + var(--hud-top-h, 84px))) + 6px);
   left: 50%; transform: translateX(-50%);
   max-width: min(92vw, 480px);
   background: linear-gradient(90deg, var(--sherbet) 0%, var(--bubblegum) 45%, var(--gold) 100%);
@@ -1236,7 +1241,7 @@ input[type="text"]:focus {
    canvas; no z-index so the (later) pause overlay always stacks above it. */
 .director-hud {
   position: absolute; left: 10px;
-  top: calc(var(--sat, 0px) + var(--hud-top-h, 84px) + 6px); /* below the ticket band */
+  top: calc(var(--hud-band-h, calc(var(--sat, 0px) + var(--hud-top-h, 84px))) + 6px); /* below the ticket band */
   width: 210px; pointer-events: none;
   background: rgba(28, 16, 34, 0.82);
   border: 1.5px solid rgba(255, 209, 102, 0.35);
@@ -1407,7 +1412,7 @@ input[type="text"]:focus {
 .game-hint {
   position: absolute; z-index: 19;
   left: 50%; transform: translateX(-50%);
-  top: calc(var(--sat, 0px) + var(--hud-top-h, 84px) + 34px);
+  top: calc(var(--hud-band-h, calc(var(--sat, 0px) + var(--hud-top-h, 84px))) + 34px);
   max-width: min(86vw, 460px);
   text-align: center; font-size: 12px; font-weight: 800;
   color: #FFF6EA;

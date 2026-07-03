@@ -448,6 +448,16 @@
       if (window.ResizeObserver) {
         this._ro = new ResizeObserver(() => this.resize());
         this._ro.observe(canvas.parentElement);
+        // The HUD bands size themselves to their content (tickets spawn after
+        // the round starts and vary in height per recipe), and the fit math
+        // reserves exactly the measured band heights — so a band growing or
+        // shrinking must re-fit the kitchen too.
+        if (!this.preview) {
+          for (const sel of ['.game-hud-top', '.game-hud-bottom']) {
+            const band = document.querySelector(sel);
+            if (band) this._ro.observe(band);
+          }
+        }
       }
       this.resize();
 
@@ -561,6 +571,13 @@
       };
       this.bandTop = bandH('.game-hud-top');
       this.bandBot = bandH('.game-hud-bottom');
+      // Publish the REAL band height for the under-tickets overlays (rush
+      // banner, rotating hint, director HUD) — they position off this var so
+      // a tall ticket band pushes them down instead of overlapping them.
+      if (!this.preview) {
+        const scr = document.getElementById('screen-game');
+        if (scr) scr.style.setProperty('--hud-band-h', `${Math.round(this.bandTop / this.dpr)}px`);
+      }
       const playH  = this.worldH - this.oy;   // room rows + front-face padding
       const availH = Math.max(80, this.canvas.height - this.bandTop - this.bandBot);
       this.scale = Math.min(this.canvas.width / this.worldW, availH / playH);
