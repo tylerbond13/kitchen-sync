@@ -8,6 +8,36 @@ language so the whole kitchen reads as one illustrated set.
 
 ---
 
+## Generation tracker
+
+**Art direction override (July 3, 2026):** follow the cozy bakery-diner brief and
+the warm design-roadmap palette, but do not copy the existing pink-heart cake-world
+ornament language. Use a more timeless Beaux-Arts bakery style: cream enamel,
+honey wood, brass/gold trim, restrained mint/teal accents, plum/ink depth where
+useful, and only tiny teaberry accents for energy. Avoid hearts, candy-princess
+motifs, flowery vanity details, and heavy blush-pink surfaces.
+
+- [x] 1. Cutting-board station
+- [x] 2. Stove + pan
+- [x] 3. Soup pot station
+- [x] 4. Oven
+- [x] 5. Sink / dish station
+- [x] 6. Plate rack
+- [x] 7. Serve window
+- [x] 8. Mixer refresh
+- [ ] 9. Section wallpaper sets
+- [ ] 10. Walkway prop pack
+- [ ] 11. Wall decor pack
+- [ ] 12. Reward chest / gift box
+- [ ] 13. Coin + star icon pair
+- [ ] 14. Roadmap section banners
+- [ ] 15. Home-screen hero
+- [ ] 16. Per-theme ambient critters
+- [ ] 17. Mascot friends
+- [ ] 18. Burned-dish + trash FX
+
+---
+
 ## 🎨 THE STYLE BLOCK (paste at the start of every prompt)
 
 > Soft 3D-rendered cartoon prop for a cozy pastel bakery-diner mobile game.

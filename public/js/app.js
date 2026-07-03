@@ -1943,9 +1943,9 @@
     { id: 'wood',    name: '🍪 Wood Board',   url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v2.png' },
     { id: 'wood1',   name: '🪵 Classic Wood', url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v1.png' },
     { id: 'cake',    name: '🎂 Cake Shop',    url: 'assets/images/cake-world/backgrounds/ks-cake-background1.png' },
-    { id: 'diner',   name: '🍔 Diner',        url: 'assets/images/hd/ks-wall-diner.png' },
-    { id: 'winter',  name: '❄️ Winter',       url: 'assets/images/hd/ks-wall-winter.png' },
-    { id: 'beach',   name: '🏖️ Beach',        url: 'assets/images/hd/ks-wall-beach.png' },
+    { id: 'diner',   name: '🍔 Diner',        url: 'assets/images/cake-world/walls-floors/ks-wall-family-diner-floor70-v2.png' },
+    { id: 'winter',  name: '❄️ Winter',       url: 'assets/images/cake-world/walls-floors/ks-wall-winter-wonderland-floor70-v2.png' },
+    { id: 'beach',   name: '🏖️ Beach',        url: 'assets/images/cake-world/walls-floors/ks-wall-beach-shack-floor70-v2.png' },
     { id: 'bakery',  name: '🧁 Bakery',       url: 'assets/images/hd/ks-wall-bakery-back.png' },
     // TV-kitchen & themed scenes — full-room backdrops (3048×1408, wall + floor)
     { id: 'brady',         name: '📺 Brady Bunch',    url: 'assets/images/hd/ks-wall-diner-brady-bunch-kitchen-floor70-v1.png' },

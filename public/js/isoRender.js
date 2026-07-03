@@ -1431,12 +1431,8 @@
         if (c==='P' && this.cur && this.cur.plates!==undefined) {
           const supply=this.cur.plates;
           const label=supply===null?'∞':String(supply);
-          // a readable stack of plates on the rack surface (art plates are tiny)
-          if (supply === null || supply > 0) {
-            const n = supply === null ? 3 : Math.min(supply, 3);
-            for (let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-3-i*4,38,38);
-          }
-          // count pinned RIGHT AT the sprite's top-right corner
+          // count pinned RIGHT AT the sprite's top-right corner (the rack art
+          // itself carries the plate stack — count variants 0-4)
           if (rect) this.countBadge(rect.x + rect.w - 8, rect.y - 6, label, supply===0, '#FF4070');
           else this.countBadge(sx+20, topY-28, label, supply===0, '#FF4070');
         }

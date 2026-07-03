@@ -222,8 +222,12 @@
     }
   }
   function pump() {
+    // Hidden tabs (phone backgrounded mid-load, embedded previews) throttle
+    // rAF to zero and timers to ≥1s — the budgeted drip would take minutes.
+    // Nobody can see jank in a hidden tab, so drain everything at once there.
+    const budget = document.visibilityState === 'hidden' ? Infinity : 10;
     const t0 = performance.now();
-    while (prepQueue.length && performance.now() - t0 < 10) {
+    while (prepQueue.length && performance.now() - t0 < budget) {
       const { key, image, ent } = prepQueue.shift();
       try {
         prepCache.set(key, prepare(image, ent));
@@ -239,7 +243,13 @@
   function enqueuePrepare(key, image, ent) {
     prepQueue.push({ key, image, ent });
     if (!pumping) { pumping = true; schedulePump(); }
+    // While hidden, the scheduled wakeup may be throttled into next week —
+    // drain inline so sprites are ready the moment the tab comes back.
+    if (document.visibilityState === 'hidden') pump();
   }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && prepQueue.length) pump();
+  });
 
   const GFX = {
     ASSETS,
