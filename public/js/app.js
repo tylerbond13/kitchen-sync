@@ -960,6 +960,7 @@
   const SHOP_GROUPS = [
     { id: 'sous', title: '🤖 AI Sous-Chef — hire, then teach it skills' },
     { id: 'kitchen', title: '🍳 Kitchen Tools' },
+    { id: 'expansion', title: '🏗️ Kitchen Expansion — grow every kitchen' },
   ];
   function renderShop(state) {
     const card = $('shop-card');

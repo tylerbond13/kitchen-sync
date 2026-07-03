@@ -133,6 +133,10 @@ const UPGRADES = {
   extra_plate:  { name: 'Bonus Plate',     emoji: '🍽️', desc: '+1 clean plate in the stack', cost: 1400, group: 'kitchen' },
   auto_chopper: { name: 'Auto-Chopper',    emoji: '⚙️', desc: 'Cutting boards chop twice as fast', cost: 900, group: 'kitchen' },
   dish_bot:     { name: 'Dish-Bot 3000',   emoji: '🧽', desc: 'The sink slowly washes dishes on its own', cost: 1800, group: 'kitchen' },
+  // ── Kitchen Expansion — physically grow every kitchen ──
+  extra_counter: { name: 'Extra Counter',       emoji: '🪵', desc: 'Adds a counter to every kitchen — more room to stage food', cost: 1200, group: 'expansion' },
+  extra_board:   { name: 'Third Cutting Board', emoji: '🔪', desc: 'Adds another cutting board next to the existing ones, in every kitchen', cost: 1800, group: 'expansion' },
+  extra_cooker:  { name: 'Extra Burner',        emoji: '♨️', desc: 'Adds another stove, pot or oven — whatever the level cooks with', cost: 2400, group: 'expansion' },
 };
 
 const SECTIONS = [

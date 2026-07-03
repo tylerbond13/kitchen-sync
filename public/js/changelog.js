@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.30.0",
+    "title": "Kitchen Expansion — buy new stations",
+    "emoji": "🏗️",
+    "category": "feature",
+    "changes": [
+      "New shop tier: physically grow every kitchen. Buy an Extra Counter (more room to stage food), a Third Cutting Board, or an Extra Burner (another stove, pot or oven — whatever the level cooks with).",
+      "Expansions apply to every level automatically, placed where they keep the kitchen playable — walkways never get blocked.",
+      "Cramped custom boards politely skip an expansion instead of wedging the kitchen."
+    ]
+  },
+  {
     "version": "1.29.1",
     "title": "Nothing blocks the kitchen",
     "emoji": "🧭",
