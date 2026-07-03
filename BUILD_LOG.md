@@ -10,6 +10,13 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Set dressing + grounding — every kitchen comes alive (v1.27.0)
+- **Ran a 4-lens expert design review** (kitchen art direction · menu UI/color · retention loops · flow — 5 agents) over real screenshots + the codebase; the full ranked 12-item roadmap with an exact new palette is saved at **docs/DESIGN_ROADMAP.md**. This release ships its top kitchen-cohesion items:
+- **Per-level ambient set dressing** — the dormant Cake-World decor system (animated bees/butterflies, mascots, rugs, sconces — art that already existed but ran on ONE level) is now generated for **every** kitchen from its own grid: a rose rug centred on the open floor, sconces mounted on the stage-frame posts, a waving mascot tucked into a walkway corner, and 2-4 drifting fliers, all seeded from the round seed so every phone sees the same arrangement.
+- **The framed stage** — the kitchen island now stands on a gold-trimmed panel with warm light pooled at its centre, ambient occlusion under the back row, and a soft inner edge shadow. This is the mediation layer between the sprites and the photo wallpaper ("melts the gap").
+- **One warm colour grade** (soft-light wash) over the whole scene + a gently receding top band + stronger station contact shadows — mixed art sources finally read as one lit room.
+- **Killed the #1 style-breaker**: the photoreal steel trash can → the ornate cartoon cake-world bin (with real left/right facings).
+
 ### Everything got bigger — ~2× kitchen scale on phones (v1.26.0)
 - The kitchen was rendering at ~0.84 scale on a landscape phone (27px tiles — "you have to be perfectly precise with your finger"). Measured the fit math and removed the three height-wasters that were shrinking every tile:
   1. **The customer queue no longer stretches the world** — the waiting line is clamped inside the room's rows (tighter crowd) instead of hanging ~2 tiles below it.

@@ -3,6 +3,18 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.27.0",
+    "title": "Set dressing — every kitchen comes alive",
+    "emoji": "🕯️",
+    "category": "polish",
+    "changes": [
+      "Every level now gets real set dressing: a rose rug under the kitchen, sconces on the stage posts, a waving mascot on the walkway, and bees & butterflies drifting overhead — arranged to fit each board's own shape.",
+      "The kitchen stands on a framed stage: a gold-trimmed floor panel with warm light pooled at its centre, shadow under the back row, and soft inner edges — no more sprites floating on the wallpaper.",
+      "One warm colour grade now washes the whole scene so characters, stations and backdrop finally feel lit by the same room; the wall recedes gently behind the tickets.",
+      "The photoreal steel trash can is gone — replaced by the ornate cartoon bin that matches the rest of the kitchen."
+    ]
+  },
+  {
     "version": "1.26.0",
     "title": "Everything got bigger",
     "emoji": "🔍",

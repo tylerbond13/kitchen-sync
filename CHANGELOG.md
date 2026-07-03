@@ -2,6 +2,14 @@
 
 Every release, newest first. Also viewable in-game via **📋 What's new** on the home screen (or by tapping the version footer).
 
+## v1.27.0 — 🕯️ Set dressing — every kitchen comes alive  
+_Polish_
+
+- Every level now gets real set dressing: a rose rug under the kitchen, sconces on the stage posts, a waving mascot on the walkway, and bees & butterflies drifting overhead — arranged to fit each board's own shape.
+- The kitchen stands on a framed stage: a gold-trimmed floor panel with warm light pooled at its centre, shadow under the back row, and soft inner edges — no more sprites floating on the wallpaper.
+- One warm colour grade washes the whole scene so characters, stations and backdrop feel lit by the same room; the wall recedes gently behind the tickets.
+- The photoreal steel trash can is gone — replaced by the ornate cartoon bin that matches the kitchen.
+
 ## v1.26.0 — 🔍 Everything got bigger  
 _Polish_
 
