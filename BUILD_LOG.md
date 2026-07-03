@@ -10,6 +10,14 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Everything got bigger — ~2× kitchen scale on phones (v1.26.0)
+- The kitchen was rendering at ~0.84 scale on a landscape phone (27px tiles — "you have to be perfectly precise with your finger"). Measured the fit math and removed the three height-wasters that were shrinking every tile:
+  1. **The customer queue no longer stretches the world** — the waiting line is clamped inside the room's rows (tighter crowd) instead of hanging ~2 tiles below it.
+  2. **Headroom is sized to reality** — the empty band above the kitchen now accounts for where characters can *actually* stand (campaign boards have stations across the top row, so chefs stand a full tile lower), instead of a worst case nobody occupies. Custom boards with walkable top rows keep the full clearance.
+  3. **The canvas owns the whole viewport** — it runs edge-to-edge under the HUD bands; the decorative wall naturally absorbs the ticket-band zone, and the bands are pointer-transparent in their gaps so no taps get eaten.
+- Net: tiles went from ~27px to ~50px on a phone (**+85%**) — stations/ingredients/chefs fill the width, easy to see and tap, without looking cartoonishly oversized. Desktop gets the same treatment and looks great (width-bound fit).
+- _(Verified in-browser at 844×390 and 1280×800: room fills the width, taps land at the new scale, rush banner/tickets/director HUD all clear of each other; 83/83 tests green.)_
+
 ### Wait-for-it pickups (v1.25.0)
 - **Tapping a busy station now means "grab it when it's ready" instead of a decline.** A tap on a mid-chop cutting board (empty-handed or holding a plate) registers a wait: the chef stands there and the item lands in their hands — or on their plate — the instant chopping finishes. Same for **everything cooking**: tap a pan/pot/oven/mixer mid-cook and the dish comes straight off the heat on the ding, which is also the surest way to never burn it.
 - Waits are intents, not locks: tapping anything else, steering, or walking away cancels; if someone else grabs the item first the wait just dissolves; burned food is never forced into your hands. A ⏳ pops at the station so the wait feels registered.

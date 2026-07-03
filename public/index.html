@@ -671,7 +671,12 @@ input[type="text"]:focus {
   height: calc(var(--sat) + var(--hud-top-h));
   display: flex; align-items: flex-start; gap: 8px;
   padding: calc(var(--sat) + 6px) calc(var(--sar) + 8px) 0 calc(var(--sal) + 8px);
+  /* the canvas runs underneath the bands now — let taps in the gaps fall
+     through to it; the actual controls re-enable pointer events below */
+  pointer-events: none;
 }
+.game-hud-top > *, .game-hud-bottom > * { pointer-events: auto; }
+.game-hud-top::before, .game-hud-bottom::before { pointer-events: none !important; }
 /* Soft scrims anchor the floating HUD against pale wallpapers */
 .game-hud-top::before, .game-hud-bottom::before {
   content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -686,6 +691,7 @@ input[type="text"]:focus {
   height: calc(var(--sab) + var(--hud-bot-h));
   display: flex; align-items: center; gap: 10px;
   padding: 0 calc(var(--sar) + 10px) calc(var(--sab) + 6px) calc(var(--sal) + 10px);
+  pointer-events: none; /* see .game-hud-top */
 }
 /* Extras live in the pause menu now, not on the play screen */
 .pause-tools { display: flex; justify-content: center; gap: 8px; margin: 12px 0 2px; }
@@ -1199,13 +1205,13 @@ input[type="text"]:focus {
 }
 
 /* ============ Canvas area ============ */
-/* The wrap sits between the two HUD bands; the canvas is transparent so the
-   full-screen wallpaper (on #screen-game) shows behind the drawn kitchen. */
+/* The canvas owns the FULL viewport — the kitchen's decorative wall/headroom
+   naturally absorbs the zone under the ticket band, so the room itself renders
+   as large as the screen allows. The canvas is transparent so the full-screen
+   wallpaper (on #screen-game) shows behind the drawn kitchen. */
 .canvas-wrap {
   position: absolute;
-  left: 0; right: 0;
-  top: calc(var(--sat, 0px) + var(--hud-top-h, 84px));
-  bottom: calc(var(--sab, 0px) + var(--hud-bot-h, 46px));
+  inset: 0;
   background: transparent;
   min-height: 0;
 }
@@ -1214,7 +1220,8 @@ input[type="text"]:focus {
 /* AI Director HUD — read-only overlay; pointer-events:none so taps reach the
    canvas; no z-index so the (later) pause overlay always stacks above it. */
 .director-hud {
-  position: absolute; top: 10px; left: 10px;
+  position: absolute; left: 10px;
+  top: calc(var(--sat, 0px) + var(--hud-top-h, 84px) + 6px); /* below the ticket band */
   width: 210px; pointer-events: none;
   background: rgba(28, 16, 34, 0.82);
   border: 1.5px solid rgba(255, 209, 102, 0.35);
@@ -1235,7 +1242,7 @@ input[type="text"]:focus {
 .director-hud .dh-diff.press { color: #ff9b8a; }
 .director-hud .dh-diff.hold { color: #ffe08a; }
 @media (max-width: 560px) {
-  .director-hud { width: 168px; top: 6px; left: 6px; padding: 7px 9px; }
+  .director-hud { width: 168px; left: 6px; padding: 7px 9px; }
   .director-hud #dh-gauge { width: 70px; height: 70px; }
 }
 .pause-overlay {

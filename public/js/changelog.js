@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.26.0",
+    "title": "Everything got bigger",
+    "emoji": "🔍",
+    "category": "polish",
+    "changes": [
+      "The kitchen now renders roughly twice as large on phones — stations, ingredients and chefs fill the screen width instead of floating tiny in the middle.",
+      "Three space-wasters fixed: the customer line now stays inside the room instead of stretching below it, the empty headroom above the kitchen is sized to where chefs can actually stand, and the play area runs edge-to-edge under the HUD.",
+      "Everything is far easier to see and tap — no more pixel-perfect finger work."
+    ]
+  },
+  {
     "version": "1.25.0",
     "title": "Wait-for-it pickups",
     "emoji": "⏳",

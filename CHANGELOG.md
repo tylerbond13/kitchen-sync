@@ -2,6 +2,13 @@
 
 Every release, newest first. Also viewable in-game via **📋 What's new** on the home screen (or by tapping the version footer).
 
+## v1.26.0 — 🔍 Everything got bigger  
+_Polish_
+
+- The kitchen now renders roughly twice as large on phones — stations, ingredients and chefs fill the screen width instead of floating tiny in the middle.
+- Three space-wasters fixed: the customer line stays inside the room instead of stretching below it, the headroom above the kitchen is sized to where chefs can actually stand, and the play area runs edge-to-edge under the HUD.
+- Everything is far easier to see and tap — no more pixel-perfect finger work.
+
 ## v1.25.0 — ⏳ Wait-for-it pickups  
 _Feature_
 
