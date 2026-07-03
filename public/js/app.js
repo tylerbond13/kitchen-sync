@@ -1261,6 +1261,17 @@
       socket.emit('tap', { x, y });
     });
     window.__ksRenderer = renderer; // debug/testing handle (read-only use)
+    // Round-start title card (roadmap #12B): level name + star goals over the
+    // frozen kitchen while the server counts down 3·2·1·COOK!.
+    const intro = $('round-intro');
+    intro.hidden = false;
+    intro.innerHTML = `<div class="ri-card">
+      <div class="ri-emoji">${staticState.emoji || '🍳'}</div>
+      <div class="ri-name">${escapeHtml(staticState.name || 'Kitchen')}</div>
+      <div class="ri-stars">${(staticState.starThresholds || [])
+        .map((v, i) => `<span>${'★'.repeat(i + 1)} ${v}</span>`).join('')}</div>
+      <div class="ri-count" id="ri-count"></div>
+    </div>`;
     // canvas wrap is now visible & sized
     requestAnimationFrame(() => renderer.resize());
     hintIdx = 0;
@@ -1383,6 +1394,36 @@
   socket.on('state', (state) => {
     if (!renderer) return;
     renderer.update(state);
+
+    // Round-start countdown: server-authoritative, so every phone pops the
+    // same number at the same moment. COOK! flashes, then the card lifts.
+    const intro = $('round-intro');
+    if (state.phase === 'starting') {
+      const el = $('ri-count');
+      if (el) {
+        const n = Math.ceil(state.countdown);
+        if (el.dataset.n !== String(n)) {
+          el.dataset.n = String(n);
+          el.textContent = String(n);
+          el.classList.remove('pop', 'cook');
+          void el.offsetWidth;
+          el.classList.add('pop');
+          SFX.tap();
+          if (navigator.vibrate) try { navigator.vibrate(25); } catch { /* ignore */ }
+        }
+      }
+    } else if (intro && !intro.hidden && !intro.dataset.closing) {
+      intro.dataset.closing = '1';
+      const el = $('ri-count');
+      if (el) {
+        el.textContent = 'COOK!';
+        el.classList.remove('pop'); void el.offsetWidth;
+        el.classList.add('pop', 'cook');
+        SFX.rushStart();
+        if (navigator.vibrate) try { navigator.vibrate([30, 40, 60]); } catch { /* ignore */ }
+      }
+      setTimeout(() => { intro.hidden = true; delete intro.dataset.closing; }, 550);
+    }
 
     // HUD
     const m = Math.floor(state.t / 60), s = state.t % 60;
@@ -1875,7 +1916,7 @@
   const editor = {
     grid: [], brush: '#', ing: 'lettuce', dir: 'straight',
     recipes: new Set(), avatars: new Set(),
-    charScale: 2, wallpaper: DEFAULT_WALLPAPER,
+    charScale: 1, wallpaper: DEFAULT_WALLPAPER,
     target: { kind: 'new' },
   };
 
@@ -2220,7 +2261,7 @@
       $('sl-every').value = (preset && preset.every) || 6; // new builds default to a 6s order cadence
       if (preset && preset.duration) $('sl-duration').value = preset.duration;
       if (preset && Array.isArray(preset.stars)) { $('st-1').value = preset.stars[0]; $('st-2').value = preset.stars[1]; $('st-3').value = preset.stars[2]; }
-      editor.charScale = (preset && preset.charScale) || 2;
+      editor.charScale = (preset && preset.charScale) || 1;
       editor.wallpaper = (preset && preset.wallpaper) || DEFAULT_WALLPAPER;
     }
 

@@ -1512,6 +1512,38 @@ input[type="text"]:focus {
 }
 .tutorial-dots span.on { background: var(--bubblegum); transform: scale(1.25); }
 
+/* ── Round-start ritual (roadmap #12B): title card + 3·2·1·COOK! ── */
+.round-intro {
+  position: absolute; inset: 0; z-index: 30;   /* above bands + overlay, below pause (40) */
+  display: grid; place-items: center;
+  background: rgba(45,22,52,0.38);
+  backdrop-filter: blur(3px);
+}
+.round-intro[hidden] { display: none; }
+.ri-card {
+  text-align: center; color: #fff;
+  background: linear-gradient(170deg, rgba(74,35,82,.92) 0%, rgba(51,21,67,.94) 100%);
+  border: 2px solid rgba(240,193,90,.65);
+  border-radius: 24px; padding: 18px 34px 20px;
+  box-shadow: 0 18px 50px rgba(20,8,30,.5);
+  animation: ri-in .35s ease-out;
+}
+@keyframes ri-in { from { opacity: 0; transform: translateY(16px) scale(.94); } }
+.ri-emoji { font-size: 44px; line-height: 1.1; }
+.ri-name { font-weight: 900; font-size: 22px; margin-top: 2px; }
+.ri-stars { display: flex; gap: 14px; justify-content: center; margin-top: 8px;
+  font-size: 12px; font-weight: 800; color: #FFD98A; }
+.ri-count {
+  margin-top: 10px; font-size: 54px; font-weight: 900; line-height: 1;
+  color: #FFD98A; text-shadow: 0 4px 14px rgba(0,0,0,.4);
+  min-height: 58px;
+}
+.ri-count.cook { color: #7FE8C8; font-size: 44px; letter-spacing: 1px; }
+@media (prefers-reduced-motion: no-preference) {
+  .ri-count.pop { animation: ri-pop .5s ease-out; }
+}
+@keyframes ri-pop { 0% { transform: scale(1.7); opacity: .2; } 100% { transform: scale(1); opacity: 1; } }
+
 /* Rotating starter tips sit under the tickets, over the decorative wall —
    never covering the serve windows on the front row */
 .game-hint {
@@ -2113,7 +2145,7 @@ input[type="text"]:focus {
         <div class="field-label">Look &amp; feel</div>
         <label class="slider-row">Character size <output id="out-charsize">2×</output>
           <input type="range" id="sl-charsize" min="0.5" max="4" step="0.25" value="2"></label>
-        <p class="small muted" style="margin:2px 0 8px">Scales chefs &amp; customers together. The whole game ships at 2× by default.</p>
+        <p class="small muted" style="margin:2px 0 8px">Scales chefs &amp; customers together. The whole game ships at 1× by default.</p>
         <div class="field-label" style="margin-top:6px">Background wallpaper</div>
         <div class="builder-wallpapers" id="builder-wallpapers"></div>
       </div>
@@ -2198,6 +2230,7 @@ input[type="text"]:focus {
 
     <div class="rush-banner" id="rush-banner" hidden></div>
     <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
+    <div class="round-intro" id="round-intro" hidden></div>
 
     <div class="game-hud-bottom">
       <div class="hud-pill hud-score" id="hud-score">🪙 0</div>

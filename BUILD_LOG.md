@@ -10,6 +10,17 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### 3·2·1·COOK! + Tyler's kitchen tuning + screenshot backfill (v1.37.0)
+- **Tyler's batch (from his message):** characters ship at **1× everywhere** (renderer default, server default, builder default + copy, Tyler's Salad Bar override); **held items ride at the chef's waist** overlaid on the sprite (visible at the top of the screen — above-the-head items clipped); **dish-rack / sink counts pinned right at the sprite's top-right corner** (were floating far away), plates draw larger on both (40px sink pile, readable 38px clean stack on the rack); **floral sconces anchor beside a floor row** so they never sit on an edge-column appliance (they covered the sushi pots).
+- **Screenshot archive backfilled per Tyler:** docs/screenshots/ now has all of v1.30.0 → v1.37.0 (9 shots each) — old releases captured by running each release commit in a temp worktree against the archived capture script; game-shot settle bumped for the countdown + cold sprite prep.
+- Socket integration tests now wait for phase `playing` after each round start (the countdown queues taps, it doesn't drop them — new unit test covers the queue-through-countdown path). 93/93 green.
+
+### 3·2·1·COOK! — design-roadmap #12 Phase B (v1.37.0)
+- **Server-authoritative round-start ritual:** real rounds construct with `countdown: true` → phase `starting`, 3.2s countdown ticked by the game loop and broadcast in every snapshot, so the whole crew pops the same number at the same moment; a `cook` event marks the GO beat. Tests/sims skip it by default (no flag → straight to `playing`).
+- **Countdown taps queue instead of dropping** — an eager first grab fires the instant COOK! lands (uses the existing action-queue).
+- **Title card** over the frozen kitchen: level emoji + name + star goals (emoji added to staticState), scale-pop numerals, beep per digit, COOK! flash in teal with a vibrate pattern, then the card lifts. Pauses with the game; reduced-motion respected.
+- _(Verified live on Salad Days: card + synced "2" pop mid-countdown, round opened normally after; countdown unit test added — queued tap fires at COOK!.)_
+
 ### Every theme dresses its own kitchen — design-roadmap #8 complete (v1.36.0)
 - **Themed wall props reactivated** from the manifest's dormant `wallAnchor` entries, now placed by `buildAmbience` as normal depth-sorted props just above row 0: diner = sign/window/clock/photos, winter = cocoa sign/winter window/wreath/fireplace, beach = tiki sign/beach window/surfboard/palm. Positions scale from the authored 7-wide wall to any board width with ≥1.5-tile spacing.
 - **Queue rug:** a soft procedural runner + per-slot pads drawn from the same `queueSlot` geometry the customers stand on — the waiting line no longer floats on bare floor.

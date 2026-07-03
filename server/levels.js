@@ -485,7 +485,7 @@ const LEVELS = [
     stars: [1430, 2500, 3570],
     plates: 4,
     speedMult: 1.25,
-    charScale: 1.5,
+    charScale: 1,
     wallpaper: 'brady',
     crates: { 1: 'lettuce', 2: 'tomato', 3: 'cucumber' },
     facings: { '0,1': 'right', '6,1': 'left', '0,2': 'right', '6,2': 'left', '0,3': 'right', '6,3': 'left', '0,4': 'right', '6,4': 'left' },
