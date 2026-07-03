@@ -415,6 +415,16 @@
       // drifting bees/butterflies) generated from its own grid — Cake World
       // keeps its hand-tuned arrangement.
       this.ambience = staticState.decor === 'cake' ? null : this.buildAmbience(staticState.seed ?? 1);
+      // Seeded dust motes drifting over the upper floor — every client sees
+      // the same slow-moving specks (roadmap #9: a static composite screams
+      // "pasted"; a couple of live elements sell one lit illustration).
+      const mrand = mulberry32((((staticState.seed ?? 1) ^ 0xA5A5A5) >>> 0));
+      this._motes = Array.from({ length: 10 + Math.floor(mrand()*5) }, () => ({
+        x: mrand()*staticState.w*TILE_WIDTH,
+        y: mrand()*staticState.h*TILE_HEIGHT*0.5,
+        vx: (mrand()*2-1)*5, vy: (mrand()*2-1)*2.5,
+        r: 1.5 + mrand()*1.5, ph: mrand()*Math.PI*2,
+      }));
       // Per-round customer cast: Fisher-Yates with the server's seed.
       const rand = mulberry32((staticState.seed ?? 1) >>> 0);
       // a custom/admin level can restrict the cast to a chosen set of avatars
@@ -821,6 +831,9 @@
       // Everything else draws in world space (fixed 64×48 units).
       ctx.setTransform(this.scale,0,0,this.scale,this.txOff,this.tyOff);
 
+      // Merged island shadows go under everything on the floor.
+      this.drawRunShadows();
+
       const renderQueue = [];
       this._hits = [];                 // precise sprite rects for click picking
       const {lvl}=this;
@@ -869,6 +882,7 @@
       this.drawLabels(ctx, this._labels);
 
       this.drawEffects(now);
+      this.drawMotes(now);
       this.drawAtmosphere();
       this.drawCharOverlay();
     }
@@ -1231,14 +1245,61 @@
       return plain && GFX.has(plain) ? plain : key;
     }
 
+    // ── Merged island shadows — design-roadmap #7 ─────────────────────────
+    // A real counter run casts ONE continuous shadow, not a chain of scalloped
+    // per-tile blobs. Maximal horizontal runs (len ≥ 2) of non-floor tiles get
+    // a single soft pill at their base; isolated stations keep their ellipse.
+    shadowRuns() {
+      if (this._runs) return this._runs;
+      const {lvl}=this;
+      const runs=[]; this._runTiles=new Set();
+      for (let gy=0; gy<lvl.h; gy++) {
+        let gx=0;
+        while (gx<lvl.w) {
+          if (!lvl.grid[gy] || lvl.grid[gy][gx]==='.') { gx++; continue; }
+          let end=gx;
+          while (end+1<lvl.w && lvl.grid[gy][end+1]!=='.') end++;
+          if (end>gx) {
+            runs.push({ gy, gx0:gx, gx1:end });
+            for (let x=gx;x<=end;x++) this._runTiles.add(`${x},${gy}`);
+          }
+          gx=end+1;
+        }
+      }
+      this._runs=runs;
+      return runs;
+    }
+
+    drawRunShadows() {
+      const {ctx}=this;
+      const TW=TILE_WIDTH, TH=TILE_HEIGHT;
+      for (const r of this.shadowRuns()) {
+        const x0=this.ox + r.gx0*TW + TW*0.03;
+        const x1=this.ox + (r.gx1+1)*TW - TW*0.03;
+        const cy=this.oy + (r.gy+1)*TH - 3;
+        // Concentric pills fake a soft blur: faint wide rim → dark core
+        // (stacked alphas sum to ~0.26 at the centre, the per-tile value).
+        for (const [inset, a] of [[0,0.05],[3.5,0.07],[7,0.08],[10,0.09]]) {
+          const h=22 - inset*1.4;
+          const w=(x1-x0)-inset*2;
+          if (h<=2 || w<=h) break;
+          ctx.fillStyle=`rgba(36,16,25,${a})`;
+          this.rrC(ctx, x0+inset, cy-h/2, w, h, h/2);
+          ctx.fill();
+        }
+      }
+    }
+
     drawBlock(c, gx, gy, sx, sy, now) {
       const {ctx}=this;
       const TW=TILE_WIDTH, TH=TILE_HEIGHT;
       const baseY = sy + TH/2;            // tile's south corner — ground anchor
       const ing = this.lvl.crates && this.lvl.crates[c];
 
-      // Contact shadow under the block's footprint so nothing floats.
-      this.contactShadow(sx, baseY-3, TW*0.47, 9, 0.21);
+      // Contact shadow under the block's footprint so nothing floats —
+      // skipped inside merged runs, which draw one shared shadow mass.
+      if (!this._runTiles || !this._runTiles.has(`${gx},${gy}`))
+        this.contactShadow(sx, baseY-3, TW*0.47, 9, 0.21);
 
       // Crates: per-ingredient art if the manifest has it, otherwise the
       // flat generic crate with the raw ingredient sprite in its open top.
@@ -1347,7 +1408,9 @@
           }
           if (s.state==='cooking') {
             this.bar(sx, topY - 28, s.progress, '#FFD23F','#FFF0A0');
-            if(Math.floor(now/280)%2) this.glyph('💨',sx+14,topY-19,12);
+            // Soft procedural steam instead of the flickering 💨 emoji —
+            // readable "cooking" state from across the room (roadmap #9).
+            this.spawnSteam(gx, gy, sx, topY - 6, now);
           } else if (s.state==='done') {
             this.bar(sx, topY - 28, s.progress, s.progress>0.6?'#FF6040':'#3DC9A0', s.progress>0.6?'#FFA090':'#A8F0D8');
             this.glyph('✅',sx+15,topY-18,12);
@@ -1465,13 +1528,43 @@
       GFX.draw(ctx, this.customerKeyForOrder(q.order), sx, sy+bob-CH*0.5, CH*0.92, CH);
     }
 
+    // ── Ambient life: steam wisps + dust motes — design-roadmap #9 ──────────
+    spawnSteam(gx, gy, x, y, now) {
+      if (!this._lastSteam) this._lastSteam = new Map();
+      const k = `${gx},${gy}`;
+      if (now - (this._lastSteam.get(k) || 0) < 400) return;
+      this._lastSteam.set(k, now);
+      this.fx.push({ kind:'steam', x: x + (Math.random()*10-5), y, t:0, sway: Math.random()*Math.PI*2 });
+    }
+
+    drawMotes(now) {
+      if (!this._motes) return;
+      const {ctx}=this;
+      const W=this.lvl.w*TILE_WIDTH, H=this.lvl.h*TILE_HEIGHT*0.55;
+      const dt=1/60;
+      for (const m of this._motes) {
+        m.x=(m.x+m.vx*dt+W)%W; m.y=(m.y+m.vy*dt+H)%H;
+        const a=0.22*(0.6+0.4*Math.sin(now/900+m.ph));
+        ctx.fillStyle=`rgba(255,244,220,${a})`;
+        ctx.beginPath(); ctx.arc(this.ox+m.x, this.oy+m.y, m.r, 0, Math.PI*2); ctx.fill();
+      }
+    }
+
     // ── Particle effects (world space, after the queue = always on top) ──────
     drawEffects(now) {
       const {ctx}=this;
       const ts=38;
       this.fx=this.fx.filter((f)=>{
         f.t+=1/60;
-        if(f.kind==='ripple'){
+        if(f.kind==='steam'){
+          const life=1.6, a=(1-f.t/life)*0.28; if(a<=0) return false;
+          const r=4+(f.t/life)*7;
+          const x=f.x+Math.sin(f.sway+f.t*3)*4, y=f.y-f.t*22;
+          const g=ctx.createRadialGradient(x,y,r*0.2,x,y,r);
+          g.addColorStop(0,`rgba(255,255,255,${a})`);
+          g.addColorStop(1,'rgba(255,255,255,0)');
+          ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+        } else if(f.kind==='ripple'){
           const a=1-f.t/0.4; if(a<=0) return false;
           ctx.strokeStyle=`rgba(255,111,174,${a*0.8})`; ctx.lineWidth=2;
           ctx.beginPath(); ctx.arc(f.x,f.y,(f.t/0.4)*ts*0.7,0,Math.PI*2); ctx.stroke();

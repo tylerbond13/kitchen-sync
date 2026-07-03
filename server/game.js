@@ -219,12 +219,17 @@ class Game {
       .sort((a, b) => Math.hypot(b.x + 0.5 - cx, b.y + 0.5 - cy) - Math.hypot(a.x + 0.5 - cx, a.y + 0.5 - cy));
     for (const t of candidates) {
       this.grid[t.y][t.x] = TILE.COUNTER;
-      // 1. the new counter must be workable from the walkway
-      // 2. its station neighbours must all still touch open floor
+      // 1. the new counter must be workable from the MAIN walkway
+      // 2. its station neighbours must all still touch the MAIN walkway —
+      //    "touches any floor" once let a sealed decorative pocket count,
+      //    which bricked Soup's On (the onion crate's only real stand spot
+      //    was converted; its other floor neighbour was an unreachable pocket)
       // 3. the walkway must not split (lose more than the converted tile)
-      const okSelf = nbrs(t.x, t.y).some(isF);
-      const okNbrs = nbrs(t.x, t.y).every((p) => isF(p) || nbrs(p.x, p.y).some(isF));
-      if (okSelf && okNbrs && this.mainFloorComponent().size >= main.size - 1) return t;
+      const after = this.mainFloorComponent();
+      const inMain = (p) => after.has(`${p.x},${p.y}`);
+      const okSelf = nbrs(t.x, t.y).some(inMain);
+      const okNbrs = nbrs(t.x, t.y).every((p) => isF(p) || nbrs(p.x, p.y).some(inMain));
+      if (okSelf && okNbrs && after.size >= main.size - 1) return t;
       this.grid[t.y][t.x] = TILE.FLOOR;       // revert, try the next spot
     }
     return null;

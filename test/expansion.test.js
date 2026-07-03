@@ -92,3 +92,36 @@ test('cramped custom boards skip the extra counter instead of wedging the kitche
   const game = new Game(tiny, ROSTER, { rng: () => 0, upgrades: { extra_counter: true } });
   assert.equal(game.grid.flat().filter((c) => c === '#').length, 1, 'too cramped — no counter added');
 });
+
+test('extra_counter never seals a station off the main walkway (Soup\'s On onion crate)', () => {
+  // Regression: on soups-on the extra counter converted (1,1) — the onion
+  // crate's only stand spot on the walkway. Its other floor neighbour (0,0)
+  // is a sealed decorative pocket, so "touches any floor" passed while the
+  // crate became unreachable and onion soup orders were impossible.
+  const grown = makeGame('soups-on', { extra_board: true, extra_cooker: true, extra_counter: true });
+  const main = grown.mainFloorComponent();
+  const touchesMain = (k) => grown.adjacentFloors(...k.split(',').map(Number))
+    .some((f) => main.has(`${f.x},${f.y}`));
+  assert.ok(touchesMain('1,0'), 'onion crate reachable from the walkway');
+  // and a chef can actually path to it
+  const p = grown.players.p1;
+  grown.phase = 'playing';
+  grown.tap('p1', 1, 0);
+  assert.ok(p.path.length > 0 || Math.abs(p.x - 1.5) + Math.abs(p.y - 0.5) <= 1.5, 'tap paths to the crate');
+});
+
+test('every usable station keeps MAIN-walkway access on every campaign level with all expansions', () => {
+  for (const level of LEVELS) {
+    const plain = new Game(level, ROSTER, { rng: () => 0 });
+    const grown = new Game(level, ROSTER, { rng: () => 0, upgrades: { extra_board: true, extra_cooker: true, extra_counter: true } });
+    const mainBefore = plain.mainFloorComponent();
+    const mainAfter = grown.mainFloorComponent();
+    const touches = (g, comp, k) => g.adjacentFloors(...k.split(',').map(Number))
+      .some((f) => comp.has(`${f.x},${f.y}`));
+    for (const k of Object.keys(plain.stations)) {
+      if (!touches(plain, mainBefore, k)) continue;  // decorative / never usable
+      if (!grown.stations[k]) continue;              // converted into another station — still solid
+      assert.ok(touches(grown, mainAfter, k), `${level.id}: station ${k} still on the walkway`);
+    }
+  }
+});

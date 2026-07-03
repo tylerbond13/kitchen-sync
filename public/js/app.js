@@ -1204,6 +1204,7 @@
       SFX.tap();
       socket.emit('tap', { x, y });
     });
+    window.__ksRenderer = renderer; // debug/testing handle (read-only use)
     // canvas wrap is now visible & sized
     requestAnimationFrame(() => renderer.resize());
     hintIdx = 0;
