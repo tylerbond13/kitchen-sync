@@ -10,6 +10,11 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Kitchen Expansion — Tyler's idea, shipped (v1.30.0)
+- **New shop tier "🏗️ Kitchen Expansion":** Extra Counter (1,200), Third Cutting Board (1,800), Extra Burner (2,400) — crew upgrades that PHYSICALLY grow every kitchen. Applied server-side to each round's grid before parsing, so every client renders exactly the board the server plays.
+- **Safe placement rules:** the board/burner convert the counter nearest their existing siblings (same tool as the level cooks with — a pot level gets another pot); the extra counter converts a walkway-edge floor tile only where it provably keeps the main walkway connected and every neighbouring station workable (flood-fill proof per candidate, deterministic order). Levels missing the pieces (no counters, no cookers, cramped customs) skip gracefully.
+- _(6 new tests incl. a wedge-proof cramped-board case; suite 89/89 green. Verified live: bought all three in the shop, started Soup's On, kitchen visibly grew with a second pot station.)_
+
 ### Nothing blocks the kitchen + mascot removed (v1.29.1)
 - **Band-aware fit (from Tyler's phone screenshots):** the renderer now measures the real HUD bands and fits the room's playable rows exactly BETWEEN them — only the decorative wall rises behind the tickets. Chefs can never walk under the order cards, and the score/star bar can never cover the front-row stations, on any phone aspect/notch.
 - Combo flame moved into the bottom bar (was floating over the sink); rotating tips moved up under the tickets (were covering the serve windows); tips yield to the rush banner.

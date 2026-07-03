@@ -2,6 +2,13 @@
 
 Every release, newest first. Also viewable in-game via **📋 What's new** on the home screen (or by tapping the version footer).
 
+## v1.30.0 — 🏗️ Kitchen Expansion — buy new stations  
+_Feature_
+
+- New shop tier: physically grow every kitchen. Buy an Extra Counter, a Third Cutting Board, or an Extra Burner (another stove, pot or oven — whatever the level cooks with).
+- Expansions apply to every level automatically, placed where they keep the kitchen playable — walkways never get blocked.
+- Cramped custom boards politely skip an expansion instead of wedging the kitchen.
+
 ## v1.29.1 — 🧭 Nothing blocks the kitchen  
 _Fix_
 

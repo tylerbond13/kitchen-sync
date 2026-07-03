@@ -76,6 +76,8 @@ class Game {
     this.w = level.layout[0].length;
     this.h = level.layout.length;
     this.grid = level.layout.map((row) => row.split(''));
+    // Kitchen Expansion (shop): grow this round's board before it's parsed
+    this.applyExpansions(opts.upgrades || {});
     this.stations = {}; // "x,y" -> station state
     this.spawnTiles = [];
     this.parseLayout();
@@ -145,6 +147,111 @@ class Game {
     this.rushMarks = [Math.round(level.duration * 0.6), Math.round(level.duration * 0.28)];
     this.rush = 0;
     this.events = [];
+  }
+
+  // ── Kitchen Expansion (shop upgrades) ─────────────────────────────────────
+  // Crew-owned upgrades physically grow every kitchen: a third cutting board,
+  // an extra burner, an extra counter. Conversions are deterministic (nearest
+  // in reading order) and run server-side before parseLayout, so every client
+  // renders exactly the grid the server plays. Levels that lack the required
+  // pieces (no counters / no cookers) skip that upgrade gracefully.
+  applyExpansions(u) {
+    if (!u.extra_board && !u.extra_cooker && !u.extra_counter) return;
+    const find = (ch) => {
+      const out = [];
+      for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++)
+        if (this.grid[y][x] === ch) out.push({ x, y });
+      return out;
+    };
+    const nearestCounterTo = (targets) => {
+      let best = null, bd = 1e9;
+      for (const c of find(TILE.COUNTER)) {
+        for (const t of targets) {
+          const d = Math.abs(c.x - t.x) + Math.abs(c.y - t.y);
+          if (d < bd) { bd = d; best = c; }
+        }
+      }
+      return best;
+    };
+    // a third cutting board: the counter nearest the existing boards becomes one
+    if (u.extra_board) {
+      const boards = find(TILE.BOARD);
+      const spot = boards.length ? nearestCounterTo(boards) : null;
+      if (spot) this.grid[spot.y][spot.x] = TILE.BOARD;
+    }
+    // an extra burner: duplicate the level's first cooker onto the counter
+    // nearest it (same tool, so it cooks the same recipes)
+    if (u.extra_cooker) {
+      let first = null;
+      outer: for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
+        if (TOOL_FOR[this.grid[y][x]]) { first = { x, y, ch: this.grid[y][x] }; break outer; }
+      }
+      if (first) {
+        const spot = nearestCounterTo([first]);
+        if (spot) this.grid[spot.y][spot.x] = first.ch;
+      }
+    }
+    // an extra counter: convert one walkway floor tile — only where it provably
+    // keeps the floor connected and every neighbouring station usable
+    if (u.extra_counter) {
+      const spot = this.safeCounterSpot();
+      if (spot) this.grid[spot.y][spot.x] = TILE.COUNTER;
+    }
+  }
+
+  safeCounterSpot() {
+    // Campaign layouts contain decorative floor pockets that were never
+    // reachable — the rule that matters is: the MAIN walkway (largest floor
+    // component, where the chefs live) may shrink by exactly the converted
+    // tile and nothing else, and the new counter must be workable from it.
+    const main = this.mainFloorComponent();
+    if (main.size <= 6) return null;          // keep cramped kitchens roomy
+    const nbrs = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1]]
+      .map(([dx, dy]) => ({ x: x + dx, y: y + dy }))
+      .filter((p) => p.x >= 0 && p.y >= 0 && p.x < this.w && p.y < this.h);
+    const isF = (p) => this.grid[p.y][p.x] === TILE.FLOOR;
+    // prefer the walkway edges: floor tiles beside existing stations, far from
+    // the room centre first (the middle stays open for traffic)
+    const cx = this.w / 2, cy = this.h / 2;
+    const candidates = [...main]
+      .map((k) => { const [x, y] = k.split(',').map(Number); return { x, y }; })
+      .filter((t) => nbrs(t.x, t.y).some((p) => !isF(p)))
+      .sort((a, b) => Math.hypot(b.x + 0.5 - cx, b.y + 0.5 - cy) - Math.hypot(a.x + 0.5 - cx, a.y + 0.5 - cy));
+    for (const t of candidates) {
+      this.grid[t.y][t.x] = TILE.COUNTER;
+      // 1. the new counter must be workable from the walkway
+      // 2. its station neighbours must all still touch open floor
+      // 3. the walkway must not split (lose more than the converted tile)
+      const okSelf = nbrs(t.x, t.y).some(isF);
+      const okNbrs = nbrs(t.x, t.y).every((p) => isF(p) || nbrs(p.x, p.y).some(isF));
+      if (okSelf && okNbrs && this.mainFloorComponent().size >= main.size - 1) return t;
+      this.grid[t.y][t.x] = TILE.FLOOR;       // revert, try the next spot
+    }
+    return null;
+  }
+
+  // The largest connected floor region — the walkway the chefs actually use.
+  mainFloorComponent() {
+    const seen = new Set();
+    let best = new Set();
+    for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
+      const k0 = `${x},${y}`;
+      if (this.grid[y][x] !== TILE.FLOOR || seen.has(k0)) continue;
+      const comp = new Set([k0]);
+      const stack = [k0];
+      seen.add(k0);
+      while (stack.length) {
+        const [px, py] = stack.pop().split(',').map(Number);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const k = `${px + dx},${py + dy}`;
+          if (!seen.has(k) && this.grid[py + dy] && this.grid[py + dy][px + dx] === TILE.FLOOR) {
+            seen.add(k); comp.add(k); stack.push(k);
+          }
+        }
+      }
+      if (comp.size > best.size) best = comp;
+    }
+    return best;
   }
 
   parseLayout() {
