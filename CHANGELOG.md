@@ -2,6 +2,15 @@
 
 Every release, newest first. Also viewable in-game via **📋 What's new** on the home screen (or by tapping the version footer).
 
+## v1.29.0 — 🔁 One more round  
+_Feature_
+
+- The results screen now closes the loop: ↻ Retry the level or jump straight to the Next level without a trip through the lobby.
+- Near-miss rounds call it out — "Only 140 from ⭐⭐ — go again!" pulses when you were within 20% of the next star, and Retry becomes the big button.
+- Beat your crew's best score and a shimmering 🏆 NEW CREW RECORD ribbon celebrates it; getting close taunts you with how near you came.
+- Coins pay out with a proper count-up and a shower of coins arcing into your wallet.
+- Every round ends with a savings goal: the next shop unlock and exactly how far your crew's bank is from affording it.
+
 ## v1.28.0 — 🎨 Warm bakery re-skin  
 _Polish_
 

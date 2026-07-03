@@ -1425,6 +1425,54 @@ input[type="text"]:focus {
 .game-hint:empty { display: none; }
 
 /* ============ Results ============ */
+/* Record / near-miss ribbon — the "one more round" hook */
+.results-ribbon {
+  justify-self: center; margin: 0 auto;
+  font-weight: 900; font-size: 15px;
+  padding: 7px 18px; border-radius: 999px;
+  color: #5A3A11;
+  background: linear-gradient(100deg, #FFD98A 0%, #FFF3CE 45%, #FFD98A 100%);
+  background-size: 220% 100%;
+  border: 1.5px solid #E8A93C;
+  box-shadow: 0 3px 12px rgba(232,169,60,.35);
+  animation: ribbon-shimmer 1.8s linear infinite;
+}
+.results-ribbon.nearmiss {
+  color: #fff;
+  background: linear-gradient(100deg, #F4649B, #C73364);
+  border-color: #C73364;
+  box-shadow: 0 3px 12px rgba(199,51,100,.35);
+  animation: nearmiss-pulse 1s ease-in-out infinite;
+}
+@keyframes ribbon-shimmer { to { background-position: -220% 0; } }
+@keyframes nearmiss-pulse { 50% { transform: scale(1.05); } }
+/* Savings goal toward the next shop unlock */
+.results-next-unlock {
+  justify-self: center; margin: 0 auto;
+  font-size: 12.5px; font-weight: 800; color: var(--ink-soft);
+  background: var(--nest); border: 1.5px solid var(--nest-border);
+  border-radius: 12px; padding: 7px 14px;
+}
+.results-next-unlock .nu-bar {
+  height: 6px; margin-top: 5px; border-radius: 4px;
+  background: #EFE0C6; overflow: hidden;
+}
+.results-next-unlock .nu-bar i {
+  display: block; height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #FFD98A, #E8A93C);
+}
+.results-actions { display: flex; gap: 8px; justify-content: center; }
+.results-actions .btn { flex: 0 1 200px; }
+/* coins arcing into the wallet pill after the count-up */
+.coin-fly {
+  position: fixed; z-index: 70; font-size: 22px; pointer-events: none;
+  animation: coin-fly 0.9s cubic-bezier(.3,.1,.6,1) forwards;
+}
+@keyframes coin-fly {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--fx), var(--fy)) scale(.55); opacity: 0; }
+}
+
 .results-wrap {
   text-align: center;
   justify-content: center;
@@ -1598,8 +1646,10 @@ input[type="text"]:focus {
     grid-template-areas:
       "title  awards"
       "stars  awards"
-      "score  players"
+      "score  awards"
+      "ribbon players"
       "coins  players"
+      "unlock players"
       "stats  players"
       "btn    players";
     justify-content: center;
@@ -1608,9 +1658,11 @@ input[type="text"]:focus {
   #results-title   { grid-area: title; font-size: 24px; }
   .stars-row       { grid-area: stars; font-size: 46px; letter-spacing: 6px; }
   #results-score   { grid-area: score; font-size: 40px; }
+  #results-ribbon  { grid-area: ribbon; font-size: 13px; }
+  #results-next-unlock { grid-area: unlock; }
   #results-coins   { grid-area: coins; justify-self: center; }
   .results-stats   { grid-area: stats; }
-  #btn-results-done{ grid-area: btn; margin-top: 4px; }
+  .results-actions { grid-area: btn; margin-top: 4px; }
   .results-awards  { grid-area: awards; align-self: end; min-height: 0; overflow-y: auto; }
   .results-players { grid-area: players; align-self: start; min-height: 0; overflow-y: auto; max-height: 100%; }
 
@@ -2122,11 +2174,17 @@ input[type="text"]:focus {
         <span class="star" data-i="0">★</span><span class="star" data-i="1">★</span><span class="star" data-i="2">★</span>
       </div>
       <div class="big-score" id="results-score">0</div>
+      <div class="results-ribbon" id="results-ribbon" hidden></div>
       <div class="results-coins" id="results-coins" hidden></div>
+      <div class="results-next-unlock" id="results-next-unlock" hidden></div>
       <div class="results-stats" id="results-stats"></div>
       <div class="results-awards" id="results-awards"></div>
       <div class="results-players" id="results-players"></div>
-      <button class="btn btn-primary" id="btn-results-done">Back to the Kitchen</button>
+      <div class="results-actions">
+        <button class="btn btn-secondary" id="btn-results-done">‹ Kitchen</button>
+        <button class="btn btn-secondary" id="btn-results-retry">↻ Retry</button>
+        <button class="btn btn-primary" id="btn-results-next" hidden>Next level ▶</button>
+      </div>
     </div>
   </section>
 

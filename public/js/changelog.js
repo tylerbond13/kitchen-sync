@@ -3,6 +3,19 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.29.0",
+    "title": "One more round",
+    "emoji": "🔁",
+    "category": "feature",
+    "changes": [
+      "The results screen now closes the loop: ↻ Retry the level or jump straight to the Next level without a trip through the lobby.",
+      "Near-miss rounds call it out — 'Only 140 from ⭐⭐ — go again!' pulses when you were within 20% of the next star, and Retry becomes the big button.",
+      "Beat your crew's best score and a shimmering 🏆 NEW CREW RECORD ribbon celebrates it; getting close taunts you with how near you came.",
+      "Coins now pay out with a proper count-up and a little shower of coins arcing into your wallet.",
+      "Every round ends with a savings goal: the next shop unlock and exactly how far your crew's bank is from affording it."
+    ]
+  },
+  {
     "version": "1.28.0",
     "title": "Warm bakery re-skin",
     "emoji": "🎨",
