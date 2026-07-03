@@ -10,6 +10,10 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Every tap answers back — design-roadmap #12 Phase A (v1.35.0)
+- Screen changes animate in (.28s opacity/translate/scale, skipped for the game screen so the canvas fit never measures mid-animation) with a soft `SFX.whoosh` on every real screen change (never the initial paint); menu taps bloom a teaberry ripple at the touch point (body-level fixed span, so it survives the screen swap); missing `:active` presses added. All behind prefers-reduced-motion.
+- _(Verified live: screen-in animation on the lobby, ripple spawns on tap; 92/92 green. Phases B (round-start title card + countdown) and C (round-end crescendo) remain.)_
+
 ### Milestones pay out — design-roadmap #11 (v1.34.0)
 - **Every milestone now dispenses coins** (100-2,000, sized so 2-3 claims ≈ one shop upgrade). Complete ones grow a bouncing gold **Claim** button; claims are validated SERVER-side against crew data (rounds, meals, stars, unlocked levels, bot skills — the two character milestones are device-personal so the server accepts the client count) and paid exactly once (`crew.claimedMilestones`, `store.claimMilestone`).
 - Unclaimed-reward **badge** on "See all milestones"; claimed rows show `✓ +250`; incomplete rows advertise their payout.
