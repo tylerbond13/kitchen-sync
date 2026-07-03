@@ -554,7 +554,11 @@
         }
       }
       const highestFeet = Math.min(topFloor + 0.5, this.queueSlot(0).y); // in tiles
-      const headroom = Math.max(WALL_H, Math.ceil(tallest - TILE_HEIGHT * highestFeet + 12));
+      // How far a character standing on that highest spot rises ABOVE the
+      // room's top edge — body + the floating name tag. That is GAMEPLAY, not
+      // decoration, so the fit below must keep it out from under the tickets.
+      const charRise = Math.max(0, Math.ceil(tallest + 22 - TILE_HEIGHT * highestFeet));
+      const headroom = Math.max(WALL_H, charRise);
       this.ox = PAD + WALL_SIDE + Math.max(0,-minGx)*TILE_WIDTH; // room origin
       this.oy = PAD + headroom;                                  // below the wall
       this.worldW = this.ox + (maxGx+1)*TILE_WIDTH + WALL_SIDE + PAD;
@@ -578,12 +582,17 @@
         const scr = document.getElementById('screen-game');
         if (scr) scr.style.setProperty('--hud-band-h', `${Math.round(this.bandTop / this.dpr)}px`);
       }
-      const playH  = this.worldH - this.oy;   // room rows + front-face padding
+      // Gameplay starts at the HEADS of characters on the highest walkable
+      // spot (chefs on the top floor row, the front queue customer) — not at
+      // the room's top edge. Fit from there so tickets only ever cover true
+      // decorative wall, never a chef, a customer, or a name tag.
+      const playTop = Math.max(PAD, this.oy - charRise);
+      const playH  = this.worldH - playTop;   // char headroom + rows + front faces
       const availH = Math.max(80, this.canvas.height - this.bandTop - this.bandBot);
       this.scale = Math.min(this.canvas.width / this.worldW, availH / playH);
       this.txOff = (this.canvas.width - this.worldW * this.scale) / 2;
-      // pin the top row just below the tickets; float in any spare height
-      this.tyOff = this.bandTop - this.oy * this.scale
+      // pin the tallest head just below the tickets; float in any spare height
+      this.tyOff = this.bandTop - playTop * this.scale
                  + Math.max(0, availH - playH * this.scale) / 2;
     }
 
