@@ -114,7 +114,9 @@
     plate_stack_clean_4:'plate_stack_clean_4_plain',
     serve_window:'serve_window_plain',
     serve_window_active:'serve_window_active_plain',
-    trash:'trash_plain',
+    // trash intentionally NOT remapped: the HD photo bin (steel pedal can) was
+    // the single worst style-breaker on the board — the cartoon cake-world can
+    // matches every other station and has real left/right facings.
     sink:'sink_plain',
     sink_dirty:'sink_dirty_plain',
     sink_dirty_0:'sink_dirty_0_plain',
@@ -409,6 +411,10 @@
       this.themeName = staticState.theme || 'diner';
       this.theme   = THEMES[this.themeName] || THEMES.diner;
       this.wallMeta = WALL_META[this.themeName] || WALL_META.diner;
+      // Every kitchen gets ambient set dressing (rugs, sconces, a mascot,
+      // drifting bees/butterflies) generated from its own grid — Cake World
+      // keeps its hand-tuned arrangement.
+      this.ambience = staticState.decor === 'cake' ? null : this.buildAmbience(staticState.seed ?? 1);
       // Per-round customer cast: Fisher-Yates with the server's seed.
       const rand = mulberry32((staticState.seed ?? 1) >>> 0);
       // a custom/admin level can restrict the cast to a chosen set of avatars
@@ -749,6 +755,12 @@
       // squashing it into a sliver or replacing it with vector shapes.
       this.drawScene();
 
+      // 1. ROOM BASE (device space): the framed "stage" the kitchen stands on —
+      // gold frame, warm floor sheen, AO under the back row, inner edge shadow.
+      // This mediates between the sprites and the photo wallpaper so the island
+      // reads as one built set instead of assets pasted on a background.
+      this.drawBoardFrame();
+
       // Everything else draws in world space (fixed 64×48 units).
       ctx.setTransform(this.scale,0,0,this.scale,this.txOff,this.tyOff);
 
@@ -829,31 +841,84 @@
       };
       desk('decor_vase', 0, 20);
       desk('decor_utensils', lvl.w-1, 16);
-      if (lvl.decor === 'cake') this.pushCakeDecor(queue);
+      this.pushCakeDecor(queue, lvl.decor === 'cake' ? CAKE_DECOR : this.ambience);
     }
 
-    // Cake World ambient decor — rugs under the floor, fixtures depth-sorted,
-    // and animated bees/butterflies bobbing above the whole scene.
-    pushCakeDecor(queue) {
+    // Ambient decor — rugs under the floor, fixtures depth-sorted, and animated
+    // bees/butterflies bobbing above the whole scene. `list` is CAKE_DECOR for
+    // Cake World or the per-level generated ambience for everything else.
+    pushCakeDecor(queue, list) {
+      if (!list) return;
       const now = performance.now();
       const frameKey = (d) => {
         if (!d.frames) return d.key;
         const i = Math.floor(now / (1000 / (d.fps || 4)) + (d.phase || 0)) % d.frames.length;
         return d.frames[i];
       };
-      for (const d of CAKE_DECOR) {
+      for (const d of list) {
         const [sx, sy] = this.project(d.gx, d.gy);
         if (d.kind === 'rug') {
           queue.push({ screenY: -1e6, draw: () => GFX.draw(this.ctx, d.key, sx, sy + TILE_HEIGHT * 0.2, d.w, d.w) });
         } else if (d.kind === 'prop') {
           const key = frameKey(d);
-          queue.push({ screenY: sy, draw: () => GFX.drawAnchored(this.ctx, key, sx, sy + TILE_HEIGHT / 2, d.w) });
+          queue.push({ screenY: sy, draw: () => GFX.drawAnchored(this.ctx, key, sx, sy + TILE_HEIGHT / 2 - (d.lift || 0), d.w) });
         } else if (d.kind === 'float') {
           const key = frameKey(d);
           const bob = Math.sin(now / 600 + (d.phase || 0)) * (d.bob || 0);
           queue.push({ screenY: 1e6 + sy, draw: () => GFX.draw(this.ctx, key, sx, sy - (d.lift || 50) + bob, d.w, d.w) });
         }
       }
+    }
+
+    // Generate set dressing for ANY kitchen from its own grid: a rug centred on
+    // the open floor, sconces high on the side walls, a mascot greeter tucked
+    // into a walkway corner, and a few bees/butterflies drifting over the back.
+    // Seeded from the round seed so every phone sees the same arrangement.
+    buildAmbience(seed) {
+      const { w, h, grid } = this.lvl;
+      const rand = mulberry32(((seed * 2654435761) ^ 0x9E3779B9) >>> 0);
+      const D = [];
+      const isFloor = (x, y) => !!grid[y] && grid[y][x] === '.';
+      const floorNear = (tx, ty, maxR = 3.5) => {
+        let best = null, bd = 1e9;
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+          if (!isFloor(x, y)) continue;
+          const d = Math.hypot(x + 0.5 - tx, y + 0.5 - ty);
+          if (d < bd) { bd = d; best = { x: x + 0.5, y: y + 0.5 }; }
+        }
+        return bd <= maxR ? best : null;
+      };
+
+      // a round rug under the heart of the kitchen
+      const c = floorNear(w / 2, h / 2 + 0.3);
+      if (c) D.push({ kind: 'rug', key: 'cw_rug_round', gx: c.x - 0.5, gy: c.y - 0.45,
+        w: Math.max(120, Math.min(190, w * 15)) });
+
+      // sconces mounted on the stage-frame posts, clear of the stations
+      D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: -0.32,    gy: 1.2, w: 36 });
+      D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: w + 0.32, gy: 1.2, w: 36 });
+
+      // mascot greeter in a walkway corner (skip cramped boards)
+      if (w >= 7 && h >= 5) {
+        const corner = floorNear(w - 1.4, h - 0.7, 2.2) || floorNear(1.4, h - 0.7, 2.2);
+        if (corner) D.push({ kind: 'prop', fps: 2.4, gx: corner.x + 0.15, gy: corner.y + 0.2, w: 76,
+          frames: ['cw_mascot_1', 'cw_mascot_2', 'cw_mascot_3', 'cw_mascot_4'] });
+      }
+
+      // bees & butterflies drifting over the back half of the room
+      const n = Math.max(2, Math.min(4, Math.round((w * h) / 18)));
+      const FLIERS = [
+        { fps: 9,   w: 28, lift: 54, bob: 7,  frames: ['cw_bee_1', 'cw_bee_2', 'cw_bee_3'] },
+        { fps: 5.5, w: 34, lift: 48, bob: 10, frames: ['cw_butterfly_1', 'cw_butterfly_2', 'cw_butterfly_3'] },
+      ];
+      for (let i = 0; i < n; i++) {
+        const f = FLIERS[i % 2];
+        D.push({ kind: 'float', fps: f.fps, bob: f.bob,
+          w: f.w + Math.round(rand() * 6 - 3), lift: f.lift + rand() * 18,
+          phase: rand() * 6.28,
+          gx: 0.8 + rand() * (w - 1.6), gy: 0.6 + rand() * (h * 0.45) });
+      }
+      return D;
     }
 
     // ── Painted scene: wall illustration + glossy checker floor ──────────────
@@ -899,8 +964,6 @@
       const ws=ctx.createLinearGradient(0,floorY-10,0,floorY+12);
       ws.addColorStop(0,'rgba(0,0,0,0)'); ws.addColorStop(1,'rgba(20,8,16,0.20)');
       ctx.fillStyle=ws; ctx.fillRect(0,floorY-10,W,22);
-
-      this.drawBoardFrame();
     }
 
     drawBoardFrame() {
@@ -908,7 +971,7 @@
       const x = Math.round(this.txOff + (this.ox - 12) * this.scale);
       const y = Math.round(this.tyOff + (this.oy - 14) * this.scale);
       const w = Math.round((lvl.w * TILE_WIDTH + 24) * this.scale);
-      const h = Math.round((lvl.h * TILE_HEIGHT + 26) * this.scale);
+      const h = Math.round((lvl.h * TILE_HEIGHT + 46) * this.scale); // include front-row faces
       const r = Math.max(16, Math.round(20 * this.scale));
       if (w <= 0 || h <= 0) return;
 
@@ -919,8 +982,31 @@
       ctx.fillStyle = 'rgba(255,246,234,0.10)';
       this.rrC(ctx, x, y, w, h, r);
       ctx.fill();
-
       ctx.shadowColor = 'transparent';
+
+      // Ground the room ON the wallpaper instead of floating over it: a warm
+      // light pooled at the centre of the floor, ambient occlusion under the
+      // back row, and a soft inner shadow around the whole frame. This is what
+      // melts the sprite island into the photo backdrop.
+      ctx.save();
+      this.rrC(ctx, x, y, w, h, r);
+      ctx.clip();
+      const sheen = ctx.createRadialGradient(x + w / 2, y + h * 0.42, Math.min(w, h) * 0.18,
+                                             x + w / 2, y + h * 0.55, Math.max(w, h) * 0.72);
+      sheen.addColorStop(0, 'rgba(255,244,224,0.17)');
+      sheen.addColorStop(0.55, 'rgba(255,235,214,0.05)');
+      sheen.addColorStop(1, 'rgba(74,38,64,0.14)');
+      ctx.fillStyle = sheen; ctx.fillRect(x, y, w, h);
+      const aoH = Math.max(20, 36 * this.scale);
+      const ao = ctx.createLinearGradient(0, y, 0, y + aoH);
+      ao.addColorStop(0, 'rgba(58,26,48,0.20)');
+      ao.addColorStop(1, 'rgba(58,26,48,0)');
+      ctx.fillStyle = ao; ctx.fillRect(x, y, w, aoH);
+      ctx.lineWidth = Math.max(12, 18 * this.scale);
+      ctx.strokeStyle = 'rgba(58,26,48,0.10)';
+      this.rrC(ctx, x, y, w, h, r);
+      ctx.stroke();               // clipped: only the inner half of the stroke shows
+      ctx.restore();
       const strokeW = Math.max(3, 5 * this.scale);
       ctx.lineWidth = strokeW;
       ctx.strokeStyle = '#A86A22';
@@ -980,12 +1066,19 @@
       ctx.restore();
     }
 
-    // Cinematic finish: ambient top-light + corner vignette, in device space.
+    // Cinematic finish: unifying colour grade + ambient top-light + corner
+    // vignette, in device space.
     drawAtmosphere() {
       const {ctx}=this;
       ctx.save();
       ctx.setTransform(1,0,0,1,0,0);
       const W=this.canvas.width, H=this.canvas.height;
+      // one warm grade over EVERYTHING (sprites + wallpaper alike) — the single
+      // cheapest trick for making mixed art sources feel lit by the same room
+      ctx.globalCompositeOperation='soft-light';
+      ctx.fillStyle='rgba(255,186,145,0.20)';
+      ctx.fillRect(0,0,W,H);
+      ctx.globalCompositeOperation='source-over';
       // bright warm top light (adds glow, never dulls the saturated art)
       const amb=ctx.createLinearGradient(0,0,0,H);
       amb.addColorStop(0,'rgba(255,250,235,0.14)');
@@ -994,8 +1087,14 @@
       // whisper-soft vignette — just enough to frame, edges stay vibrant
       const vg=ctx.createRadialGradient(W/2,H*0.44,Math.min(W,H)*0.34,W/2,H*0.52,Math.max(W,H)*0.78);
       vg.addColorStop(0,'rgba(0,0,0,0)');
-      vg.addColorStop(1,'rgba(24,10,28,0.13)');
+      vg.addColorStop(1,'rgba(24,10,28,0.16)');
       ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+      // dim the top band a touch so the wallpaper's wall recedes behind the
+      // tickets and the lit kitchen below reads as the subject
+      const tb=ctx.createLinearGradient(0,0,0,H*0.2);
+      tb.addColorStop(0,'rgba(40,16,44,0.14)');
+      tb.addColorStop(1,'rgba(40,16,44,0)');
+      ctx.fillStyle=tb; ctx.fillRect(0,0,W,H*0.2);
       ctx.restore();
     }
 
@@ -1050,7 +1149,7 @@
       const ing = this.lvl.crates && this.lvl.crates[c];
 
       // Contact shadow under the block's footprint so nothing floats.
-      this.contactShadow(sx, baseY-3, TW*0.40, 8, 0.16);
+      this.contactShadow(sx, baseY-3, TW*0.47, 9, 0.21);
 
       // Crates: per-ingredient art if the manifest has it, otherwise the
       // flat generic crate with the raw ingredient sprite in its open top.
