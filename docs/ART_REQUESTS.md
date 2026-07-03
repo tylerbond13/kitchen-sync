@@ -19,8 +19,8 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 
 - [x] 1. Cutting-board station
 - [x] 2. Stove + pan
-- [ ] 3. Soup pot station
-- [ ] 4. Oven
+- [x] 3. Soup pot station
+- [x] 4. Oven
 - [ ] 5. Sink / dish station
 - [ ] 6. Plate rack
 - [ ] 7. Serve window
