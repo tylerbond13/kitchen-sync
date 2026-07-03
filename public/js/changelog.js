@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.38.0",
+    "title": "The last ten seconds have teeth",
+    "emoji": "⏰",
+    "category": "feature",
+    "changes": [
+      "The final 10 seconds tick like a countdown clock with a breathing red glow around the kitchen.",
+      "Cross a star goal mid-round and a gold ⭐ STAR SECURED! banner celebrates it on the spot.",
+      "Rounds end with a TIME'S UP stamp over your frozen kitchen, a sweep to the results, and every result landing in sequence — score, stars, coins, then your next move."
+    ]
+  },
+  {
     "version": "1.37.0",
     "title": "3·2·1·COOK! + kitchen tuning",
     "emoji": "🚦",

@@ -1544,6 +1544,77 @@ input[type="text"]:focus {
 }
 @keyframes ri-pop { 0% { transform: scale(1.7); opacity: .2; } 100% { transform: scale(1); opacity: 1; } }
 
+/* ── Round-end crescendo (roadmap #12C) ── */
+/* Breathing red vignette for the final 10 seconds */
+.final-vignette {
+  position: absolute; inset: 0; z-index: 18; pointer-events: none;
+  box-shadow: inset 0 0 90px 24px rgba(220, 50, 60, 0.35);
+  animation: final-breathe 1s ease-in-out infinite;
+}
+.final-vignette[hidden] { display: none; }
+@keyframes final-breathe { 50% { opacity: .45; } }
+/* ⭐ STAR SECURED — flashes when the score crosses a goal mid-round */
+.star-banner {
+  position: absolute; z-index: 23;
+  top: calc(var(--hud-band-h, calc(var(--sat, 0px) + var(--hud-top-h, 84px))) + 40px);
+  left: 50%; transform: translateX(-50%);
+  background: linear-gradient(90deg, #FFD98A 0%, #E8A93C 100%);
+  color: #5A3A00; font-weight: 900; font-size: 16px; letter-spacing: .5px;
+  padding: 9px 18px; border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(232,169,60,.55), inset 0 0 0 1.5px rgba(255,255,255,.5);
+  animation: star-banner-in 1.7s ease-out both;
+  pointer-events: none; white-space: nowrap;
+}
+.star-banner[hidden] { display: none; }
+@keyframes star-banner-in {
+  0% { opacity: 0; transform: translateX(-50%) scale(1.6); }
+  12% { opacity: 1; transform: translateX(-50%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+/* TIME'S UP — stamped over the frozen kitchen before the wipe */
+.times-up {
+  position: absolute; inset: 0; z-index: 34;
+  display: grid; place-items: center;
+  background: rgba(45,22,52,0.30);
+  pointer-events: none;
+}
+.times-up[hidden] { display: none; }
+.times-up span {
+  font-size: 58px; font-weight: 900; letter-spacing: 2px; color: #fff;
+  text-shadow: 0 6px 24px rgba(20,8,30,.6), 0 0 0 2px rgba(178,59,98,.3);
+  background: linear-gradient(170deg, #F4649B 0%, #C73364 100%);
+  padding: 14px 34px; border-radius: 22px; transform: rotate(-7deg);
+  box-shadow: 0 16px 44px rgba(143,29,66,.5), inset 0 0 0 3px rgba(255,255,255,.35);
+  animation: stamp-in .32s cubic-bezier(.2,1.6,.4,1) both;
+}
+@keyframes stamp-in { from { transform: rotate(-7deg) scale(2.4); opacity: 0; } }
+/* Circular wipe to cream between the kitchen and the results */
+.round-wipe {
+  position: fixed; inset: 0; z-index: 80; pointer-events: none;
+  background: #FFFDF7;
+  clip-path: circle(0% at 50% 50%);
+}
+.round-wipe[hidden] { display: none; }
+.round-wipe.expand  { animation: wipe-in .42s ease-in both; }
+.round-wipe.dissolve { clip-path: circle(150% at 50% 50%); animation: wipe-out .45s ease-out both; }
+@keyframes wipe-in  { to { clip-path: circle(150% at 50% 50%); } }
+@keyframes wipe-out { to { opacity: 0; } }
+/* Staged results reveal — each block lands in sequence */
+#screen-results.staged .results-wrap > * { animation: rs-in .45s ease-out both; }
+#screen-results.staged .results-wrap > *:nth-child(1) { animation-delay: .05s; }
+#screen-results.staged .results-wrap > *:nth-child(2) { animation-delay: .20s; }
+#screen-results.staged .results-wrap > *:nth-child(3) { animation-delay: .35s; }
+#screen-results.staged .results-wrap > *:nth-child(4) { animation-delay: .50s; }
+#screen-results.staged .results-wrap > *:nth-child(5) { animation-delay: .62s; }
+#screen-results.staged .results-wrap > *:nth-child(6) { animation-delay: .74s; }
+#screen-results.staged .results-wrap > *:nth-child(n+7) { animation-delay: .86s; }
+@keyframes rs-in { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+@media (prefers-reduced-motion: reduce) {
+  .final-vignette, .round-wipe { display: none !important; }
+  .times-up span, .star-banner, #screen-results.staged .results-wrap > * { animation: none !important; }
+}
+
 /* Rotating starter tips sit under the tickets, over the decorative wall —
    never covering the serve windows on the front row */
 .game-hint {
@@ -2231,6 +2302,9 @@ input[type="text"]:focus {
     <div class="rush-banner" id="rush-banner" hidden></div>
     <div class="game-hint" id="game-hint">Tap a crate to grab an ingredient</div>
     <div class="round-intro" id="round-intro" hidden></div>
+    <div class="final-vignette" id="final-vignette" hidden></div>
+    <div class="star-banner" id="star-banner" hidden></div>
+    <div class="times-up" id="times-up" hidden><span>TIME'S UP!</span></div>
 
     <div class="game-hud-bottom">
       <div class="hud-pill hud-score" id="hud-score">🪙 0</div>
@@ -2403,6 +2477,9 @@ input[type="text"]:focus {
       <div class="cl-list" id="changelog-list"></div>
     </div>
   </div>
+
+  <!-- Round-end circular wipe: covers the game→results cut (roadmap #12C) -->
+  <div class="round-wipe" id="round-wipe" hidden></div>
 
   <!-- Build/version tag — filled from /api/version so it reflects the deployed build -->
   <div id="version-tag" title="What's new" style="position:fixed;left:0;right:0;bottom:calc(var(--sab,0px) + 3px);text-align:center;font-size:10px;font-weight:700;letter-spacing:.3px;color:var(--ink-soft);opacity:.55;cursor:pointer;z-index:40;font-family:ui-rounded,-apple-system,system-ui"></div>
