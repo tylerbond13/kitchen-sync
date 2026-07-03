@@ -37,6 +37,10 @@ function waitForState(sock, predicate, label, timeoutMs = 15000) {
   });
 }
 
+
+// Rounds open with the 3·2·1 countdown now — wait for 'playing' before taps.
+const awaitPlaying = (sock) => waitForState(sock, (st) => st.phase === 'playing', 'countdown done');
+
 test('socket round-trip: tap mid-chop board → waits → auto-picks the chopped item', async () => {
   await new Promise((res) => server.listen(0, res));
   const port = server.address().port;
@@ -50,6 +54,7 @@ test('socket round-trip: tap mid-chop board → waits → auto-picks the chopped
 
   const started = await emitAck(sock, 'start_game', 'salad-days');
   assert.ok(started.ok, JSON.stringify(started));
+  await awaitPlaying(sock);
 
   // salad-days top row: lettuce crate at (1,0), cutting board at (2,0)
   const mine = (st) => st.players.find((p) => p.id === me.id);
@@ -98,6 +103,7 @@ test('a waiter who exits the round never ghost-grabs — the item stays for the 
   await emitAck(b, 'join', { code: created.code, profile: pb });
   const started = await emitAck(a, 'start_game', 'salad-days');
   assert.ok(started.ok, JSON.stringify(started));
+  await awaitPlaying(a);
 
   const player = (st, id) => st.players.find((p) => p.id === id);
 

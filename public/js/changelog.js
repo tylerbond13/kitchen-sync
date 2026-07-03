@@ -3,6 +3,18 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.37.0",
+    "title": "3·2·1·COOK! + kitchen tuning",
+    "emoji": "🚦",
+    "category": "feature",
+    "changes": [
+      "Rounds open with a ritual: a title card with the level's star goals, then a synced 3·2·1·COOK! countdown on every phone. Taps during the countdown queue and fire the instant COOK! lands.",
+      "Characters now ship at 1× size everywhere — kitchens feel roomier and nothing crowds the board.",
+      "Your held item shows at the chef's waist instead of floating above the head, so it's always visible even at the top of the kitchen.",
+      "Dish counts are pinned right at the top-right corner of the dish rack and sink, plates on both draw larger, and the floral ornament no longer sits on top of appliances (it was covering the sushi level's pots)."
+    ]
+  },
+  {
     "version": "1.36.0",
     "title": "Every theme dresses its own kitchen",
     "emoji": "🖼️",

@@ -46,13 +46,11 @@
                                           // — ~1.65x the original 80; larger than
                                           // the chef but the queue overlaps less
                                           // so the waiting line stays readable.
-  const CARRY_GAP  = 52;                  // held item floats this many px above
-                                          // the chef's head (scaled with CHEF_H)
   // Characters (chefs + customers) draw at charScale × their base height. The
-  // whole game ships at 2× by default ("big & characterful"); the Level Builder
-  // can override it per-board. resize() grows the back-wall headroom to match so
-  // tall hats never clip at the top edge.
-  const DEFAULT_CHAR_SCALE = 2;
+  // whole game ships at 1× by default (Tyler's call — kitchens stay roomy); the
+  // Level Builder can override it per-board. resize() grows the back-wall
+  // headroom to match so tall hats never clip at the top edge.
+  const DEFAULT_CHAR_SCALE = 1;
   const CHAR_SCALE_MIN = 0.4, CHAR_SCALE_MAX = 4;
   const SPRITE_FILL = 0.84;               // stations render at 84% of their
                                           // tile width — visual "air" between
@@ -1027,9 +1025,16 @@
       if (c) D.push({ kind: 'rug', key: 'cw_rug_round', gx: c.x - 0.5, gy: c.y - 0.45,
         w: Math.max(120, Math.min(190, w * 15)) });
 
-      // sconces mounted on the stage-frame posts, clear of the stations
-      D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: -0.32,    gy: 1.2, w: 36 });
-      D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: w + 0.32, gy: 1.2, w: 36 });
+      // Floral sconces on the stage-frame posts — anchored beside a FLOOR row
+      // so the roses never sit on top of an edge-column appliance (they were
+      // covering the sushi level's pots at a fixed gy).
+      const sconceRow = (col) => {
+        for (let r = 0; r < h; r++) if (grid[r] && grid[r][col] === '.') return r + 0.2;
+        return null;
+      };
+      const sL = sconceRow(0), sR = sconceRow(w - 1);
+      if (sL !== null) D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: -0.32,    gy: sL, w: 36 });
+      if (sR !== null) D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: w + 0.32, gy: sR, w: 36 });
 
       // (no mascot — Tyler's call: the purple dinosaur is permanently benched)
 
@@ -1426,7 +1431,14 @@
         if (c==='P' && this.cur && this.cur.plates!==undefined) {
           const supply=this.cur.plates;
           const label=supply===null?'∞':String(supply);
-          this.countBadge(sx+20, topY-28, label, supply===0, '#FF4070');
+          // a readable stack of plates on the rack surface (art plates are tiny)
+          if (supply === null || supply > 0) {
+            const n = supply === null ? 3 : Math.min(supply, 3);
+            for (let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-3-i*4,38,38);
+          }
+          // count pinned RIGHT AT the sprite's top-right corner
+          if (rect) this.countBadge(rect.x + rect.w - 8, rect.y - 6, label, supply===0, '#FF4070');
+          else this.countBadge(sx+20, topY-28, label, supply===0, '#FF4070');
         }
 
         if (!s) return;
@@ -1440,13 +1452,14 @@
           // The dirty-sink render already shows piled plates; don't double up.
           if (stateKey !== 'sink_dirty' && !/^sink_dirty_\d$/.test(stateKey)) {
             const n=Math.min(s.dirty,3);
-            for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-1-i*3,30,30);
+            for(let i=0;i<n;i++) GFX.draw(ctx,'plate',sx,topY-2-i*4,40,40);
           }
-          if (s.dirty>0) this.glyph('🫧',sx+13,topY-14,12);
+          if (s.dirty>0) this.glyph('🫧',sx+13,topY-16,13);
           if (s.progress>0) this.bar(sx, topY - 28, s.progress, '#5BADDE','#A8D8F8');
-          // Always show how many dirty dishes are waiting (0 when empty), above
-          // the wash bar — mirrors the clean-plate count on the dish rack.
-          this.countBadge(sx+20, topY-46, s.dirty, s.dirty>0, '#3E9BD6');
+          // Dirty count pinned right at the sink's top-right corner —
+          // mirrors the clean-plate count on the dish rack.
+          if (rect) this.countBadge(rect.x + rect.w - 8, rect.y - 6, s.dirty, s.dirty>0, '#3E9BD6');
+          else this.countBadge(sx+20, topY-46, s.dirty, s.dirty>0, '#3E9BD6');
         }
         if (s.contents) {
           const n=s.contents.length;
@@ -1491,15 +1504,15 @@
       const headTopY = sy - bounce - H;
       GFX.draw(ctx,chefKey,sx,sy-bounce-H*0.52,H*0.85,H);
 
-      // Held item floats EXACTLY CARRY_GAP px above the chef's head.
+      // Held item rides at the WAIST, overlaid on the chef — visible even when
+      // the chef is at the top of the screen (an above-the-head item clipped).
       if (p.carry) {
-        const carryY = headTopY - CARRY_GAP;
+        const carryY = sy - bounce - H * 0.42;
         if (p.carry.kind==='plate') this.drawPlate(p.carry,sx,carryY,22);
         else this.drawItem(p.carry,sx,carryY,20);
       }
       if (p.queue && p.queue.length) {
-        const y = headTopY - CARRY_GAP - (p.carry ? 28 : 8);
-        this.drawActionQueue(p.queue, sx, y);
+        this.drawActionQueue(p.queue, sx, headTopY - 10);
       }
 
       this._labels.push({

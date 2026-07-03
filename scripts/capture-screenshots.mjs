@@ -102,7 +102,7 @@ async function main() {
     await page.waitForFunction(() => document.getElementById('screen-game')?.classList.contains('active'), { timeout: 8000 });
     await sleep(800);
     await page.evaluate(() => document.getElementById('btn-tutorial-skip')?.click());
-    await sleep(3500); // canvas + sprite render
+    await sleep(12000); // 3.2s countdown + cold sprite prep (keying/trim) settle
   });
 
   // 8. Pause menu (music console + relocated tools)

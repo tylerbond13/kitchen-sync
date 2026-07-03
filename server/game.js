@@ -137,7 +137,11 @@ class Game {
     this.orders = [];
     this.nextOrderId = 1;
     this.orderClock = 0; // spawn first order immediately
-    this.phase = 'playing';
+    // Real rounds open with a server-authoritative 3·2·1·COOK! (opts.countdown;
+    // the existing phase !== 'playing' guards already block input during it).
+    // Tests and headless sims skip it by default.
+    this.phase = opts.countdown ? 'starting' : 'playing';
+    this.countdown = opts.countdown ? 3.2 : 0;
     this.paused = false;
     this.pausedBy = null;
     // cosmetic seed: clients shuffle the customer cast with it, so every
@@ -352,13 +356,16 @@ class Game {
 
   tap(playerId, tx, ty) {
     const p = this.players[playerId];
-    if (!p || this.phase !== 'playing' || this.paused) return;
+    if (!p || this.paused) return;
+    // Taps during the 3·2·1 countdown QUEUE (they fire the instant COOK!
+    // lands) — eager players get their first grab in, nothing is dropped.
+    if (this.phase !== 'playing' && this.phase !== 'starting') return;
     tx = Math.floor(tx); ty = Math.floor(ty);
     if (tx < 0 || ty < 0 || tx >= this.w || ty >= this.h) return;
     if (!this.stations[`${tx},${ty}`] && !this.isFloor(tx, ty)) return;
 
     const action = { x: tx, y: ty };
-    if (this.shouldQueueTap(p)) {
+    if (this.phase === 'starting' || this.shouldQueueTap(p)) {
       this.enqueueAction(p, action);
       return;
     }
@@ -859,6 +866,13 @@ class Game {
   // ---- simulation ---------------------------------------------------------
 
   tick(dt) {
+    if (this.phase === 'starting' && !this.paused) {
+      this.countdown = Math.max(0, this.countdown - dt);
+      if (this.countdown === 0) {
+        this.phase = 'playing';
+        this.emit('cook', {});   // the COOK! beat — clients flash + chime
+      }
+    }
     if (this.phase !== 'playing' || this.paused) {
       const ev = this.events; this.events = [];
       return ev;
@@ -1122,13 +1136,14 @@ class Game {
     return {
       levelId: this.level.id,
       name: this.level.name,
+      emoji: this.level.emoji || '🍳',
       theme: this.level.theme || 'diner',
       w: this.w,
       h: this.h,
       grid: this.level.layout,
       crates: this.level.crates,
       facings: this.level.facings || null,   // explicit per-tile facing (builder)
-      charScale: this.level.charScale || 1.5, // char sprite size — campaign default 1.5×; builder sets its own
+      charScale: this.level.charScale || 1, // char sprite size — 1× everywhere by default (Tyler); builder can raise it
       wallpaper: this.level.wallpaper || null, // board background image (builder)
       duration: this.level.duration,
       starThresholds: this.starGoals,
@@ -1179,6 +1194,7 @@ class Game {
       rush: this.rush > 0 ? Math.ceil(this.rush) : 0,
       autoChop: this.autoChop,
       phase: this.phase,
+      countdown: this.countdown,
       paused: this.paused,
       pausedBy: this.pausedBy,
       players: Object.values(this.players).map((p) => ({

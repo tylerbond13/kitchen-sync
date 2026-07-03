@@ -244,7 +244,7 @@ function buildCustomLevel(c) {
     layout,
     // cosmetic, builder-tunable: character (chef + customer) sprite size and the
     // board's background wallpaper.
-    charScale: clampNum(c.charScale, 0.4, 4, 2),
+    charScale: clampNum(c.charScale, 0.4, 4, 1),
     wallpaper: (typeof c.wallpaper === 'string' && c.wallpaper) ? c.wallpaper.slice(0, 24) : null,
     speedMult: clampNum(c.speedMult, 0.25, 5, 1),
     customers: (Array.isArray(c.customers) && c.customers.length) ? c.customers.map(String) : null,
@@ -318,6 +318,7 @@ function startGame(io, room, levelId, custom) {
   room.game = new Game(level, roster, {
     upgrades: room.crew.wallet.upgrades,
     autoChop: room.crew.settings.autoChop,
+    countdown: true,   // real rounds open with the 3·2·1·COOK! ritual
   });
   room.sousChef = useBot ? new SousChef(room.game, BOT_ID, botCaps(room.crew)) : null;
   roomBroadcast(io, room, 'game_start', room.game.staticState());

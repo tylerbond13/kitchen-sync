@@ -820,3 +820,17 @@ test('cake world Phase 3 infra: garnish needs an iced cake, then tops it', () =>
   game.interact(p, 'gar-1');
   assert.ok(game.events.slice(n).some((e) => e.type === 'reject'), 'double-garnish rejected');
 });
+
+test('countdown option: round opens in starting phase, input blocked, then plays', () => {
+  const level = LEVELS.find((l) => l.id === 'salad-days');
+  const game = new Game(level, ROSTER, { rng: () => 0, countdown: true });
+  assert.equal(game.phase, 'starting');
+  const p = Object.values(game.players)[0];
+  game.tap(p.id, 1, 0);
+  assert.equal(p.path.length, 0, 'no movement during the countdown');
+  assert.equal(p.queue.length, 1, 'countdown taps queue instead of dropping');
+  for (let i = 0; i < 45; i++) game.tick(1 / 12);   // ~3.75s
+  assert.equal(game.phase, 'playing', 'countdown elapsed → playing');
+  assert.equal(game.countdown, 0);
+  assert.equal(p.queue.length, 0, 'queued tap fired at COOK!');
+});

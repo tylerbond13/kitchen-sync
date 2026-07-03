@@ -48,6 +48,12 @@ function waitForWhere(sock, event, predicate, timeoutMs = 8000) {
   });
 }
 
+// The 3·2·1·COOK! countdown (v1.37.0): rounds open in phase 'starting' and
+// input only ACTS once 'playing' — wait it out before driving the round.
+function awaitPlaying(sock) {
+  return waitForWhere(sock, 'state', (st) => st.phase === 'playing', 12000);
+}
+
 test('two players: create, join, play a round, progress persists', async () => {
   await new Promise((res) => server.listen(0, res));
   const port = server.address().port;
@@ -131,6 +137,7 @@ test('two players: create, join, play a round, progress persists', async () => {
   await gs2;
   assert.equal(stat.levelId, 'salad-days');
   assert.ok(stat.grid.length > 0);
+  await awaitPlaying(sib);
 
   // the round kicks off the music queue in order
   const musicStart = await musicStartP;
@@ -183,6 +190,7 @@ test('two players: create, join, play a round, progress persists', async () => {
   const restarted = await restartTyler;
   await restartSib;
   assert.equal(restarted.levelId, 'salad-days');
+  await awaitPlaying(tyler);
   // a fresh round with an empty queue silences the radio
   const radioReset = await radioResetP;
   assert.equal(radioReset.radio, null);
