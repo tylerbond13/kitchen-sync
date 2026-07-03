@@ -10,6 +10,12 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### The last ten seconds have teeth — design-roadmap #12 Phase C (v1.38.0)
+- **Final-ten tension:** woodblock tick each second + a breathing red inset vignette while the clock runs out (playing + unpaused only).
+- **⭐ STAR SECURED! banner** the moment the score crosses a star goal mid-round (gold flash under the tickets, star chime, auto-dismiss).
+- **Round-end ceremony:** TIME'S UP stamps over the frozen kitchen (~900ms), a circular cream wipe covers the cut, and the results screen lands STAGED — title, stars, score, coins, buttons in sequence; the score count-up now waits for the reveal so nothing plays unseen. Reduced-motion (or missing elements) falls back to the old hard cut.
+- Roadmap #12 (flow ceremony) is now complete: A transitions/ripples (v1.35.0), B round-start ritual (v1.37.0), C round-end crescendo (v1.38.0).
+
 ### 3·2·1·COOK! + Tyler's kitchen tuning + screenshot backfill (v1.37.0)
 - **Tyler's batch (from his message):** characters ship at **1× everywhere** (renderer default, server default, builder default + copy, Tyler's Salad Bar override); **held items ride at the chef's waist** overlaid on the sprite (visible at the top of the screen — above-the-head items clipped); **dish-rack / sink counts pinned right at the sprite's top-right corner** (were floating far away), plates draw larger on both (40px sink pile, readable 38px clean stack on the rack); **floral sconces anchor beside a floor row** so they never sit on an edge-column appliance (they covered the sushi pots).
 - **Screenshot archive backfilled per Tyler:** docs/screenshots/ now has all of v1.30.0 → v1.37.0 (9 shots each) — old releases captured by running each release commit in a temp worktree against the archived capture script; game-shot settle bumped for the countdown + cold sprite prep.

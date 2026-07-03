@@ -1239,9 +1239,17 @@
     startRound(staticState);
   });
 
+  let lastTickSecond = -1;   // final-ten woodblock dedupe
+  let starsSecured = 0;      // star-goal crossings celebrated this round
+
   function startRound(staticState) {
     if (renderer) renderer.destroy();
     exitedRound = false;
+    lastTickSecond = -1;
+    starsSecured = 0;
+    const fv = $('final-vignette'); if (fv) fv.hidden = true;
+    const sb = $('star-banner'); if (sb) sb.hidden = true;
+    const tu = $('times-up'); if (tu) tu.hidden = true;
     curStatic = staticState;
     show('game');
     $('pause-overlay').hidden = true;
@@ -1461,9 +1469,31 @@
       $('btn-autochop').classList.toggle('active', !!state.autoChop);
     }
 
+    // Final-ten tension: a woodblock tick each second + breathing red vignette
+    // (roadmap #12C — the crescendo that feeds the results screen).
+    const vign = $('final-vignette');
+    const finalTen = state.phase === 'playing' && !state.paused && state.t <= 10 && state.t > 0;
+    if (vign) vign.hidden = !finalTen;
+    if (finalTen && state.t !== lastTickSecond) { lastTickSecond = state.t; SFX.tick(); }
+
     // star goal progress
     if (curStatic && curStatic.starThresholds) {
       const [g1, g2, g3] = curStatic.starThresholds;
+      // ⭐ STAR SECURED — celebrate the moment a goal is crossed, mid-round
+      const secured = [g1, g2, g3].filter((g) => state.score >= g).length;
+      if (secured > starsSecured && state.phase === 'playing') {
+        starsSecured = secured;
+        const sb = $('star-banner');
+        if (sb) {
+          sb.hidden = false;
+          sb.textContent = `${'⭐'.repeat(secured)} STAR SECURED!`;
+          sb.style.animation = 'none'; void sb.offsetWidth; sb.style.animation = '';
+          SFX.star(secured);
+          clearTimeout(sb._t); sb._t = setTimeout(() => { sb.hidden = true; }, 1750);
+        }
+      } else if (secured < starsSecured) {
+        starsSecured = secured;   // fresh round reset came through the wire
+      }
       const frac = Math.min(state.score / g3, 1);
       $('star-fill').style.width = `${frac * 100}%`;
       const marks = document.querySelectorAll('#star-progress .star-mark');
@@ -1632,9 +1662,36 @@
     saveCrewBackup(results.crew);
     clearInterval(hintTimer);
     if (exitedRound) { exitedRound = false; return; }  // stayed in the lobby
-    if (renderer) { renderer.destroy(); renderer = null; }
+    if (renderer) { renderer.destroy(); renderer = null; }  // canvas freezes on its last frame
     ticketEls.clear();
-    show('results');
+    const fv = $('final-vignette'); if (fv) fv.hidden = true;
+
+    // Round-end ceremony (roadmap #12C): TIME'S UP stamps over the frozen
+    // kitchen, a circular wipe covers the cut, and the results land staged.
+    // Reduced-motion (and any missing element) falls back to the hard cut.
+    const tu = $('times-up'), wipe = $('round-wipe');
+    const ceremony = tu && wipe && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reveal = () => {
+      $('screen-results').classList.add('staged');
+      show('results');
+    };
+    if (ceremony) {
+      tu.hidden = false;
+      setTimeout(() => {
+        wipe.hidden = false;
+        wipe.classList.remove('dissolve');
+        wipe.classList.add('expand');
+        setTimeout(() => {
+          tu.hidden = true;
+          reveal();
+          wipe.classList.remove('expand');
+          wipe.classList.add('dissolve');
+          setTimeout(() => { wipe.hidden = true; wipe.classList.remove('dissolve'); }, 500);
+        }, 440);
+      }, 900);
+    } else {
+      reveal();
+    }
     SFX.over();
     // A spoken sign-off: a pleased line for a decent service, a heckle for a
     // flop. Delayed a touch so it lands after the round-over sting.
@@ -1734,11 +1791,14 @@
       rp.appendChild(el);
     }
 
-    // animate score count-up → star pops → coin payout choreography
+    // animate score count-up → star pops → coin payout choreography —
+    // held until the wipe reveals the screen, so nothing plays out unseen
+    const countDelay = ceremony ? 1450 : 0;
     document.querySelectorAll('.stars-row .star').forEach((s) => s.classList.remove('lit'));
     const target = results.score;
-    const t0 = performance.now();
+    let t0;
     function count(now) {
+      if (t0 === undefined) t0 = now;
       const f = Math.min((now - t0) / 900, 1);
       $('results-score').textContent = Math.round(target * (1 - Math.pow(1 - f, 3)));
       if (f < 1) requestAnimationFrame(count);
@@ -1754,7 +1814,7 @@
         if (earned > 0) setTimeout(() => payoutCoins(earned, banked), 350 + results.stars * 450);
       }
     }
-    requestAnimationFrame(count);
+    setTimeout(() => requestAnimationFrame(count), countDelay);
     sendHello(); // refresh lifetime stats
   });
 

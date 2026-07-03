@@ -54,6 +54,7 @@
     },
     tap()    { tone({ freq: 660, dur: 0.05, vol: 0.08, type: 'triangle' }); },
     whoosh() { noise({ dur: 0.2, vol: 0.045 }); tone({ freq: 320, dur: 0.18, vol: 0.03, type: 'sine', slide: 280 }); },
+    tick()   { tone({ freq: 1250, dur: 0.035, vol: 0.13, type: 'square' }); tone({ freq: 620, dur: 0.05, vol: 0.05, type: 'triangle', delay: 0.004 }); },
     pickup() { tone({ freq: 520, dur: 0.08, vol: 0.12, type: 'triangle', slide: 240 }); },
     place()  { tone({ freq: 380, dur: 0.07, vol: 0.12, type: 'triangle', slide: -120 }); },
     chop()   { tone({ freq: 240, dur: 0.045, vol: 0.05, type: 'sine', slide: -60 }); },
