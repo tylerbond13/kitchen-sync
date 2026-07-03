@@ -3,6 +3,16 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.36.0",
+    "title": "Every theme dresses its own kitchen",
+    "emoji": "🖼️",
+    "category": "polish",
+    "changes": [
+      "The back wall finally has life: diner kitchens hang a window, clock and family photos; Winter gets a wreath, fireplace and cocoa sign; the Beach gets a surfboard, palm and tiki sign — scaled to fit any board.",
+      "The customer line now waits on a soft runner rug with a pad at every spot — no more full-height guests floating on bare floor."
+    ]
+  },
+  {
     "version": "1.35.0",
     "title": "Every tap answers back",
     "emoji": "✨",
