@@ -1334,6 +1334,17 @@ input[type="text"]:focus {
   min-height: 0;
 }
 #game-canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+/* Blurred wallpaper bleed — the sharp world-aligned copy is drawn on the
+   canvas (roadmap #6); this underlay only fills the screen edges beyond it.
+   Negative inset hides the blur fringe. */
+.wallpaper-bleed {
+  position: absolute; inset: -24px; z-index: -1;
+  background: #E8D3BF center center / cover no-repeat;
+  filter: blur(14px) brightness(.92);
+  pointer-events: none;
+}
+#screen-game, #builder-preview-wrap { isolation: isolate; }
+
 /* Character overlay — chefs/customers replayed above the ticket band so
    people stand IN FRONT of the order cards (isoRender.drawCharOverlay).
    Above the HUD bands (20), below the rush banner (22) and pause (40). */

@@ -10,6 +10,13 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### The room becomes real — design-roadmap #6, THE ROADMAP IS COMPLETE (v1.40.0)
+- **World-anchored backdrops (the root-cause "pasted-on" fix):** the wallpaper is now drawn ON the canvas in world coordinates — per-wallpaper `trim` fraction puts the image's wall/floor boundary at world y = oy-8, the painted floor spans the room + a 2-tile apron (rooms with shallow floor slices zoom until the floor covers the play depth), and wall-only strips (Bakery, Cake Shop) get the theme's procedural checker floor beneath. A blurred CSS copy remains underneath purely as edge bleed. Works for every builder board automatically (derives from lvl.w/h); the builder live-preview uses the same path.
+- Trim table: wood boards 0 (pure floor) · floor70 rooms 0.30 (TV kitchens + the new diner/winter/beach v2) · Warm Sage 0.85 · Bakery/Cake Shop wall-only.
+- **Barney is fully gone:** v1.29.1 removed the mascot decor, but the purple dinosaur was ALSO a roster character (queue + picker). Removed from KS_CHEFS, ASSETS and the picker groups — profiles that had him fall back to the default chef.
+- _(93/93 green. Verified live: Brady Bunch floor tiles run under the stations at grid scale; Salad Days wood board anchored; diner v2 + bakery checked in the builder preview; roster confirmed barney-free after reload.)_
+- **All 12 design-roadmap items are now shipped** (v1.27.0 → v1.40.0).
+
 ### The Beaux-Arts kitchen — Codex art integration (v1.39.0)
 - **Integrated Codex's generated Beaux-Arts station set** (merged `codex/kitchen-sync-art-assets`, 79 sprites + 3 props + 3 wall v2s, downscaled to web size per shrink policy): the whole `_plain` station family now points at one coherent style — cutting board, stove (plain/full/fire), pot (plain/full/active), oven (plain/active), sink (clean + dirty 0-3), plate rack (count 0-4), serve window (plain/active), mixer v2 — **all with left/right facings** (the plain set had none). Mixer v2 also replaces Cake World's pink v1. Renderer's overlay plate pile removed (the rack art carries the stack now); corner count badges stay.
 - **Diner / Winter / Beach wallpapers → the new floor70 v2 full-room backdrops.**
