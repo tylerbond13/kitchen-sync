@@ -23,8 +23,8 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [x] 4. Oven
 - [x] 5. Sink / dish station
 - [x] 6. Plate rack
-- [ ] 7. Serve window
-- [ ] 8. Mixer refresh
+- [x] 7. Serve window
+- [x] 8. Mixer refresh
 - [ ] 9. Section wallpaper sets
 - [ ] 10. Walkway prop pack
 - [ ] 11. Wall decor pack
