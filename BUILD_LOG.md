@@ -10,6 +10,14 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Milestones pay out — design-roadmap #11 (v1.34.0)
+- **Every milestone now dispenses coins** (100-2,000, sized so 2-3 claims ≈ one shop upgrade). Complete ones grow a bouncing gold **Claim** button; claims are validated SERVER-side against crew data (rounds, meals, stars, unlocked levels, bot skills — the two character milestones are device-personal so the server accepts the client count) and paid exactly once (`crew.claimedMilestones`, `store.claimMilestone`).
+- Unclaimed-reward **badge** on "See all milestones"; claimed rows show `✓ +250`; incomplete rows advertise their payout.
+- _(Verified live: badge 8 → claimed First Service → coins 66,608→66,708, row flipped to ✓ +100, badge 7; double-claim covered by a store test; 92/92 green.)_
+
+### The roadmap becomes a journey — design-roadmap #10 (v1.33.0)
+- Four distinct level-node states (gold DONE, pulsing PLAY-ribbon CURRENT, ghosted-emoji + plum lock chip LOCKED), a per-world gold trail that fills behind you, and one drawn `.coin` disc replacing the grey 🪙 emoji everywhere money renders.
+
 ### The kitchen breathes — design-roadmap #7 + #9, and an expansion fix (v1.32.0)
 - **Merged island shadows (roadmap #7):** maximal horizontal counter runs now cast ONE continuous soft shadow pill (concentric fills faking a blur, core matching the old per-tile alpha) instead of a chain of scalloped per-tile blobs; isolated stations keep their ellipse. Counter rows finally read as built-in furniture.
 - **Ambient life (roadmap #9):** cooking stations puff procedural steam wisps (soft radial blobs rising with a sine sway, ~400ms cadence per station — replaces the flickering 💨 for cooking; burned keeps it), and 10-14 seeded warm dust motes drift over the upper floor, deterministic per round seed on every client.

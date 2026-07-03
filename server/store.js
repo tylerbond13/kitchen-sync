@@ -121,7 +121,19 @@ function ensureCrewExtras(crew) {
   if (!crew.stats) crew.stats = { meals: 0, rounds: 0, earned: crew.wallet.coins };
   if (!crew.boards) crew.boards = {};       // saved custom boards (name -> level config)
   if (!crew.overrides) crew.overrides = {}; // per-crew edits to built-in levels (levelId -> config)
+  if (!crew.claimedMilestones) crew.claimedMilestones = {}; // milestone id -> true (coins paid)
   return crew;
+}
+
+// One-shot milestone payout: credits the reward exactly once per crew.
+function claimMilestone(crew, id, reward) {
+  ensureCrewExtras(crew);
+  if (crew.claimedMilestones[id]) return false;
+  crew.claimedMilestones[id] = true;
+  crew.wallet.coins += reward;
+  crew.stats.earned += reward;
+  crews.save();
+  return true;
 }
 
 // Persist a custom board under the crew's codename so it survives sessions.
@@ -329,7 +341,7 @@ module.exports = {
   createCrew, getCrew, touchCrewMember, recordLevelResult,
   getPlayer, upsertPlayer, recordPlayerResult, flushAll,
   restoreCrew, mergeCrew, mergePlayerStats,
-  ensureCrewExtras, buyUpgrade, saveBoard, deleteBoard, saveOverride,
+  ensureCrewExtras, buyUpgrade, claimMilestone, saveBoard, deleteBoard, saveOverride,
   ensureAdminCrew, ADMIN_CODE,
   logSongRequest, SONG_LOG_FILE,
 };

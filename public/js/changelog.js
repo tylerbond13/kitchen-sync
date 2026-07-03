@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.34.0",
+    "title": "Milestones pay out",
+    "emoji": "🏅",
+    "category": "feature",
+    "changes": [
+      "Every milestone now carries a coin reward (100 to 2,000) — completed ones grow a bouncing gold Claim button, and claiming banks the coins for your crew on the spot.",
+      "A badge on 'See all milestones' counts your unclaimed rewards so you never leave money on the table.",
+      "Rewards are sized so a few claims cover your next shop upgrade — the bridge from your first rounds to your first purchase."
+    ]
+  },
+  {
     "version": "1.33.0",
     "title": "The roadmap becomes a journey",
     "emoji": "🗺️",
