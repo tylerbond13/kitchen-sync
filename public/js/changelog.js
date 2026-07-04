@@ -3,6 +3,18 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.44.0",
+    "title": "Every level moves into its room",
+    "emoji": "🏠",
+    "category": "polish",
+    "changes": [
+      "Campaign levels now cook inside their theme's real room by default — the diner, the winter lodge, the beach shack — instead of the wood board (your builder wallpaper choices still win).",
+      "The pink rose rug and sconces now stay with the wood-board and Cake World looks, where they belong — rooms keep their clean Beaux-Arts lines.",
+      "VIP orders in the ticket band got a proper gold-paper look (the old decorative frame washed out at that size).",
+      "A design self-review against the original roadmap is in docs/DESIGN_REVIEW_2026-07-03.md — one art gap remains (the brown counters), filed as the top art request."
+    ]
+  },
+  {
     "version": "1.43.0",
     "title": "Two-thirds lighter",
     "emoji": "🪶",

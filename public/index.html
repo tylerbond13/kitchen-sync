@@ -887,6 +887,12 @@ input[type="text"]:focus {
   background: linear-gradient(180deg, #FFE9E2 0%, #FFC9C2 100%);
   box-shadow: 0 4px 12px rgba(58, 36, 64, 0.32), inset 0 0 0 1.5px rgba(255, 110, 90, 0.9);
 }
+/* VIP in the band: the decorative frame PNG washes out at compact size (it
+   read as a pale broken ticket) — solid gold paper + thick brass edge instead */
+.game-hud-top .ticket.vip {
+  background: linear-gradient(180deg, #FFF6D6 0%, #FFE9B4 100%);
+  box-shadow: 0 4px 12px rgba(58, 36, 64, 0.30), inset 0 0 0 2px rgba(212, 148, 30, 0.85);
+}
 .game-hud-top .ticket-headline { margin-bottom: 3px; gap: 6px; }
 .game-hud-top .ticket-dish-img { width: 38px; height: 38px; }
 .game-hud-top .ticket-name { font-size: 11px; }

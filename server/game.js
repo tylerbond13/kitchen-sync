@@ -1144,7 +1144,13 @@ class Game {
       crates: this.level.crates,
       facings: this.level.facings || null,   // explicit per-tile facing (builder)
       charScale: this.level.charScale || 1, // char sprite size — 1× everywhere by default (Tyler); builder can raise it
-      wallpaper: this.level.wallpaper || null, // board background image (builder)
+      // Campaign levels default to their THEME'S world-anchored room (the
+      // whole point of the aligned backdrops) — the wood board is only the
+      // fallback for cake-decor boards and unthemed customs. An explicit
+      // level/builder wallpaper always wins.
+      wallpaper: this.level.wallpaper
+        || (this.level.decor === 'cake' ? null
+          : ({ diner: 'diner', winter: 'winter', beach: 'beach' })[this.level.theme] || null),
       duration: this.level.duration,
       starThresholds: this.starGoals,
       autoChopAllowed: this.autoChopAllowed,

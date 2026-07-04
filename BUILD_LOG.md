@@ -10,6 +10,14 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Every level moves into its room — design self-review actions (v1.44.0)
+- **Tyler asked whether the game meets the design doc's expectations.** Full self-review in `docs/DESIGN_REVIEW_2026-07-03.md`; three of four gaps fixed same-day:
+  1. Diner/winter/beach levels now DEFAULT to their theme's world-anchored v2 room (server-side; explicit level/builder wallpaper wins; cake-decor boards keep the board look). We built the aligned rooms in v1.40 and then weren't using them by default.
+  2. Rose rug + rose sconces gated to wood-board/cake looks — Beaux-Arts rooms stay blush-pink-free per the art brief.
+  3. Compact VIP tickets: solid gold paper + brass edge (frame PNG washed out — read as a broken pale ticket).
+  4. NOT fixable in code: the plain brown counters are the last old-style station art → filed as art-tracker **#19 (highest-impact request)** with exact filenames for the next Codex pass.
+- _(Verified live: Pizza Panic renders inside the family-diner room, rose-free, floor at grid scale; 94/94 green.)_
+
 ### Two-thirds lighter — targeted preload + backdrop JPEG diet (v1.43.0)
 - **Blanket `GFX.preload()` removed** (it fetched EVERY manifest key at page load — the whole catalog on a first phone visit). Boot warms 6 core sprites; each round warms exactly what it can show via `renderer.preloadRoundArt()` (grid stations incl. plain remap/facings/state variants, the level's crates/ingredients/dishes, first 12 cast members, ambience, backdrop). Anything missed still lazy-loads on first draw, so this can never break rendering.
 - **Backdrop diet:** the 12 room walls (TV kitchens, sage, the new v2 diner/winter/beach) + cake bg + both wood boards were multi-MB PNGs of opaque photos; resized to the 1536px prep cap and converted to JPEG q80 — 57.5MB → 4.1MB for the walls, cake bg 6.3MB → 0.12MB, wood boards 2.3MB → ~0.3MB each. All references updated; gfx nokey path unaffected.
