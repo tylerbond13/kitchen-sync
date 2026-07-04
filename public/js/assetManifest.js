@@ -444,6 +444,10 @@
     // ── Desk clutter ────────────────────────────────────────────────────────
     decor_vase:     { path: HD + 'ks-flower-vase.png' },
     decor_utensils: { path: HD + 'ks-utensil-cup.png' },
+    // Beaux-Arts walkway props (Codex, art-tracker #10) — placed by buildAmbience
+    prop_chalkboard:  cw('decor/ks-cw-prop-chalkboard-menu-v1.png'),
+    prop_flour_sacks: cw('decor/ks-cw-prop-flour-sacks-v1.png'),
+    prop_fiddle_leaf: cw('decor/ks-cw-prop-potted-fiddle-leaf-v1.png'),
 
     // ── UI on the canvas ────────────────────────────────────────────────────
     speech_bubble: { path: HD + 'ks-ui-bubble.png' },

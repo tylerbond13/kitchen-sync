@@ -3,6 +3,15 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.41.0",
+    "title": "Props for the walkway",
+    "emoji": "🪴",
+    "category": "polish",
+    "changes": [
+      "The waiting line now ends at a hand-drawn chalkboard menu, flour sacks lean against the kitchen's post, and a fiddle-leaf plant tops the queue-side corner — all placed automatically on every board, never in the way."
+    ]
+  },
+  {
     "version": "1.40.0",
     "title": "The room becomes real",
     "emoji": "🖼️",
