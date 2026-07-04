@@ -10,6 +10,10 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Daily crew streak (v1.42.0)
+- **The first finished round each UTC day pays a growing bonus:** 50 coins × streak day, capped at day 7 (350). Same-day rounds never double-pay; a missed day resets to day 1. Implemented in `store.advanceStreak` (injectable clock), threaded through `recordLevelResult` → game_over payload → results pill; `lobbyState.streak` drives a 🔥 lobby chip with a "play today to keep it!" nudge until the day's bonus is banked.
+- 4-scenario unit test (same-day idempotence, consecutive growth, gap reset, cap). 94/94 green.
+
 ### Props for the walkway — art-tracker #10 (v1.41.0)
 - The three Codex-generated Beaux-Arts props are placed by `buildAmbience` on every board: chalkboard menu at the END of the customer line (queueSlot geometry), flour sacks at the bottom-left post, fiddle-leaf at the queue-side top corner — all OUTSIDE the room so they never crowd stations or walkways. _(Verified live on Soup's On.)_
 

@@ -656,6 +656,16 @@ input[type="text"]:focus {
 }
 .lobby-foot { text-align: center; }
 
+/* Daily crew streak — the first round each day pays a growing bonus */
+.results-streak {
+  display: inline-block; margin: 6px auto 0;
+  background: linear-gradient(90deg, #FFD98A 0%, #F4649B 100%);
+  color: #4A2352; font-weight: 900; font-size: 14px;
+  padding: 7px 16px; border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(232,169,60,.45), inset 0 0 0 1.5px rgba(255,255,255,.55);
+}
+.results-streak[hidden] { display: none; }
+
 /* ============ The coin — money should look like money ============
    One drawn gold disc replacing the grey-moon 🪙 emoji everywhere a price
    or payout renders (shop, milestones, results, banners). Sized in em so it
@@ -2398,6 +2408,7 @@ input[type="text"]:focus {
         <span class="star" data-i="0">★</span><span class="star" data-i="1">★</span><span class="star" data-i="2">★</span>
       </div>
       <div class="big-score" id="results-score">0</div>
+      <div class="results-streak" id="results-streak" hidden></div>
       <div class="results-ribbon" id="results-ribbon" hidden></div>
       <div class="results-coins" id="results-coins" hidden></div>
       <div class="results-next-unlock" id="results-next-unlock" hidden></div>

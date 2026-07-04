@@ -1074,12 +1074,19 @@
     const nextHint = nextChef
       ? `🎭 Next character: ${escapeHtml(nextChef.name)} at ${CHEF_UNLOCK[nextChef.key]}★ — you have ${myStars}★`
       : '🎉 Every character unlocked!';
+    // streak chip: live count, plus a nudge while today's bonus is unclaimed
+    const streak = state.streak || { days: 0, last: null };
+    const todayUTC = new Date().toISOString().slice(0, 10);
+    const streakChip = streak.days > 0
+      ? `<span class="prog-chip">🔥 ${streak.days}-day streak${streak.last === todayUTC ? '' : ' — play today to keep it!'}</span>`
+      : '';
     el.innerHTML = `
       <div class="prog-chips">
         <span class="prog-chip">⭐ ${starTotal}/${starMax}</span>
         <span class="prog-chip">🏆 ${threeStar}/${camp.length} 3★</span>
         <span class="prog-chip">🎭 ${charsUnlocked}/${CHEFS.length} chefs</span>
         <span class="prog-chip">🤖 ${state.botHired ? `${botSkills}/5 skills` : 'not hired'}</span>
+        ${streakChip}
       </div>
       <div class="prog-next">${nextHint}</div>
       <button class="prog-milestones" id="btn-milestones" type="button">🏅 See all milestones ›${(() => {
@@ -1706,6 +1713,21 @@
     $('results-score').textContent = '0';
     lastRoundLevelId = results.levelId || (curStatic && curStatic.levelId) || null;
     updateResultsNext();
+
+    // Daily crew streak: the first finished round each day banks a growing
+    // bonus — celebrate it right where the coins land.
+    const streakEl = $('results-streak');
+    if (streakEl) {
+      const st = (results.record || {}).streak;
+      if (st && st.bonus > 0) {
+        streakEl.hidden = false;
+        streakEl.innerHTML = st.days > 1
+          ? `🔥 Day ${st.days} streak — +${st.bonus.toLocaleString()} <span class="coin"></span> bonus!`
+          : `🌅 First round today — +${st.bonus.toLocaleString()} <span class="coin"></span> daily bonus!`;
+      } else {
+        streakEl.hidden = true;
+      }
+    }
 
     // The hook line: a new crew record beats everything; otherwise a near-miss
     // ("only 140 from ★★!") begs for one more round — Retry becomes primary.

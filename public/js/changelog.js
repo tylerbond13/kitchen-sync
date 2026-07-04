@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.42.0",
+    "title": "Daily crew streak",
+    "emoji": "🔥",
+    "category": "feature",
+    "changes": [
+      "Your crew's first finished round each day banks a bonus that grows with every consecutive day — 50 coins on day one, up to 350 a day at a 7-day streak.",
+      "The results screen celebrates the payout, and a 🔥 chip in the lobby tracks your streak — with a nudge when today's bonus is still up for grabs.",
+      "Miss a day and the flame resets — one round keeps it alive."
+    ]
+  },
+  {
     "version": "1.41.0",
     "title": "Props for the walkway",
     "emoji": "🪴",

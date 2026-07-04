@@ -64,12 +64,12 @@ test('kitchen shop wallet: retro-seeded coins, earning, buying', () => {
   assert.ok(!store.buyUpgrade(crew, 'auto_chopper', 800), 'cannot afford yet');
 
   store.recordLevelResult(crew, 'salad-days', 600, 2, 5);
-  assert.equal(crew.wallet.coins, 1100, 'round score banked');
+  assert.equal(crew.wallet.coins, 1150, 'round score banked (+50 day-1 streak bonus)');
   assert.equal(crew.stats.meals, 5);
   assert.equal(crew.stats.rounds, 1);
 
   assert.ok(store.buyUpgrade(crew, 'auto_chopper', 800));
-  assert.equal(crew.wallet.coins, 300);
+  assert.equal(crew.wallet.coins, 350);
   assert.ok(crew.wallet.upgrades.auto_chopper);
   assert.ok(!store.buyUpgrade(crew, 'auto_chopper', 800), 'no double-buy');
 });
@@ -164,4 +164,26 @@ test('claimMilestone pays exactly once', () => {
   assert.equal(crew.wallet.coins, before + 100);
   assert.equal(store.claimMilestone(crew, 'first_service', 100), false, 'second claim rejected');
   assert.equal(crew.wallet.coins, before + 100, 'not paid twice');
+});
+
+test('daily crew streak: pays once per UTC day, grows on consecutive days, resets after a gap, caps at 7', () => {
+  const crew = store.createCrew('STREAK1');
+  const day = (s) => new Date(`${s}T12:00:00Z`);
+  // day 1 — first round pays 50, second round same day pays nothing
+  let r = store.recordLevelResult(crew, 'salad-days', 100, 1, 3, day('2026-07-03'));
+  assert.deepEqual(r.streak, { days: 1, bonus: 50 });
+  r = store.recordLevelResult(crew, 'salad-days', 100, 1, 3, day('2026-07-03'));
+  assert.deepEqual(r.streak, { days: 1, bonus: 0 }, 'same day pays once');
+  // day 2 — consecutive: streak grows
+  r = store.recordLevelResult(crew, 'salad-days', 100, 1, 3, day('2026-07-04'));
+  assert.deepEqual(r.streak, { days: 2, bonus: 100 });
+  // skip a day — resets to 1
+  r = store.recordLevelResult(crew, 'salad-days', 100, 1, 3, day('2026-07-06'));
+  assert.deepEqual(r.streak, { days: 1, bonus: 50 });
+  // cap: run 9 consecutive days, bonus tops out at 350
+  for (let i = 7; i <= 15; i++) {
+    r = store.recordLevelResult(crew, 'salad-days', 100, 1, 3, day(`2026-07-${String(i).padStart(2, '0')}`));
+  }
+  assert.equal(r.streak.days, 10);
+  assert.equal(r.streak.bonus, 350, 'bonus capped at day 7 rate');
 });
