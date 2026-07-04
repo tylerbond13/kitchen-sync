@@ -3,6 +3,16 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.44.1",
+    "title": "Dinosaur: extinct",
+    "emoji": "🦕",
+    "category": "fix",
+    "changes": [
+      "Every dinosaur-mascot file is deleted from the game — including the old reference art that misled an art-generation pass into making more of them.",
+      "The art-request doc now opens with a permanent ban banner so no generator ever builds one again."
+    ]
+  },
+  {
     "version": "1.44.0",
     "title": "Every level moves into its room",
     "emoji": "🏠",
