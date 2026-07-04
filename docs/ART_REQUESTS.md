@@ -26,7 +26,7 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [x] 7. Serve window
 - [x] 8. Mixer refresh
 - [ ] 9. Section wallpaper sets
-- [ ] 10. Walkway prop pack
+- [x] 10. Walkway prop pack (chalkboard/flour sacks/fiddle-leaf placed v1.41.0; more welcome)
 - [ ] 11. Wall decor pack
 - [ ] 12. Reward chest / gift box
 - [ ] 13. Coin + star icon pair

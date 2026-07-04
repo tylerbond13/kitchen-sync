@@ -1084,6 +1084,15 @@
       // floatiest thing on screen (roadmap #8).
       D.push({ kind: 'qrug' });
 
+      // Beaux-Arts walkway props (art-tracker #10): a chalkboard menu greets
+      // the END of the waiting line, flour sacks lean on the bottom-left
+      // post, and a fiddle-leaf plant tops the queue-side corner — all just
+      // OUTSIDE the room so they never crowd a station or a walkway.
+      const lastSlot = this.queueSlot(QUEUE_DEPTH - 1);
+      D.push({ kind: 'prop', key: 'prop_chalkboard',  gx: lastSlot.x, gy: Math.min(h - 0.15, lastSlot.y + 1.05), w: 46 });
+      D.push({ kind: 'prop', key: 'prop_flour_sacks', gx: -0.38, gy: h - 0.55, w: 44 });
+      D.push({ kind: 'prop', key: 'prop_fiddle_leaf', gx: w + 0.85, gy: 0.3, w: 38 });
+
       // bees & butterflies drifting over the back half of the room
       const n = Math.max(2, Math.min(4, Math.round((w * h) / 18)));
       const FLIERS = [

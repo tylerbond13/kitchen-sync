@@ -10,6 +10,9 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Props for the walkway — art-tracker #10 (v1.41.0)
+- The three Codex-generated Beaux-Arts props are placed by `buildAmbience` on every board: chalkboard menu at the END of the customer line (queueSlot geometry), flour sacks at the bottom-left post, fiddle-leaf at the queue-side top corner — all OUTSIDE the room so they never crowd stations or walkways. _(Verified live on Soup's On.)_
+
 ### The room becomes real — design-roadmap #6, THE ROADMAP IS COMPLETE (v1.40.0)
 - **World-anchored backdrops (the root-cause "pasted-on" fix):** the wallpaper is now drawn ON the canvas in world coordinates — per-wallpaper `trim` fraction puts the image's wall/floor boundary at world y = oy-8, the painted floor spans the room + a 2-tile apron (rooms with shallow floor slices zoom until the floor covers the play depth), and wall-only strips (Bakery, Cake Shop) get the theme's procedural checker floor beneath. A blurred CSS copy remains underneath purely as edge bleed. Works for every builder board automatically (derives from lvl.w/h); the builder live-preview uses the same path.
 - Trim table: wood boards 0 (pure floor) · floor70 rooms 0.30 (TV kitchens + the new diner/winter/beach v2) · Warm Sage 0.85 · Bakery/Cake Shop wall-only.
