@@ -436,7 +436,7 @@
       this.running = true;
       this.dpr     = Math.min(window.devicePixelRatio||1, 3);
 
-      if (window.GFX) GFX.preload();
+      if (window.GFX) this.preloadRoundArt();
       // Backdrop behind/around the play area. With the flat image board the wood
       // board is the .canvas-wrap CSS background and shows through the
       // transparent canvas, so leave it to the stylesheet; otherwise paint the
@@ -518,6 +518,54 @@
         canvas.addEventListener('pointerdown', this._onPointerDown);
       }
       requestAnimationFrame(()=>this.frame());
+    }
+
+    // Warm ONLY the art this round can actually show. The manifest references
+    // tens of MB across every theme and all ~70 characters — blanket
+    // preloading made a first phone visit download the whole catalog. Missing
+    // a key here is always safe: draws lazy-load on first use (stream-in).
+    preloadRoundArt() {
+      const warm = new Set(['chef', 'chef_back', 'plate', 'crate']);
+      const VARIANTS = {
+        '#': ['counter'],
+        B: ['chopping_board', 'chopping_board_active'],
+        S: ['stove', 'stove_full', 'stove_fire'],
+        O: ['pot', 'pot_full', 'pot_active'],
+        V: ['oven', 'oven_active'],
+        M: ['mixing_bowl', 'mixing_bowl_full'],
+        P: ['plate_stack', 'plate_stack_clean_0', 'plate_stack_clean_1',
+            'plate_stack_clean_2', 'plate_stack_clean_3', 'plate_stack_clean_4'],
+        W: ['serve_window', 'serve_window_active'],
+        K: ['sink', 'sink_dirty', 'sink_dirty_0', 'sink_dirty_1',
+            'sink_dirty_2', 'sink_dirty_3', 'sink_dirty_4'],
+        T: ['trash'],
+        I: ['icing_dispenser'], G: ['garnish_counter'],
+      };
+      const addFaced = (base) => {
+        for (const k of [base, `${base}_left`, `${base}_right`]) if (GFX.has(k)) warm.add(k);
+      };
+      const cells = new Set();
+      for (const row of this.lvl.grid || []) for (const c of row) cells.add(c);
+      for (const c of cells) {
+        for (const base of VARIANTS[c] || []) {
+          addFaced(base);
+          addFaced(this.stationArtKey(base));
+        }
+      }
+      for (const ing of Object.values(this.lvl.crates || {})) {
+        for (const k of [`crate_${ing}`, ing, `${ing}_chopped`, `${ing}_cooked`])
+          if (GFX.has(k)) warm.add(k);
+      }
+      for (const r of this.lvl.recipes || []) {
+        if (r.recipe && GFX.has(`dish_${r.recipe}`)) warm.add(`dish_${r.recipe}`);
+      }
+      // the customers most likely to walk in this round (cast is pre-shuffled)
+      for (const k of (this.cast || []).slice(0, 12)) if (GFX.has(k)) warm.add(k);
+      for (const d of this.ambience || []) {
+        for (const k of d.frames || [d.key]) if (k && GFX.has(k)) warm.add(k);
+      }
+      if (this._backdropKey) warm.add(this._backdropKey);
+      for (const k of warm) GFX.img(k);
     }
 
     destroy() {

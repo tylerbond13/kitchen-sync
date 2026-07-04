@@ -10,6 +10,11 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Two-thirds lighter — targeted preload + backdrop JPEG diet (v1.43.0)
+- **Blanket `GFX.preload()` removed** (it fetched EVERY manifest key at page load — the whole catalog on a first phone visit). Boot warms 6 core sprites; each round warms exactly what it can show via `renderer.preloadRoundArt()` (grid stations incl. plain remap/facings/state variants, the level's crates/ingredients/dishes, first 12 cast members, ambience, backdrop). Anything missed still lazy-loads on first draw, so this can never break rendering.
+- **Backdrop diet:** the 12 room walls (TV kitchens, sage, the new v2 diner/winter/beach) + cake bg + both wood boards were multi-MB PNGs of opaque photos; resized to the 1536px prep cap and converted to JPEG q80 — 57.5MB → 4.1MB for the walls, cake bg 6.3MB → 0.12MB, wood boards 2.3MB → ~0.3MB each. All references updated; gfx nokey path unaffected.
+- _(Measured in the preview: a builder+round session dropped 101MB → 32.6MB transferred; remaining weight is the character roster (picker) and the Beaux-Arts stations actually in play. 94/94 green.)_
+
 ### Daily crew streak (v1.42.0)
 - **The first finished round each UTC day pays a growing bonus:** 50 coins × streak day, capped at day 7 (350). Same-day rounds never double-pay; a missed day resets to day 1. Implemented in `store.advanceStreak` (injectable clock), threaded through `recordLevelResult` → game_over payload → results pill; `lobbyState.streak` drives a 🔥 lobby chip with a "play today to keep it!" nudge until the day's bonus is banked.
 - 4-scenario unit test (same-day idempotence, consecutive growth, gap reset, cap). 94/94 green.
