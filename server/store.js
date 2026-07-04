@@ -182,7 +182,27 @@ function buyUpgrade(crew, id, cost) {
   return true;
 }
 
-function recordLevelResult(crew, levelId, score, stars, delivered = 0) {
+// Daily crew streak: the FIRST finished round of each (UTC) day pays a bonus
+// that grows with consecutive days — 50 coins × streak day, capped at day 7
+// (350). Miss a day and it resets to day 1. `now` is injectable for tests.
+const STREAK_COIN_STEP = 50;
+const STREAK_CAP_DAYS = 7;
+function advanceStreak(crew, now = new Date()) {
+  const day = (d) => d.toISOString().slice(0, 10);
+  const today = day(now);
+  const yesterday = day(new Date(now.getTime() - 86400000));
+  const st = crew.streak || { last: null, days: 0 };
+  if (st.last === today) return { days: st.days, bonus: 0 };   // already banked today
+  st.days = st.last === yesterday ? st.days + 1 : 1;
+  st.last = today;
+  crew.streak = st;
+  const bonus = STREAK_COIN_STEP * Math.min(st.days, STREAK_CAP_DAYS);
+  crew.wallet.coins += bonus;
+  crew.stats.earned += bonus;
+  return { days: st.days, bonus };
+}
+
+function recordLevelResult(crew, levelId, score, stars, delivered = 0, now = new Date()) {
   ensureCrewExtras(crew);
   const prev = crew.progress[levelId] || { stars: 0, bestScore: 0, plays: 0 };
   crew.progress[levelId] = {
@@ -194,10 +214,11 @@ function recordLevelResult(crew, levelId, score, stars, delivered = 0) {
   crew.stats.earned += score;
   crew.stats.meals += delivered;
   crew.stats.rounds += 1;
+  const streak = advanceStreak(crew, now);
   crews.save();
   // Tell the results screen whether that run set a new crew best (repeat plays
-  // only — a first clear is its own reward).
-  return { prevBest: prev.bestScore, isRecord: prev.plays > 0 && score > prev.bestScore };
+  // only — a first clear is its own reward), and the daily-streak payout.
+  return { prevBest: prev.bestScore, isRecord: prev.plays > 0 && score > prev.bestScore, streak };
 }
 
 function getPlayer(id) {

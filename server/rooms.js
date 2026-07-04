@@ -203,6 +203,7 @@ function lobbyState(room) {
     botCaps: [...botCaps(room.crew)],          // skills taught: chop/wash/cook/plate/serve
     claimedMilestones: room.crew.claimedMilestones || {},
     milestoneRewards: Object.fromEntries(Object.entries(MILESTONES).map(([id, m]) => [id, m.reward])),
+    streak: room.crew.streak || { last: null, days: 0 },
   };
 }
 
