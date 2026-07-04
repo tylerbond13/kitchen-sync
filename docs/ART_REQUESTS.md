@@ -31,8 +31,8 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [x] 12. Reward chest / gift box
 - [x] 13. Coin + star icon pair
 - [x] 14. Roadmap section banners
-- [ ] 15. Home-screen hero
-- [ ] 16. Per-theme ambient critters
+- [x] 15. Home-screen hero
+- [x] 16. Per-theme ambient critters
 - [ ] 17. Mascot friends
 - [ ] 18. Burned-dish + trash FX
 
