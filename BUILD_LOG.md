@@ -10,6 +10,11 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Dinosaur: extinct — the ban is now enforced everywhere (v1.44.1)
+- **Root cause of Codex generating dinosaurs:** the ban lived in my memory notes, but `docs/ART_REQUESTS.md` still carried the pre-ban item 17 ("mascot friends — small round dinosaur in mint/gold, match cw-mascot-1.png"). Codex works from that doc and did exactly what it said. My mistake — a ban that only exists in my notes doesn't bind other agents.
+- Fixed for good: item 17 deleted; a ⛔ permanent-ban banner added at the TOP of ART_REQUESTS.md; **all 19 mascot PNGs deleted from the repo** (the "keep but unused" policy is what made them available as style references); `cw_mascot_*` manifest keys removed; stale "mascot" comments cleaned.
+- Codex's unmerged branch `codex/kitchen-sync-art-assets` (ee76868) contains its mint/gold dinosaurs alongside legit trash-FX art — nothing from it is merged; when integrating, take the trash FX only.
+
 ### Every level moves into its room — design self-review actions (v1.44.0)
 - **Tyler asked whether the game meets the design doc's expectations.** Full self-review in `docs/DESIGN_REVIEW_2026-07-03.md`; three of four gaps fixed same-day:
   1. Diner/winter/beach levels now DEFAULT to their theme's world-anchored v2 room (server-side; explicit level/builder wallpaper wins; cake-decor boards keep the board look). We built the aligned rooms in v1.40 and then weren't using them by default.

@@ -457,16 +457,14 @@
     ui_coin:       { path: HD + 'ks-ui-coin.png' },
 
     // ── Cake World ambient decor (drawn by isoRender.pushCakeDecor when a
-    //    level sets decor:'cake' — e.g. Level 15). Rug under the floor, mascot
+    //    level sets decor:'cake' — e.g. Level 15). Rug under the floor, props
     //    + display stand as fixtures, wall sconces, and animated bee/butterfly
     //    fliers. Frame keys match the cw_<thing>_<n> keys in isoRender. ───────
     cw_rug_round:     cw('decor/cw-rug-round.png'),
     cw_display_stand: cw('decor/cw-display-stand.png'),
     cw_wall_sconce:   cw('decor/cw-wall-sconce.png'),
-    cw_mascot_1:      cw('decor/cw-mascot-1.png'),
-    cw_mascot_2:      cw('decor/cw-mascot-2.png'),
-    cw_mascot_3:      cw('decor/cw-mascot-3.png'),
-    cw_mascot_4:      cw('decor/cw-mascot-4.png'),
+    // (mascot keys and their PNGs deleted — Tyler's permanent rule: no purple
+    // dinosaur, no dinosaur mascots of ANY color, anywhere. Do not re-add.)
     cw_bee_1:         cw('decor/cw-bee-1.png'),
     cw_bee_2:         cw('decor/cw-bee-2.png'),
     cw_bee_3:         cw('decor/cw-bee-3.png'),

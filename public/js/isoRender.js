@@ -422,9 +422,9 @@
         this._backdropTrim = Math.max(0, Math.min(1, opts.backdrop.trim ?? 0.30));
       }
 
-      // Every kitchen gets ambient set dressing (rugs, sconces, a mascot,
-      // drifting bees/butterflies) generated from its own grid — Cake World
-      // keeps its hand-tuned arrangement.
+      // Every kitchen gets ambient set dressing (rugs, sconces, drifting
+      // bees/butterflies, walkway props) generated from its own grid — Cake
+      // World keeps its hand-tuned arrangement. (No mascots. Ever.)
       this.ambience = staticState.decor === 'cake' ? null : this.buildAmbience(staticState.seed ?? 1);
       // Seeded dust motes drifting over the upper floor — every client sees
       // the same slow-moving specks (roadmap #9: a static composite screams
@@ -1067,8 +1067,8 @@
     }
 
     // Generate set dressing for ANY kitchen from its own grid: a rug centred on
-    // the open floor, sconces high on the side walls, a mascot greeter tucked
-    // into a walkway corner, and a few bees/butterflies drifting over the back.
+    // the open floor, sconces high on the side walls, walkway props, and a
+    // few bees/butterflies drifting over the back. (No mascots — Tyler's rule.)
     // Seeded from the round seed so every phone sees the same arrangement.
     buildAmbience(seed) {
       const { w, h, grid } = this.lvl;

@@ -8,6 +8,15 @@ language so the whole kitchen reads as one illustrated set.
 
 ---
 
+> ## ⛔ PERMANENT BAN — read before generating ANYTHING
+> **No dinosaur mascots. Not purple, not mint, not gold, not any color.**
+> Tyler's standing rule since v1.29.1. The old "mascot friends" request that
+> used to be item 17 is DELETED — do not regenerate it, do not use any
+> `cw-mascot` / `purple-mascot` file as a style reference (they are deleted
+> from the repo). If a request in this file ever seems to contradict this
+> banner, the banner wins.
+
+
 ## Generation tracker
 
 **Art direction override (July 3, 2026):** follow the cozy bakery-diner brief and
@@ -33,7 +42,6 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [ ] 14. Roadmap section banners
 - [ ] 15. Home-screen hero
 - [ ] 16. Per-theme ambient critters
-- [ ] 17. Mascot friends
 - [ ] 18. Burned-dish + trash FX
 - [ ] 19. **Beaux-Arts counter block set (HIGHEST-IMPACT REQUEST)** — the plain
       brown counters are the last old-style stations on every board and clash
@@ -209,11 +217,6 @@ The ambience system already animates 3-frame idle loops (bees/butterflies exist)
 - **Winter:** "A tiny round cardinal with a cream scarf, three wing positions."
 - **Beach:** "A tiny seagull with a chef's hat, three wing positions."
 - **Diner:** "A tiny hummingbird in blush pink, three wing positions." (~256×256.)
-
-### 17. Mascot friends (2 more) — `ks-cw-mascot-{mint,gold}-idle-{1..4}-v1.png`
-**Prompt:** STYLE BLOCK + "A small round dinosaur mascot in soft MINT / warm GOLD
-(same body and proportions as the reference purple mascot image — attach
-`cw-mascot-1.png`), four idle frames: standing, half-wave, full wave, happy blink."
 
 ### 18. Burned-dish + trash FX — `ks-cw-burned-dish-v1.png`, `ks-cw-poof-{1..3}-v1.png`
 **Prompt:** STYLE BLOCK + "A comically burned dish: charcoal-dark but cute, one
