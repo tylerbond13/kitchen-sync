@@ -1962,23 +1962,23 @@
   // pick which image that is; the builder previews the choice live, and the
   // real game applies it on start. `null` / unknown → DEFAULT_WALLPAPER.
   const WALLPAPERS = [
-    { id: 'wood',    name: '🍪 Wood Board',   trim: 0,    url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v2.png' },
-    { id: 'wood1',   name: '🪵 Classic Wood', trim: 0,    url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v1.png' },
-    { id: 'cake',    name: '🎂 Cake Shop',    trim: 1,    url: 'assets/images/cake-world/backgrounds/ks-cake-background1.png' },
-    { id: 'diner',   name: '🍔 Diner',        trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-family-diner-floor70-v2.png' },
-    { id: 'winter',  name: '❄️ Winter',       trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-winter-wonderland-floor70-v2.png' },
-    { id: 'beach',   name: '🏖️ Beach',        trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-beach-shack-floor70-v2.png' },
+    { id: 'wood',    name: '🍪 Wood Board',   trim: 0,    url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v2.jpg' },
+    { id: 'wood1',   name: '🪵 Classic Wood', trim: 0,    url: 'assets/images/cake-world/backgrounds/ks-game-board-wood-v1.jpg' },
+    { id: 'cake',    name: '🎂 Cake Shop',    trim: 1,    url: 'assets/images/cake-world/backgrounds/ks-cake-background1.jpg' },
+    { id: 'diner',   name: '🍔 Diner',        trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-family-diner-floor70-v2.jpg' },
+    { id: 'winter',  name: '❄️ Winter',       trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-winter-wonderland-floor70-v2.jpg' },
+    { id: 'beach',   name: '🏖️ Beach',        trim: 0.30, url: 'assets/images/cake-world/walls-floors/ks-wall-beach-shack-floor70-v2.jpg' },
     { id: 'bakery',  name: '🧁 Bakery',       trim: 1,    url: 'assets/images/hd/ks-wall-bakery-back.png' },
     // TV-kitchen & themed scenes — full-room backdrops (3048×1408, wall + floor)
-    { id: 'brady',         name: '📺 Brady Bunch',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-brady-bunch-kitchen-floor70-v1.png' },
-    { id: 'cheers',        name: '🍺 Cheers Bar',     trim: 0.30, url: 'assets/images/hd/ks-wall-diner-cheers-bar-floor70-v1.png' },
-    { id: 'goldengirls',   name: '🌴 Golden Girls',   trim: 0.30, url: 'assets/images/hd/ks-wall-diner-golden-girls-kitchen-floor70-v1.png' },
-    { id: 'lucy',          name: '❤️ I Love Lucy',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-i-love-lucy-kitchen-floor70-v1.png' },
-    { id: 'seinfeld',      name: '🗽 Seinfeld',       trim: 0.30, url: 'assets/images/hd/ks-wall-diner-seinfeld-apartment-floor70-v1.png' },
-    { id: 'wonka',         name: '🍫 Willy Wonka',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-willy-wonka-chocolate-room-floor70-v1.png' },
-    { id: 'oz',            name: '🌈 Oz Technicolor', trim: 0.30, url: 'assets/images/hd/ks-wall-diner-oz-technicolor-floor70-v1.png' },
-    { id: 'mediterranean', name: '🏺 Mediterranean',  trim: 0.30, url: 'assets/images/hd/ks-wall-diner-mediterranean-market-floor70-v1.png' },
-    { id: 'sage',          name: '🌿 Warm Sage',      trim: 0.85, url: 'assets/images/hd/ks-wall-diner-warm-sage-v1.png' },
+    { id: 'brady',         name: '📺 Brady Bunch',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-brady-bunch-kitchen-floor70-v1.jpg' },
+    { id: 'cheers',        name: '🍺 Cheers Bar',     trim: 0.30, url: 'assets/images/hd/ks-wall-diner-cheers-bar-floor70-v1.jpg' },
+    { id: 'goldengirls',   name: '🌴 Golden Girls',   trim: 0.30, url: 'assets/images/hd/ks-wall-diner-golden-girls-kitchen-floor70-v1.jpg' },
+    { id: 'lucy',          name: '❤️ I Love Lucy',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-i-love-lucy-kitchen-floor70-v1.jpg' },
+    { id: 'seinfeld',      name: '🗽 Seinfeld',       trim: 0.30, url: 'assets/images/hd/ks-wall-diner-seinfeld-apartment-floor70-v1.jpg' },
+    { id: 'wonka',         name: '🍫 Willy Wonka',    trim: 0.30, url: 'assets/images/hd/ks-wall-diner-willy-wonka-chocolate-room-floor70-v1.jpg' },
+    { id: 'oz',            name: '🌈 Oz Technicolor', trim: 0.30, url: 'assets/images/hd/ks-wall-diner-oz-technicolor-floor70-v1.jpg' },
+    { id: 'mediterranean', name: '🏺 Mediterranean',  trim: 0.30, url: 'assets/images/hd/ks-wall-diner-mediterranean-market-floor70-v1.jpg' },
+    { id: 'sage',          name: '🌿 Warm Sage',      trim: 0.85, url: 'assets/images/hd/ks-wall-diner-warm-sage-v1.jpg' },
   ];
   const DEFAULT_WALLPAPER = 'wood';
   const WALLPAPER_BY_ID = Object.fromEntries(WALLPAPERS.map((w) => [w.id, w]));
@@ -2524,10 +2524,17 @@
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 
-  // Warm the sprite cache while the player is still on the menus, so the
-  // first round doesn't watch assets pop in one by one. Slightly deferred
-  // to keep the home screen's first paint snappy.
-  setTimeout(() => { if (window.GFX) GFX.preload(); }, 600);
+  // Warm only the CORE sprites on the menus (chef, plate, UI icons) — the
+  // full manifest references tens of MB across every theme and character, so
+  // blanket preloading made a first phone visit download the entire catalog.
+  // Each round warms exactly the art it needs (renderer.preloadRoundArt);
+  // anything missed still lazy-loads on first draw.
+  setTimeout(() => {
+    if (!window.GFX) return;
+    for (const k of ['chef', 'chef_back', 'plate', 'crate', 'ui_coin', 'ui_timer']) {
+      if (GFX.has(k)) GFX.img(k);
+    }
+  }, 600);
 
   // one shared gesture unlock: SFX synth + the YouTube radio player
   // (music.js installs its own identical listeners)

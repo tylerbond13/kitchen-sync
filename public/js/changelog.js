@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.43.0",
+    "title": "Two-thirds lighter",
+    "emoji": "🪶",
+    "category": "polish",
+    "changes": [
+      "The game no longer downloads its entire art catalog up front — each round loads exactly the sprites it needs, and everything else streams in only if used.",
+      "The big room backdrops slimmed from ~5MB apiece to a few hundred KB with no visible difference.",
+      "A typical session now transfers about a third of the data it used to — first loads on phones are dramatically faster."
+    ]
+  },
+  {
     "version": "1.42.0",
     "title": "Daily crew streak",
     "emoji": "🔥",
