@@ -35,6 +35,7 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [x] 16. Per-theme ambient critters
 - [x] 17. Mascot friends
 - [x] 18. Burned-dish + trash FX
+- [x] 19. Beaux-Arts counter block set
 
 ---
 
@@ -212,6 +213,16 @@ The ambience system already animates 3-frame idle loops (bees/butterflies exist)
 **Prompt:** STYLE BLOCK + "A comically burned dish: charcoal-dark but cute, one
 sad wisp of smoke, tiny embers. / A three-frame soft pink-grey smoke poof for
 trashing items — round, bouncy, harmless."
+
+### 19. Beaux-Arts counter block set — `ks-cw-counter{,-row-2-h,-row-3-h,-row-2-v,-row-3-v}-{front,left,right}-v1.png`
+**Prompt:** STYLE BLOCK + "A set of plain Beaux-Arts bakery counter blocks for
+building continuous station runs: single counter block, 2-tile horizontal run,
+3-tile horizontal run, 2-tile vertical-depth run, and 3-tile vertical-depth run.
+Each uses the same cream enamel cabinet body, thick honey-wood countertop, brass
+pulls, brass toe-kick feet, restrained mint/teal accent insets, and plum/ink
+underside depth as the v1 cooking stations. No appliance, no food, no signage,
+no hearts, no flowers, no heavy blush-pink surfaces. Produce front/left/right
+facings for every run."
 
 ---
 
