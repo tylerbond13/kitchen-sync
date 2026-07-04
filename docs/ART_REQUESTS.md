@@ -33,8 +33,8 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [x] 14. Roadmap section banners
 - [x] 15. Home-screen hero
 - [x] 16. Per-theme ambient critters
-- [ ] 17. Mascot friends
-- [ ] 18. Burned-dish + trash FX
+- [x] 17. Mascot friends
+- [x] 18. Burned-dish + trash FX
 
 ---
 
