@@ -35,6 +35,13 @@ motifs, flowery vanity details, and heavy blush-pink surfaces.
 - [ ] 16. Per-theme ambient critters
 - [ ] 17. Mascot friends
 - [ ] 18. Burned-dish + trash FX
+- [ ] 19. **Beaux-Arts counter block set (HIGHEST-IMPACT REQUEST)** — the plain
+      brown counters are the last old-style stations on every board and clash
+      with the cream/honey/brass set (see docs/DESIGN_REVIEW_2026-07-03.md).
+      Needed: single counter block + 2-run and 3-run variants (horizontal +
+      vertical), front/left/right facings, same cream enamel + honey-wood top +
+      brass pulls language as the v1 stations. Files:
+      ks-cw-counter{,-row-2-h,-row-3-h,-row-2-v,-row-3-v}-{front,left,right}-v1.png
 
 ---
 

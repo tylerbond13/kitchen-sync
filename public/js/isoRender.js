@@ -409,6 +409,19 @@
       this.themeName = staticState.theme || 'diner';
       this.theme   = THEMES[this.themeName] || THEMES.diner;
       this.wallMeta = WALL_META[this.themeName] || WALL_META.diner;
+      // World-anchored backdrop (roadmap #6): the wallpaper is drawn ON the
+      // canvas in world coordinates — its floor/wall boundary (trim) lands
+      // just above the room's top edge and its floor grain scales with the
+      // tiles, so the photo stops being a poster behind the kitchen and
+      // becomes the room itself. The blurred CSS copy underneath only bleeds
+      // into screen edges this aligned draw can't reach.
+      if (opts.backdrop && opts.backdrop.url && window.ASSETS) {
+        const bk = `backdrop:${opts.backdrop.url}`;
+        if (!ASSETS[bk]) ASSETS[bk] = { path: opts.backdrop.url, nokey: true };
+        this._backdropKey = bk;
+        this._backdropTrim = Math.max(0, Math.min(1, opts.backdrop.trim ?? 0.30));
+      }
+
       // Every kitchen gets ambient set dressing (rugs, sconces, a mascot,
       // drifting bees/butterflies) generated from its own grid — Cake World
       // keeps its hand-tuned arrangement.
@@ -445,19 +458,6 @@
         const t = this.theme;
         canvas.parentElement.style.background =
           `radial-gradient(120% 100% at 50% 18%, ${t.surroundA} 0%, ${t.surroundB} 100%)`;
-      }
-
-      // World-anchored backdrop (roadmap #6): the wallpaper is drawn ON the
-      // canvas in world coordinates — its floor/wall boundary (trim) lands
-      // just above the room's top edge and its floor grain scales with the
-      // tiles, so the photo stops being a poster behind the kitchen and
-      // becomes the room itself. The blurred CSS copy underneath only bleeds
-      // into screen edges this aligned draw can't reach.
-      if (opts.backdrop && opts.backdrop.url && window.ASSETS) {
-        const bk = `backdrop:${opts.backdrop.url}`;
-        if (!ASSETS[bk]) ASSETS[bk] = { path: opts.backdrop.url, nokey: true };
-        this._backdropKey = bk;
-        this._backdropTrim = Math.max(0, Math.min(1, opts.backdrop.trim ?? 0.30));
       }
 
       // Character overlay: a transparent canvas stacked ABOVE the HTML ticket
@@ -1085,8 +1085,13 @@
         return bd <= maxR ? best : null;
       };
 
+      // Pink-rose dressing (rug + sconces) belongs to the wood-board/cake
+      // look. World-anchored ROOMS (trim > 0) are Beaux-Arts — the roses'
+      // blush-pink fights the brief there, and the room's own floor reads
+      // better bare (design self-review, 2026-07-03).
+      const roomBackdrop = (this._backdropTrim || 0) > 0.01;
       // a round rug under the heart of the kitchen
-      const c = floorNear(w / 2, h / 2 + 0.3);
+      const c = roomBackdrop ? null : floorNear(w / 2, h / 2 + 0.3);
       if (c) D.push({ kind: 'rug', key: 'cw_rug_round', gx: c.x - 0.5, gy: c.y - 0.45,
         w: Math.max(120, Math.min(190, w * 15)) });
 
@@ -1098,8 +1103,8 @@
         return null;
       };
       const sL = sconceRow(0), sR = sconceRow(w - 1);
-      if (sL !== null) D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: -0.32,    gy: sL, w: 36 });
-      if (sR !== null) D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: w + 0.32, gy: sR, w: 36 });
+      if (!roomBackdrop && sL !== null) D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: -0.32,    gy: sL, w: 36 });
+      if (!roomBackdrop && sR !== null) D.push({ kind: 'prop', key: 'cw_wall_sconce', gx: w + 0.32, gy: sR, w: 36 });
 
       // (no mascot — Tyler's call: the purple dinosaur is permanently benched)
 
