@@ -1071,8 +1071,10 @@ input[type="text"]:focus {
 
 /* ============ Rush banner & star progress ============ */
 .rush-banner {
-  position: absolute; z-index: 22;
-  top: calc(var(--hud-band-h, calc(var(--sat) + var(--hud-top-h, 84px))) + 6px);
+  /* Rides OVER the ticket band (transient, seconds) — never over the board.
+     Tyler's rule: nothing covers the playable rectangle. */
+  position: absolute; z-index: 30;
+  top: calc(var(--sat, 0px) + 8px);
   left: 50%; transform: translateX(-50%);
   max-width: min(92vw, 480px);
   background: linear-gradient(90deg, var(--sherbet) 0%, var(--bubblegum) 45%, var(--gold) 100%);
@@ -1582,8 +1584,9 @@ input[type="text"]:focus {
 @keyframes final-breathe { 50% { opacity: .45; } }
 /* ⭐ STAR SECURED — flashes when the score crosses a goal mid-round */
 .star-banner {
-  position: absolute; z-index: 23;
-  top: calc(var(--hud-band-h, calc(var(--sat, 0px) + var(--hud-top-h, 84px))) + 40px);
+  /* Same rule as the rush banner: flash over the HUD band, not the board */
+  position: absolute; z-index: 29;
+  top: calc(var(--sat, 0px) + 12px);
   left: 50%; transform: translateX(-50%);
   background: linear-gradient(90deg, #FFD98A 0%, #E8A93C 100%);
   color: #5A3A00; font-weight: 900; font-size: 16px; letter-spacing: .5px;
@@ -1645,9 +1648,11 @@ input[type="text"]:focus {
 /* Rotating starter tips sit under the tickets, over the decorative wall —
    never covering the serve windows on the front row */
 .game-hint {
-  position: absolute; z-index: 19;
+  /* Anchored at the BOTTOM, riding the top edge of the score band — the old
+     under-tickets slot sat right on the back row's crates/counters. */
+  position: absolute; z-index: 21;
   left: 50%; transform: translateX(-50%);
-  top: calc(var(--hud-band-h, calc(var(--sat, 0px) + var(--hud-top-h, 84px))) + 34px);
+  bottom: calc(var(--sab, 0px) + var(--hud-bot-h, 46px) + 8px);
   max-width: min(86vw, 460px);
   text-align: center; font-size: 12px; font-weight: 800;
   color: #FFF6EA;

@@ -10,6 +10,12 @@ Running list of what I ship while you're away. Newest at top. Each item links it
 - **Level menu as a roadmap** — show the campaign as a progression map.
 
 ## Shipped
+### Nothing covers the board. Period. (v1.44.2 — Tyler's desktop screenshots)
+- **Cards vs back row:** the fit now reserves the height row-0 STATION SPRITES draw above the room border (block art ≈ 2 tiles tall), so the ticket cards can never overlap crates/counters; the board consumes the previously-free strip above the score bar (Tyler: "the border of the game should NEVER overlap the recipe cards").
+- **Rush + star banners** ride OVER the ticket band (transient) instead of the kitchen; the rotating hint moved to the bottom edge above the score band — the old under-tickets slot sat right on the back row.
+- **Lettuce-through-the-chef fixed:** the char-overlay replayed a chef's upper body OVER already-drawn station items across the band clip line, so an ingredient looked sliced through him. The overlay now replays the frame's station-surface items above the replayed characters — layering matches the main pass everywhere.
+- _(Verified at 1500×760 and 844×390: border fully below the cards, banners contained in the band (rush 8–46px vs board top 112px), carried + station items render in front; 94/94 green.)_
+
 ### Dinosaur: extinct — the ban is now enforced everywhere (v1.44.1)
 - **Root cause of Codex generating dinosaurs:** the ban lived in my memory notes, but `docs/ART_REQUESTS.md` still carried the pre-ban item 17 ("mascot friends — small round dinosaur in mint/gold, match cw-mascot-1.png"). Codex works from that doc and did exactly what it said. My mistake — a ban that only exists in my notes doesn't bind other agents.
 - Fixed for good: item 17 deleted; a ⛔ permanent-ban banner added at the TOP of ART_REQUESTS.md; **all 19 mascot PNGs deleted from the repo** (the "keep but unused" policy is what made them available as style references); `cw_mascot_*` manifest keys removed; stale "mascot" comments cleaned.
