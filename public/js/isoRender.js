@@ -664,16 +664,23 @@
         const scr = document.getElementById('screen-game');
         if (scr) scr.style.setProperty('--hud-band-h', `${Math.round(this.bandTop / this.dpr)}px`);
       }
-      // Fit the ROOM between the bands (max tile size). Characters near the
-      // top rows rise into the zone behind the ticket band — those sprites
-      // are replayed onto the char overlay canvas ABOVE the tickets, so
-      // nothing gameplay-relevant is ever hidden (see drawCharOverlay).
-      const playH  = this.worldH - this.oy;   // room rows + front-face padding
+      // Fit the ROOM between the bands (max tile size) — INCLUDING the height
+      // that row-0 STATION SPRITES draw above the room's top border (block art
+      // is ~2 tiles tall, so crates/counters on the back row rise well past
+      // the border). Tyler's rule: the ticket cards must never overlap the
+      // board or anything standing on it — reserve that rise, don't hide it.
+      // (Tall CHARACTERS still replay onto the char overlay above the cards.)
+      const row0HasStations = (this.lvl.grid[0] || []).some
+        ? [...this.lvl.grid[0]].some((c) => c !== '.')
+        : String(this.lvl.grid[0] || '').split('').some((c) => c !== '.');
+      const spriteRise = row0HasStations ? 66 : 24;   // world px above the border
+      const playTop = Math.max(PAD, this.oy - spriteRise);
+      const playH  = this.worldH - playTop;  // sprite rise + rows + front faces
       const availH = Math.max(80, this.canvas.height - this.bandTop - this.bandBot);
       this.scale = Math.min(this.canvas.width / this.worldW, availH / playH);
       this.txOff = (this.canvas.width - this.worldW * this.scale) / 2;
-      // pin the top row just below the tickets; float in any spare height
-      this.tyOff = this.bandTop - this.oy * this.scale
+      // pin the tallest back-row sprite just below the tickets; float spare
+      this.tyOff = this.bandTop - playTop * this.scale
                  + Math.max(0, availH - playH * this.scale) / 2;
       if (this.overlay) {
         this.overlay.width  = this.canvas.width;
@@ -964,12 +971,17 @@
     // canvas hides behind the order cards is redrawn ABOVE them. Below the
     // band the main canvas already shows the same pixels, so the overlay
     // stays empty there (no double-draw halos on opaque sprite art).
+    // Station-surface contents replay ON TOP of the replayed characters —
+    // exactly like the main pass — otherwise the overlay chef's upper body
+    // covers a board's ingredient across the clip line and the item looks
+    // sliced through the chef (Tyler's lettuce bug, 2026-07-05).
     drawCharOverlay() {
       const o = this.octx;
       if (!o) return;
       o.setTransform(1,0,0,1,0,0);
       o.clearRect(0,0,this.overlay.width,this.overlay.height);
       if (!this._charDraws || !this._charDraws.length || !(this.bandTop > 0)) return;
+      const frameOverlays = this._overlays;   // the main pass's surface items
       o.save();
       o.beginPath();
       o.rect(0, 0, this.overlay.width, this.bandTop + 2 * this.dpr);
@@ -981,6 +993,7 @@
       this.ctx = o; this._labels = []; this._overlays = []; this._hits = [];
       for (const d of this._charDraws) d();
       for (const fn of this._overlays) fn();
+      for (const fn of frameOverlays) fn();   // keep surface items above chars
       this.drawLabels(o, this._labels);
       this.ctx = realCtx; this._labels = realLabels; this._overlays = realOverlays; this._hits = realHits;
       o.restore();

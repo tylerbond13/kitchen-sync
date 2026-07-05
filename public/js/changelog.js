@@ -3,6 +3,17 @@
 // the newest release at the top and add an entry each release.
 window.KS_CHANGELOG = [
   {
+    "version": "1.44.2",
+    "title": "Nothing covers the board. Period.",
+    "emoji": "📐",
+    "category": "fix",
+    "changes": [
+      "The board now reserves space for how tall the back-row crates and counters actually draw — order cards can never overlap them, and the board uses the free space near the score bar instead.",
+      "The BONUS TIME and STAR SECURED banners flash over the ticket band now, never over the kitchen; the rotating tip moved to the bottom edge.",
+      "Fixed items looking sliced through a chef standing in front of a station near the top of the screen."
+    ]
+  },
+  {
     "version": "1.44.1",
     "title": "Dinosaur: extinct",
     "emoji": "🦕",
